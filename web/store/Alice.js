@@ -31,7 +31,7 @@ class AliceStore {
         if (typeof window !== 'undefined') {
             window.Waves.auth({
                 name: 'Chainify',
-                data: 'test secret string',
+                data: process.env.SECRET,
             }).then(() => {
                 window.Waves.publicState().then(data => {
                     this.publicKey = data.account.publicKey; 

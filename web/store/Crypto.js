@@ -19,9 +19,6 @@ class CryptoStore {
     encryptMessage(recipientPublicKey) {
         const { cdm, alice, settings } = this.stores;
         return new Promise((resolve, reject) => {            
-            // const sharedKey = getSharedKey(alice.privateKey, recipientPublicKey);
-            // const b58sk  = base58.encode(sharedKey);
-           
             if (typeof window !== 'undefined') {
                 const sha = sha256(cdm.message);
                 const signature = signBytes(Buffer.from(sha), settings.seed);
@@ -40,14 +37,6 @@ class CryptoStore {
         });
     }
 
-    // @action
-    // encryptMessageSync(recipientAddress, recipientPublicKey) {
-    //     const { alice, cdm } = this.stores;
-    //     const sharedKey = getSharedKey(alice.privateKey, recipientPublicKey);
-    //     const cyphetText = encryptMessage(sharedKey, cdm.message);
-    //     const msg = `-----BEGIN ${recipientAddress}-----\n${cyphetText}\n-----END ${recipientAddress}-----`;
-    //     return msg;
-    // }
 
     @action
     decryptMessage(cypherText, publicKey) {
