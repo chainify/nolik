@@ -1,0 +1,30 @@
+version: "2"
+
+services:
+  nginx:
+    build: ./nginx
+    image: chainify/app-nginx
+    container_name: app-nginx
+    ports:
+      - 3300:80
+      - 3001:3001
+    volumes:
+      - ./nginx/nginx.dev.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - web
+    restart: unless-stopped
+
+  web:
+    build: ./web
+    image: chainify/app-web
+    container_name: app-web
+    volumes:
+      - ./web:/opt
+      - ./web/next-config.js:/opt/next-config.js
+      - ~/.data/leveldb/chainify/app:/root/.leveldb
+    environment:
+      # NODE_ENV: development
+      WS_PORT: 3001
+    restart: unless-stopped
+    command: bash -c "npm install -y && npm run dev"
+    # command: bash -c "npm run build && npm run start"

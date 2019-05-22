@@ -1,0 +1,102 @@
+version: "2"
+
+services:
+  nginx:
+    image: chainify/main-nginx
+    container_name: main-nginx
+    ports:
+      - 443:443
+      - 80:80
+      - 3001:3001
+    depends_on:
+      - alice
+      - bob
+      - carol
+      - dave
+      - api
+      - parser
+      - ipfs
+    restart: always
+
+  alice:
+    image: chainify/main-web
+    container_name: main-web-alice
+    depends_on:
+      - api
+    environment:
+      SEED: before scare used stool jump book banana opinion body cattle entire syrup fog they switch
+      WS_PORT: 3001
+    restart: always
+    command: bash -c "npm run start"
+
+  bob:
+    image: chainify/main-web
+    container_name: main-web-bob
+    depends_on:
+      - api
+    environment:
+      SEED: tomato december safe glare pool derive host brief average message vacant surface cart dune enjoy
+      WS_PORT: 3002
+    restart: always
+    command: bash -c "npm run start"
+
+  carol:
+    image: chainify/main-web
+    container_name: main-web-carol
+    depends_on:
+      - api
+    environment:
+      SEED: tell gap torch wrap wide remove razor reduce wing kidney sock success vital cook million
+      WS_PORT: 3003
+    restart: always
+    command: bash -c "npm run start"
+
+  dave:
+    image: chainify/main-web
+    container_name: main-web-dave
+    depends_on:
+      - api
+    environment:
+      SEED: mother prize rail economy proud loan bread travel hurdle radar rubber file mammal beauty ski
+      WS_PORT: 3004
+    restart: always
+    command: bash -c "npm run start"
+
+  api:
+    image: chainify/engine-api
+    container_name: engine-api
+    depends_on:
+      - ipfs
+    command: bash -c "python3.7 server.py"
+    tty: true
+    stdin_open: true
+    restart: always
+
+  parser:
+    image: chainify/engine-parser
+    container_name: engine-parser
+    mem_limit: 1G
+    command: bash -c "python3.7 server.py"
+    tty: true
+    stdin_open: true
+    labels:
+      - "autoheal=true"
+    restart: always
+
+  autoheal:
+    image: willfarrell/autoheal:latest
+    container_name: engine-autoheal
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=autoheal
+
+  ipfs:
+    image: jbenet/go-ipfs:latest
+    container_name: engine-ipfs
+    volumes:
+      - ~/.data/ipfs/chainify:/data/ipfs
+    restart: always
+    tty: true
+    stdin_open: true

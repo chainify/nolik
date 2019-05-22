@@ -1,0 +1,38 @@
+{
+  "name": "create-next-example-app",
+  "scripts": {
+    "dev": "node server.js",
+    "build": "next build",
+    "start": "NODE_ENV=production node server.js"
+  },
+  "dependencies": {
+    "@waves/waves-crypto": "^2.1.2",
+    "@waves/waves-transactions": "^3.3.11",
+    "@zeit/next-css": "^1.0.1",
+    "antd": "^3.13.4",
+    "axios": "^0.18.0",
+    "babel-plugin-import": "^1.11.0",
+    "babel-plugin-inline-import": "^3.0.0",
+    "bs58": "^4.0.1",
+    "cors": "^2.8.5",
+    "crypto-js": "^3.1.9-1",
+    "dotenv": "^6.2.0",
+    "express": "^4.16.4",
+    "js-sha256": "^0.9.0",
+    "level-js": "^4.0.0",
+    "levelup": "^4.0.0",
+    "mobx": "^5.9.0",
+    "mobx-react": "^5.4.3",
+    "next": "8.0.1",
+    "next-i18next": "^0.32.0",
+    "react": "16.8.2",
+    "react-dom": "16.8.2",
+    "react-mousetrap": "^0.2.0",
+    "typescript": "^3.4.3",
+    "waves-api": "^0.24.2"
+  },
+  "devDependencies": {
+    "@babel/plugin-proposal-class-properties": "^7.3.3",
+    "@babel/plugin-proposal-decorators": "^7.3.0"
+  }
+}
