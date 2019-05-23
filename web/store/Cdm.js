@@ -160,8 +160,6 @@ class CdmStore {
                 }
             })
             .then(tx => {
-                console.log('IN', tx.id);
-                
                 const now = moment().unix();
                 self.pendingTimestampsDB.put(tx.id, Buffer.from(now.toString()));
                 self.pendingMessagesDB.put(tx.id, Buffer.from(this.message));

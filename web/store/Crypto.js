@@ -47,7 +47,10 @@ class CryptoStore {
                     .then(res => {
                         resolve(res);
                     })
-                    .catch(e => reject(e));
+                    .catch(e => {
+                        console.log(e);
+                        resolve('⚠️ Decoding error');
+                    });
             }
         })
     }
