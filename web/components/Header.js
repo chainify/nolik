@@ -100,8 +100,10 @@ class Header extends React.Component {
                         -webkit-line-clamp: 1;
                         -webkit-box-orient: vertical;
                         width: 100%;
+
+                        overflow: hidden;
+                        white-space: no-wrap;
                         text-overflow: ellipsis;
-                        overflow-y: hidden;
                         word-break: break-all;
                     }
 
@@ -109,9 +111,14 @@ class Header extends React.Component {
                         display: -webkit-box;
                         -webkit-line-clamp: 1;
                         -webkit-box-orient: vertical;
+
+                        overflow: hidden;
+                        white-space: no-wrap;
+                        text-overflow: ellipsis;
+                        word-break: break-all;
+                        
                         width: 100%;
                         text-overflow: ellipsis;
-                        overflow-y: hidden;
                     }
                 `}</style>
             </div>

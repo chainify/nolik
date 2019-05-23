@@ -8,7 +8,7 @@ class WrapperStore {
         this.stores = stores;
     }
 
-    @observable seed = 'before scare used stool jump book banana opinion body cattle entire syrup fog they switch';
+    @observable seed = '';
 }
 
 export default WrapperStore;

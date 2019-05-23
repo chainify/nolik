@@ -132,6 +132,7 @@ class Message extends React.Component {
 
                     .message.pending {
                         background-color: #fff;
+                        opacity: 0.5;
                     }
 
                     .message.incoming {

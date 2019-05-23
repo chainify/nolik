@@ -37,7 +37,7 @@ class Skeleton extends React.Component {
             </div>
             <style jsx>{`
               .header {
-                background: #64b5f6;
+                background: #42a5f5;
                 padding: 20px;
               }
             `}</style>
