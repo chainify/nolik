@@ -6,7 +6,7 @@ services:
     container_name: app-nginx
     ports:
       - 80:80
-      - 3101:3101
+      - 443:443
     depends_on:
       - web
       - api

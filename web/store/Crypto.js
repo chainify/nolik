@@ -27,8 +27,8 @@ class CryptoStore {
                     .then(emcMsg => {
                         let msg = '';
                         msg += '-----BEGIN_BLOCKCHAIN WAVES-----';
-                        msg += `\n-----BEGIN_PK ${recipientPublicKey}-----\n${emcMsg}\n-----END_PK ${recipientPublicKey}-----`;
-                        msg += `\n-----BEGIN_SHA256-----\n${sha}\n-----END_SHA256-----`;
+                        msg += `\n-----BEGIN_PUBLIC_KEY ${recipientPublicKey}-----\n${emcMsg}\n-----END_PUBLIC_KEY ${recipientPublicKey}-----`;
+                        msg += `\n-----BEGIN_SHA256 ${recipientPublicKey}-----\n${sha}\n-----END_SHA256 ${recipientPublicKey}-----`;
                         msg += `\n-----BEGIN_SIGNATURE ${alice.publicKey}-----\n${signature}\n-----END_SIGNATURE ${alice.publicKey}-----`;
                         msg += '\n-----END_BLOCKCHAIN WAVES-----';
                         resolve(msg);

@@ -1,8 +1,9 @@
 import { action, observable } from 'mobx';
 import axios from 'axios';
-import * as WavesAPI from 'waves-api';
 import Router from 'next/router';
 import stringFromUTF8Array from './../utils/batostr';
+import { keyPair as wckp } from '@waves/waves-crypto';
+
 
 class AliceStore {
     stores = null;
@@ -11,55 +12,68 @@ class AliceStore {
         // this.init = this.init.bind(this);
         this.auth = this.auth.bind(this);
         this.authCheck = this.authCheck.bind(this);
+
+        this.publicKey = null;
+        this.privateKey = null;
     }
 
     @observable publicKey = null;
 
-    // @action
-    // init() {
-    //     const { settings } = this.stores;
-    //     const Waves = WavesAPI.create(WavesAPI.TESTNET_CONFIG);
-    //     const seed = Waves.Seed.fromExistingPhrase(settings.seed);
-    //     this.address = seed.address;
-    //     this.publicKey = seed.keyPair.publicKey;
-    //     this.privateKey = seed.keyPair.privateKey;
-    // }
+    @action
+    init() {
+        const { login } = this.stores;
+        const keyPair = wckp(login.seed);
+        this.publicKey = keyPair.public;
+        this.privateKey = keyPair.private;
+        
+        Router.push('/');
+    }
 
     @action
     auth() {
         const { cdm, bob } = this.stores;
         if (typeof window !== 'undefined') {
-            window.Waves.auth({
-                name: 'Chainify',
-                data: process.env.SECRET,
-            }).then(() => {
-                window.Waves.publicState().then(data => {
-                    this.publicKey = data.account.publicKey; 
-                    const bobPublicKey = sessionStorage.getItem('bobPublicKey');
-                    if (bobPublicKey) {
-                        Router.push(`/index?publicKey=${bobPublicKey}`, `/pk/${bobPublicKey}`);
-                    } else {
-                        Router.push('/');
-                    }
+            try {
+                window.Waves.auth({
+                    name: 'Chainify',
+                    data: process.env.SECRET,
+                }).then(() => {
+                    window.Waves.publicState().then(data => {
+                        this.publicKey = data.account.publicKey; 
+                        const bobPublicKey = sessionStorage.getItem('bobPublicKey');
+                        if (bobPublicKey) {
+                            Router.push(`/index?publicKey=${bobPublicKey}`, `/pk/${bobPublicKey}`);
+                        } else {
+                            Router.push('/');
+                        }
+                    })
+                    .catch(e => {
+                        console.error(e);
+                    });
                 })
                 .catch(e => {
                     console.error(e);
                 });
-            })
-            .catch(e => {
-                console.error(e);
-            });
+            } catch(e) {
+                if (e.message === 'window.Waves is undefined') {
+                    console.log('Keeper needed');
+                }
+            }
+            
         }
     }
 
 
     @action
     authCheck() {
+        const { login } = this.stores;
         if (typeof window !== 'undefined') {
             try {
                 window.Waves.publicState().then(res => {   
                     if (res.locked === true) {
-                        this.publicKey = null;
+                        if (login.loginWith === 'keeper') {
+                            this.publicKey = null;
+                        }
                     } else {
                         if (this.publicKey !== res.account.publicKey) {
                             this.publicKey = res.account.publicKey;
@@ -69,9 +83,13 @@ class AliceStore {
                 .catch(e => {
                     this.publicKey = null;
                     console.log(e);
-                })
-            } catch(e) {
-                console.log(e);
+                });
+            } catch(e) {                
+                if (e.message === 'window.Waves is undefined') {
+                    console.log('Keeper needed');
+                } else {
+                    console.log(e);
+                }w
             } finally {
                 if (this.publicKey === null) {
                     Router.push('/login');

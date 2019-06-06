@@ -8,6 +8,7 @@ import Crypto from './Crypto';
 import Wrapper from './Wrapper';
 import Settings from './Settings';
 import Contacts from './Contacts';
+import Login from './Login';
 
 const stores = {};
 
@@ -21,5 +22,6 @@ stores.index = new Index(stores);
 stores.cdm = new Cdm(stores);
 stores.settings = new Settings(stores);
 stores.contacts = new Contacts(stores);
+stores.login = new Login(stores);
 
 export default stores;

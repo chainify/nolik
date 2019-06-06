@@ -14,9 +14,27 @@ class Skeleton extends React.Component {
               div.row {
                 width: 100%;
                 height: 16px;
-                background: #f2f2f2;
+                // background: #f2f2f2;
+                background-image: 
+                  repeating-linear-gradient(
+                    90deg,
+                    #eee,
+                    #fff
+                  );
+                background-position: 0px 0px;
+                // background-size: 28px 28px;
+                animation: move 2s infinite;
                 display: block;
                 margin-bottom: 16px;
+              }
+
+              @keyframes move {
+                from {
+                  background-position: 0px 0px;
+                }
+                to {
+                  background-position: 500px 0px;
+                }
               }
 
               div.title {

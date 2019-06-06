@@ -16,4 +16,4 @@ COPY ./.env.prod /opt/.env
 COPY ./package.json /opt/package.json
 COPY ./server.js /opt/server.js
 
-EXPOSE 3000 3001 3002 3003 3004
+EXPOSE 3000 3001

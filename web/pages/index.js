@@ -8,7 +8,7 @@ import Wrapper from '../components/Wrapper';
 import Header from '../components/Header';
 import Cdm from '../components/Cdm';
 import Skeleton from '../components/Skeleton';
-import { Row, Col, Input, Divider, Icon } from 'antd';
+import { Row, Col, Input, Button, Icon } from 'antd';
 const { TextArea } = Input;
 import * as moment from 'moment';
 import mouseTrap from 'react-mousetrap';
@@ -35,17 +35,9 @@ class Index extends React.Component {
                 bob.publicKey = router.query.publicKey;
             }
         });
-
-        autorun(() => {
-            if (alice.publicKey) {
-                bob.initLevelDB();
-                bob.getList();
-            }
-        });
         
         this.contactsPeriodicChecker = autorun(() => {
             if (bob.getListStatus === 'success') {
-                console.log('get bob list');
                 bob.getList();
             }
         });
@@ -56,16 +48,16 @@ class Index extends React.Component {
                 cdm.getList();
             }
         });
-        
-        autorun(() => {
-            if (passport.id) {
-                passport.getPassport();
-            }
-        });
     }
 
     componentDidMount() {
-        const { cdm } = this.props;
+        const { cdm, bob } = this.props;
+
+        if (bob.getListStatus === 'init') {
+            bob.initLevelDB();
+            bob.getList();
+        }
+        
         this.props.bindShortcut('meta+enter', () => {
             if (cdm.message.trim() !== "") {
                 cdm.sendCdm();
@@ -84,7 +76,7 @@ class Index extends React.Component {
         return (
             <Wrapper>
                 <Row>
-                    <Col xs={8} lg={6}>
+                    <Col xs={bob.publicKey === null ? 24 : 0} sm={6}>
                         <div className="contacts">
                             {!bob.list && index.fakeHeaders.map(item => (
                                 <Skeleton rows={2} key={`header_${item}`} />
@@ -100,10 +92,28 @@ class Index extends React.Component {
                             ))}
                         </div>
                     </Col>
-                    <Col xs={16} lg={passport.id === null ? 18: 12}>
+                    <Col xs={bob.publicKey === null ? 0 : 24} sm={18}>
                         {bob.publicKey === null && <div className={`cdm empty`} />}
                         {bob.publicKey && bob.list && (
                             <div className="cdm">
+                                <div className="cdmHeader">
+                                    <div className="headerBtn">
+                                        <Button
+                                            type="ghost"
+                                            // style={{ color: '#fff' }}
+                                            onClick={() => {
+                                                bob.publicKey = null;
+                                                cdm.list = [];
+                                                Router.push('/');
+                                            }}
+                                        >
+                                            <Icon type="left" />
+                                        </Button>
+                                    </div>
+                                    <div className="headerPublicKey">
+                                        {bob.publicKey}
+                                    </div>
+                                </div>
                                 <Cdm />
                                 <div className="actions">
                                     {/* <div className={`actionButtons ${!cdm.message && 'hidden'}`}>
@@ -121,7 +131,7 @@ class Index extends React.Component {
                                         value={cdm.message}
                                         ref={elem => this.tArea = elem}
                                         autosize={{ "minRows" : 2, "maxRows" : 20 }}
-                                        placeholder={`Type your message here. ⌘ + Enter to send message`}
+                                        placeholder={`Type your message here. ⌘ / ❖ + Enter to send message`}
                                         onChange={e => {
                                             cdm.message = e.target.value;
                                         }}
@@ -141,47 +151,6 @@ class Index extends React.Component {
                             </div>
                         )}
                     </Col>
-                    <Col xs={0} lg={passport.id === null ? 0 : 6}>
-                        <div className="passport">
-                            <div className="passportHeader">
-                                <button
-                                    onClick={() => {
-                                        passport.id = null;
-                                    }}
-                                >
-                                    <Icon type="close" />
-                                </button>
-                            </div>
-                            <div className="passportContent">
-                                <h2>Chainify passport</h2>
-                                {passport.tx ? (
-                                    <div className="content">
-                                        <h3>The encrypted message, stored on IPFS network</h3>
-                                        <h4><a href={`/ipfs/${passport.tx.ipfsHash}`} target="_blank">{passport.tx.ipfsHash}</a></h4>
-
-                                        <h3>Saved to Waves blockchain platform with transaction</h3>
-                                        <h4><a href={`https://wavesexplorer.com/testnet/tx/${passport.tx.id}`} target="_blank">{passport.tx.id}</a></h4>
-
-                                        <h3>Unique Chainify Passport ID</h3>
-                                        <h4>{passport.id}</h4>
-                                        
-                                        <h3>The sender of a message</h3>
-                                        <h4><b>{passport.tx.senderName}</b> {`<`}<a href={`https://wavesexplorer.com/testnet/address/${passport.tx.sender}`} target="_blank">{passport.tx.sender}</a>{`>`}</h4>
-
-                                        <h3>The recipient of a message</h3>
-                                        <h4><b>{passport.tx.recipientName}</b> {`<`}<a href={`https://wavesexplorer.com/testnet/address/${passport.tx.recipient}`} target="_blank">{passport.tx.recipient}</a>{`>`}</h4>
-
-                                        <h3>The message was sent on</h3>
-                                        <h4>{moment.unix(passport.tx.timestamp).format('MMM DD YYYY, HH:mm')}</h4>
-                                        <Divider />
-                                        <p><a href={`/passport/${passport.id}`} target="_blank">Share</a></p>
-                                    </div>
-                                ) : (
-                                    <div>Loading...</div>
-                                )}
-                            </div>
-                        </div>
-                    </Col>
                 </Row>
                 <style jsx>{`
                     .contacts {
@@ -194,6 +163,7 @@ class Index extends React.Component {
                     .contacts .noContacts {
                         line-height: 50px;
                         text-align: center;
+                        color: #fff;
                     }
 
                     .cdm {
@@ -206,6 +176,34 @@ class Index extends React.Component {
                         height: 100vh;
                         background: url(./../static/empty.svg) no-repeat center center;
                         background-size: 20%;
+                    }
+
+                    .cdm .cdmHeader {
+                        background: #eee;
+                        padding: 10px 20px;
+                        width: 100%;
+                        display: flex;
+                    }
+
+                    .cdmHeader .headerBtn {
+                        display: inline-block;
+                        flex-basis: 100px;
+                    }
+
+                    .cdmHeader .headerPublicKey {
+                        flex-grow: 1;
+                        color: #666;
+                        font-size: 1.2em;
+                        line-height: 32px;
+
+                        display: -webkit-box;
+                        -webkit-line-clamp: 1;
+                        -webkit-box-orient: vertical;
+
+                        overflow: hidden;
+                        white-space: no-wrap;
+                        text-overflow: ellipsis;
+                        word-break: break-all;
                     }
 
                     .cdm .actions {

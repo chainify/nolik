@@ -25,6 +25,6 @@ module.exports = {
   onDemandEntries: {
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 2,
-    websocketPort: process.env.WS_PORT,
+    websocketPort: process.env.WS_PORT || 3001,
   }
 }
