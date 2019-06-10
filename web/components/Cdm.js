@@ -14,7 +14,6 @@ class Cdm extends React.Component {
 
     componentDidMount() {
         this.contentDiv.scrollTop = this.contentDiv.scrollHeight - this.contentDiv.clientHeight;
-        // this.hiddenEl.scrollIntoView();
     }
 
     render() {
@@ -33,7 +32,7 @@ class Cdm extends React.Component {
                             showDivider = true;
                         }
                         return (
-                            <div key={`message_${item.txId}_${item.index}`}>
+                            <div key={`message_${item.hash}_${item.index}`}>
                                 {showDivider && (
                                     <Divider dashed style={{ color: '#fff' }}>
                                         <div className="divider">{moment.unix(item.timestamp).format('MMM DD')}</div>
@@ -49,15 +48,7 @@ class Cdm extends React.Component {
                     .content {
                         flex-grow: 1;
                         overflow-y: auto;
-                        background: #2196f3;
-
-                        // background: -moz-linear-gradient(45deg, rgba(224,224,224,1) 0%, rgba(255,255,255,1) 50%, rgba(242,242,242,1) 100%); /* ff3.6+ */
-                        // background: -webkit-gradient(linear, left bottom, right top, color-stop(0%, rgba(224,224,224,1)), color-stop(50%, rgba(255,255,255,1)), color-stop(100%, rgba(242,242,242,1))); /* safari4+,chrome */
-                        // background: -webkit-linear-gradient(45deg, rgba(224,224,224,1) 0%, rgba(255,255,255,1) 50%, rgba(242,242,242,1) 100%); /* safari5.1+,chrome10+ */
-                        // background: -o-linear-gradient(45deg, rgba(224,224,224,1) 0%, rgba(255,255,255,1) 50%, rgba(242,242,242,1) 100%); /* opera 11.10+ */
-                        // background: -ms-linear-gradient(45deg, rgba(224,224,224,1) 0%, rgba(255,255,255,1) 50%, rgba(242,242,242,1) 100%); /* ie10+ */
-                        // background: linear-gradient(45deg, rgba(224,224,224,1) 0%, rgba(255,255,255,1) 50%, rgba(242,242,242,1) 100%); /* w3c */
-                        // filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#F2F2F2', endColorstr='#E0E0E0',GradientType=1 ); /* ie6-9 */
+                        background: #42a5f5;
                     }
 
                     .list {

@@ -18,7 +18,11 @@ class MyDocument extends Document {
         </body>
         <style jsx>{`
           body {
-            background: #fff;
+            background: #2196f3!important;
+          }
+
+          body.custom_class {
+            background: #2196f3;
           }
         `}</style>
       </html>

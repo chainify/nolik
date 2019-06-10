@@ -2,7 +2,6 @@ import React from 'react';
 import { observer, inject } from 'mobx-react';
 import * as moment from 'moment';
 import { Icon } from 'antd';
-import { toJS } from 'mobx';
 
 @inject('cdm', 'passport')
 @observer

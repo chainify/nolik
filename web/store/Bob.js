@@ -9,7 +9,6 @@ class BobsStore {
         this.stores = stores;
         this.getList = this.getList.bind(this);
         this.decryptList = this.decryptList.bind(this);
-        this.initLevelDB = this.initLevelDB.bind(this);
     }
 
     @observable publicKey = null;
@@ -17,7 +16,6 @@ class BobsStore {
     @observable data = null;
     @observable newBob = null;
     @observable getListStatus = 'init';
-    @observable totalCdmDB = null;
 
     @observable bobDB = null;
     @observable showAddContactModal = false;
@@ -33,14 +31,6 @@ class BobsStore {
     @observable contactLastName = '';
     @observable contactFirstName = '';
     @observable contactPublicKey = '';
-
-    @action
-    initLevelDB() {
-        const levelup = require('levelup');
-        const leveljs = require('level-js');
-
-        this.totalCdmDB = levelup(leveljs(`/root/.leveldb/total_cdm`));
-    }
 
     @action
     setBob(publicKey) {
@@ -129,7 +119,7 @@ class BobsStore {
                                 listEl.readCdms = 0;
                                 return listEl;
                             }
-                            console.log('EE', e);
+                            console.log(e);
                         });
                         promises.push(p);
                     }

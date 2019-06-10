@@ -47,10 +47,10 @@ class Header extends React.Component {
                             </div>
                         </div>
                         <div className="badgeDiv">
-                            {item.totalCdms - item.readCdms > 0 && (
-                                <Badge count={item.totalCdms - item.readCdms} style={{ backgroundColor: '#64b5f6' }} />
+                            {item.inCdms - item.readCdms > 0 && (
+                                <Badge count={item.inCdms - item.readCdms} style={{ backgroundColor: '#64b5f6' }} />
                             )}
-                            {item.totalCdms - item.readCdms < 0 && (
+                            {item.inCdms - item.readCdms < 0 && (
                                 <Badge count={<Icon type="clock-circle" style={{ marginRight: 10 }} />} />
                             )}
                         </div>
@@ -87,7 +87,6 @@ class Header extends React.Component {
                     .header.active {
                         background: #ef5350; 
                         color: #fff;
-                        // border-color: #bbdefb;
                     }
 
                     .headerBody {

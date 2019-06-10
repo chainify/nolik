@@ -1,28 +1,28 @@
 import { action, observable } from 'mobx';
 import axios from 'axios';
 // import { encrypt, decrypt } from '../utils/cipherUtils';
-import { getSharedKey, encryptMessage, signBytes, verifySignature } from '@waves/waves-crypto';
+// import { getSharedKey, encryptMessage, signBytes, verifySignature } from '@waves/waves-crypto';
+import { signBytes } from '@waves/waves-crypto';
 import base58 from './../utils/base58';
 import { sha256 } from 'js-sha256';
-
 
 
 class CryptoStore {
     stores = null;
     constructor(stores) {
         this.stores = stores;
-        this.encryptMessage = this.encryptMessage.bind(this);
+        this.encryptCdm = this.encryptCdm.bind(this);
         this.decryptMessage = this.decryptMessage.bind(this);
     }
 
     @action
-    encryptMessage(recipients) {
+    encryptCdm(recipients) {
         const { cdm, alice, settings } = this.stores;
         return new Promise((resolve, reject) => {            
             if (typeof window !== 'undefined') {
                 const sha = sha256(cdm.message);
                 const signature = signBytes(Buffer.from(sha), settings.seed);
-
+                
                 const promises = [];
                 let msg = '';
                 msg += '-----BEGIN_BLOCKCHAIN WAVES-----';

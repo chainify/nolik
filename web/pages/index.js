@@ -25,7 +25,7 @@ class Index extends React.Component {
     contactsPeriodicChecker = null;
     constructor(props) {
         super(props);
-        const { alice, bob, router, contacts } = this.props;
+        const { alice, bob, router, cdm } = this.props;
         
         this.authPeriodicChecker = setInterval(() => {
             alice.authCheck();
@@ -48,7 +48,6 @@ class Index extends React.Component {
         const { cdm, bob } = this.props;
         
         if (bob.getListStatus === 'init') {
-            bob.initLevelDB();
             bob.getList();
         }
         
@@ -66,23 +65,23 @@ class Index extends React.Component {
 
     render() {
         const { bob, cdm, index, alice } = this.props;
-        const contactsDropdownMenu = (
-            <Menu
-                onClick={e => {
-                    if (e.key === '0') {
-                        bob.showAddContactModal = true;
-                    }
-                    // if (e.key === '1') {
-                    //     bob.showAddGroupModal = true;
-                    // }
-                }}
-            >
-                <Menu.Item key="0">
-                    <Icon type="search" /> Search contacts
-                </Menu.Item>
-                {/* <Menu.Divider /> */}
-                </Menu>
-        );
+        // const contactsDropdownMenu = (
+        //     <Menu
+        //         onClick={e => {
+        //             if (e.key === '0') {
+        //                 bob.showAddContactModal = true;
+        //             }
+        //             // if (e.key === '1') {
+        //             //     bob.showAddGroupModal = true;
+        //             // }
+        //         }}
+        //     >
+        //         <Menu.Item key="0">
+        //             <Icon type="search" /> Search contacts
+        //         </Menu.Item>
+        //         {/* <Menu.Divider /> */}
+        //         </Menu>
+        // );
         const chatDropdownMenu = (
             <Menu
                 onClick={e => {
@@ -228,15 +227,14 @@ class Index extends React.Component {
                                     key="contactsHeader"
                                     backIcon={<Icon type="poweroff" />}
                                     extra={[
-                                        <Dropdown
-                                            overlay={contactsDropdownMenu}
-                                            trigger={['click']}
-                                            key="zxc"
-                                        >   
-                                            <Button>
-                                                <Icon type="down" />
-                                            </Button>
-                                        </Dropdown>
+                                        <Button
+                                            key="addContactBtn"
+                                            onClick={_ => {
+                                                bob.showAddContactModal = true;
+                                            }}
+                                        >
+                                            <Icon type="user-add" />
+                                        </Button>
                                     ]}
                                 />
                             )}
@@ -321,7 +319,7 @@ class Index extends React.Component {
                     .contacts {
                         height: 100vh;
                         overflow-y: auto;
-                        background: #42a5f5;
+                        background: #64b5f6;
                         // border-right: 1px solid #ddd;
                     }
 
@@ -344,8 +342,7 @@ class Index extends React.Component {
                     }
 
                     .cdm .actions {
-                        background: #2196f3;
-                        // border-top: 1px solid #ddd;
+                        background: #42a5f5;
                         padding: 20px;
                         position: relative
                     }
