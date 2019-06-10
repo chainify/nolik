@@ -2,19 +2,22 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Router, { withRouter } from 'next/router';
 import { observer, inject } from 'mobx-react';
-import { autorun, toJS } from 'mobx';
+import { autorun, toJS, action } from 'mobx';
 // import { i18n, Link as Tlink, withNamespaces } from '../i18n';
 import Wrapper from '../components/Wrapper';
 import Header from '../components/Header';
 import Cdm from '../components/Cdm';
 import Skeleton from '../components/Skeleton';
-import { Row, Col, Input, Button, Icon } from 'antd';
+import { Row, Col, Input, Button, Icon, Modal, Dropdown, Menu, Divider, PageHeader } from 'antd';
 const { TextArea } = Input;
 import * as moment from 'moment';
 import mouseTrap from 'react-mousetrap';
 
+import SearchModal from '../modals/SearchModal';
+import BobsStore from '../store/Bob';
 
-@inject('alice', 'bob', 'index', 'cdm', 'passport')
+
+@inject('alice', 'bob', 'index', 'cdm', 'contacts')
 @observer
 class Index extends React.Component {
 
@@ -22,8 +25,7 @@ class Index extends React.Component {
     contactsPeriodicChecker = null;
     constructor(props) {
         super(props);
-        
-        const { alice, bob, router, cdm, passport } = this.props;
+        const { alice, bob, router, contacts } = this.props;
         
         this.authPeriodicChecker = setInterval(() => {
             alice.authCheck();
@@ -31,8 +33,7 @@ class Index extends React.Component {
         
         autorun(() => {
             if (router.query.publicKey) {
-                sessionStorage.setItem('bobPublicKey', router.query.publicKey);
-                bob.publicKey = router.query.publicKey;
+                bob.setBob(router.query.publicKey);
             }
         });
         
@@ -41,18 +42,11 @@ class Index extends React.Component {
                 bob.getList();
             }
         });
-
-        autorun(() => {
-            if (alice.publicKey && bob.publicKey) {
-                cdm.initLevelDB(alice.publicKey, bob.publicKey);
-                cdm.getList();
-            }
-        });
     }
 
     componentDidMount() {
         const { cdm, bob } = this.props;
-
+        
         if (bob.getListStatus === 'init') {
             bob.initLevelDB();
             bob.getList();
@@ -71,13 +65,181 @@ class Index extends React.Component {
     }
 
     render() {
-        const { bob, cdm, index, passport } = this.props;
-        
+        const { bob, cdm, index, alice } = this.props;
+        const contactsDropdownMenu = (
+            <Menu
+                onClick={e => {
+                    if (e.key === '0') {
+                        bob.showAddContactModal = true;
+                    }
+                    // if (e.key === '1') {
+                    //     bob.showAddGroupModal = true;
+                    // }
+                }}
+            >
+                <Menu.Item key="0">
+                    <Icon type="search" /> Search contacts
+                </Menu.Item>
+                {/* <Menu.Divider /> */}
+                </Menu>
+        );
+        const chatDropdownMenu = (
+            <Menu
+                onClick={e => {
+                    if (e.key === '0') {
+                        bob.showContactInfoModal = true;
+                        const currentBob = bob.list.filter(el => el.accounts[0].publicKey === bob.publicKey)[0];
+                        bob.firstNameEdit = currentBob.accounts[0].firstName;
+                        bob.lastNameEdit = currentBob.accounts[0].lastName;
+                        bob.fullName = [currentBob.accounts[0].firstName, currentBob.accounts[0].lastName].join(' ').trim();
+                    }
+                    if (e.key === '1') {
+                        bob.showAddGroupModal = true;
+                    }
+                }}
+            >
+                <Menu.Item key="0">
+                    <Icon type="user" /> Contact info
+                </Menu.Item>
+                <Menu.Item key="1">
+                    <Icon type="usergroup-add" /> Add group members
+                </Menu.Item>
+                {/* <Menu.Divider /> */}
+                </Menu>
+        );
+
         return (
             <Wrapper>
+                <Modal
+                    title="User info"
+                    key="userInfo"
+                    visible={bob.showContactInfoModal}
+                    closable={true}
+                    onCancel={_ => {
+                        bob.showContactInfoModal = false;
+                    }}
+                    footer={[
+                        <Button
+                            key="cancel"
+                            onClick={_ => {
+                                bob.showContactEditModal = true;
+                            }}
+                        >
+                            Edit
+                        </Button>,
+                    ]}
+                >
+                    <p className="title">Address</p>
+                    <p className="contactInfo">
+                        {`https://nolik.im/pk/${bob.publicKey}`}
+                    </p>
+                    <Divider />
+                    <p className="title">Full name</p>
+                    <p className="contactInfo">
+                        {bob.publicKey === bob.fullName ? '' : bob.fullName}
+                    </p>
+                </Modal>
+                <Modal
+                    title="Update user info"
+                    key="userInfoEdit"
+                    visible={bob.showContactEditModal}
+                    closable={true}
+                    onCancel={_ => {
+                        bob.showContactEditModal = false;
+                    }}
+                    footer={[
+                        <Button
+                            key="cancelUserInfo"
+                            onClick={_ => {
+                                bob.showContactEditModal = false;
+                            }}
+                        >
+                            Cancel
+                        </Button>,
+                        <Button
+                            key="saveUserInfo"
+                            type="primary"
+                            onClick={_ => {
+                                bob.saveUserInfo();
+                            }}
+                        >
+                            Save
+                        </Button>,
+                    ]}
+                >
+                    <p className="title">First Name</p>
+                    <Input
+                        placeholder="Enter first name"
+                        value={bob.firstNameEdit}
+                        onChange={e => {
+                            bob.firstNameEdit = e.target.value;
+                        }}
+                    />
+                    <p className="title">&nbsp;</p>
+                    <p className="title">Last Name</p>
+                    <Input
+                        placeholder="Enter last name"
+                        value={bob.lastNameEdit}
+                        onChange={e => {
+                            bob.lastNameEdit = e.target.value;
+                        }}
+                    />
+                </Modal>
+                <Modal
+                    title="Add members to group"
+                    key="addMembers"
+                    visible={bob.showAddGroupModal}
+                    closable={false}
+                    footer={[
+                        <Button
+                            key="cancelAddMembers"
+                            onClick={_ => {
+                                bob.showAddGroupModal = false;
+                            }}
+                        >
+                            Cancel
+                        </Button>,
+                        <Button
+                            key="addMembersSubmit"
+                            type="primary"
+                            loading={false}
+                            onClick={_ => {
+
+                            }}
+                        >
+                            Add
+                        </Button>,
+                    ]}
+                >
+                    <p>Bla bla ...</p>
+                    <p>Bla bla ...</p>
+                    <p>Bla bla ...</p>
+                </Modal>
+                <SearchModal />
                 <Row>
-                    <Col xs={bob.publicKey === null ? 24 : 0} sm={6}>
+                    <Col xs={bob.publicKey === null ? 24 : 0} sm={10} md={8}>
                         <div className="contacts">
+                            {bob.list && (
+                                <PageHeader
+                                    onBack={() => {
+                                        bob.reset();
+                                        alice.publicKey = null;
+                                    }}
+                                    key="contactsHeader"
+                                    backIcon={<Icon type="poweroff" />}
+                                    extra={[
+                                        <Dropdown
+                                            overlay={contactsDropdownMenu}
+                                            trigger={['click']}
+                                            key="zxc"
+                                        >   
+                                            <Button>
+                                                <Icon type="down" />
+                                            </Button>
+                                        </Dropdown>
+                                    ]}
+                                />
+                            )}
                             {!bob.list && index.fakeHeaders.map(item => (
                                 <Skeleton rows={2} key={`header_${item}`} />
                             ))}
@@ -92,28 +254,31 @@ class Index extends React.Component {
                             ))}
                         </div>
                     </Col>
-                    <Col xs={bob.publicKey === null ? 0 : 24} sm={18}>
+                    <Col xs={bob.publicKey === null ? 0 : 24} sm={14} md={16}>
                         {bob.publicKey === null && <div className={`cdm empty`} />}
                         {bob.publicKey && bob.list && (
                             <div className="cdm">
-                                <div className="cdmHeader">
-                                    <div className="headerBtn">
-                                        <Button
-                                            type="ghost"
-                                            // style={{ color: '#fff' }}
-                                            onClick={() => {
-                                                bob.publicKey = null;
-                                                cdm.list = [];
-                                                Router.push('/');
-                                            }}
-                                        >
-                                            <Icon type="left" />
-                                        </Button>
-                                    </div>
-                                    <div className="headerPublicKey">
-                                        {bob.publicKey}
-                                    </div>
-                                </div>
+
+                                <PageHeader
+                                    onBack={() => bob.reset()}
+                                    title={bob.fullName}
+                                    key="chatHeader"
+                                    subTitle=""
+                                    extra={bob.list.filter(el => el.accounts[0].publicKey === bob.publicKey && el.index === 0).length === 0 && [
+                                        <Dropdown
+                                            overlay={chatDropdownMenu}
+                                            trigger={['click']}
+                                            key="asd"
+                                        >   
+                                            <Button>
+                                                <Icon type="down" />
+                                            </Button>
+                                        </Dropdown>
+                                    ]}
+                                    style={{
+                                        borderLeft: '1px solid #ddd',
+                                    }}
+                                />
                                 <Cdm />
                                 <div className="actions">
                                     {/* <div className={`actionButtons ${!cdm.message && 'hidden'}`}>
@@ -174,36 +339,8 @@ class Index extends React.Component {
 
                     .cdm.empty {
                         height: 100vh;
-                        background: url(./../static/empty.svg) no-repeat center center;
+                        background: #f2f2f2 url(./../static/empty.svg) no-repeat center center;
                         background-size: 20%;
-                    }
-
-                    .cdm .cdmHeader {
-                        background: #eee;
-                        padding: 10px 20px;
-                        width: 100%;
-                        display: flex;
-                    }
-
-                    .cdmHeader .headerBtn {
-                        display: inline-block;
-                        flex-basis: 100px;
-                    }
-
-                    .cdmHeader .headerPublicKey {
-                        flex-grow: 1;
-                        color: #666;
-                        font-size: 1.2em;
-                        line-height: 32px;
-
-                        display: -webkit-box;
-                        -webkit-line-clamp: 1;
-                        -webkit-box-orient: vertical;
-
-                        overflow: hidden;
-                        white-space: no-wrap;
-                        text-overflow: ellipsis;
-                        word-break: break-all;
                     }
 
                     .cdm .actions {
@@ -248,62 +385,6 @@ class Index extends React.Component {
                         width: 20px;
                         background: url(./../static/paper-plane-solid-fff.png) no-repeat center center;
                         background-size: cover;
-                    }
-
-                    .passport {
-                        height: 100vh;
-                        background: #fff;
-                        border-left: 1px solid #ddd;
-                    }
-
-                    .passportHeader {
-                        height: 50px;
-                        text-align: right;
-                    }
-
-                    .passportHeader button {
-                        height: 100%;
-                        width: 50px;
-                        border: none;
-                        padding: 0;
-                        margin: 0;
-                        box-shadow: none;
-                        outline:0;
-                        cursor: pointer;
-                    }
-
-                    .passportContent {
-                        padding: 20px;
-                    }
-
-                    .passportContent h2 {
-                        font-size: 1.6em;
-                        font-weight: 100;
-                        margin-top: 0px;
-                        font-family: 'Roboto', sans-serif;
-                    }
-
-                    .passportContent h3 {
-                        font-size: 1em;
-                        font-weight: 100;
-                        margin-bottom: 0;
-                        color: #999;
-                        font-family: 'Roboto', sans-serif;
-                    }
-
-                    .passportContent h4 {
-                        font-size: 1em;
-                        font-weight: 100;
-                        font-family: 'Roboto', sans-serif;
-                        margin-bottom: 1.4em;
-
-                        display: -webkit-box;
-                        -webkit-line-clamp: 1;
-                        -webkit-box-orient: vertical;
-                        width: 100%;
-                        text-overflow: ellipsis;
-                        overflow-y: hidden;
-                        word-break: break-all;
                     }
                 `}</style>
             </Wrapper>

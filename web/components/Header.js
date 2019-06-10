@@ -10,7 +10,13 @@ import { Badge, Icon } from 'antd';
 class Header extends React.Component {
     render() {
         const { item, bob, cdm } = this.props;
-        // console.log(toJS(item));
+        let fullName = null;
+        if (item.index === 0) {
+            fullName = 'Saved Messages';
+        } else {
+            fullName = [item.accounts[0].firstName, item.accounts[0].lastName].join(' ').trim();
+        }
+        
         return (
             <div>
                 <button
@@ -19,6 +25,7 @@ class Header extends React.Component {
                     onClick={() => {
                         if (bob.publicKey !== item.accounts[0].publicKey) {
                             bob.publicKey = item.accounts[0].publicKey;
+                            bob.fullName = fullName || item.accounts[0].publicKey;
                             cdm.list = item.cdm ? [item.cdm] : []
                             Router.push(`/index?publicKey=${item.accounts[0].publicKey}`, `/pk/${item.accounts[0].publicKey}`);
                         }
@@ -30,7 +37,7 @@ class Header extends React.Component {
                                 <b>
                                     {item.accounts && item.accounts.map((el, index) => (
                                         <span key={`name_${item.index}_${index}`}>
-                                            {el.name}
+                                            {fullName || el.publicKey}
                                         </span>
                                     ))}
                                 </b>

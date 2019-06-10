@@ -56,6 +56,16 @@ class CdmStore {
                 this.getListStatus = 'success';
             }) 
             .then(() => {
+                const currentBob = bob.list.filter(el => el.accounts[0].publicKey === bob.publicKey)[0];
+                if (currentBob.index === 0) {
+                    bob.fullName = 'Saved Messages';
+                } else {
+                    bob.firstNameEdit = currentBob.accounts[0].firstName;
+                    bob.lastNameEdit = currentBob.accounts[0].lastName;
+                    bob.fullName = [currentBob.accounts[0].firstName, currentBob.accounts[0].lastName].join(' ').trim();
+                }
+            })
+            .then(() => {
                 for (let i = 0; i < this.list.length; i += 1) {
                     this.pendingTimestampsDB.del(this.list[i].txId);
                     this.pendingMessagesDB.del(this.list[i].txId);      
@@ -116,48 +126,18 @@ class CdmStore {
         const { cdm, bob, crypto, utils } = this.stores;
         this.sendCdmStatus = 'pending';
 
-        crypto.encryptMessage(bob.publicKey)
+        crypto.encryptMessage([bob.publicKey])
             .then(ecnMessage => {
                 const formConfig = {};
                 const formData = new FormData();
-                formData.append('data', ecnMessage);
+                formData.append('message', ecnMessage);
+                formData.append('recipient', bob.publicKey);
 
                 return axios
-                    .post(`${process.env.API_HOST}/api/v1/ipfs`, formData, formConfig)
+                    .post(`${process.env.API_HOST}/api/v1/cdm`, formData, formConfig)
                     .then(res => {
-                        return res.data.Hash;
+                        return res.data.tx;
                     })
-            })
-            .then(ipfsHash => {
-                const txData = {
-                    type: 4,
-                    data: {
-                        amount: {
-                            assetId: process.env.ASSET_ID,
-                            tokens: "0.00000001"
-                        },
-                        fee: {
-                            assetId: process.env.ASSET_ID,
-                            tokens: "0.001"
-                        },
-                        recipient: utils.addressFromPublicKey(bob.publicKey),
-                        attachment: ipfsHash,
-                    }
-                };
-                if (typeof window !== 'undefined') {
-                    try {
-                        return window.Waves
-                            .signAndPublishTransaction(txData)
-                            .then(data => {
-                                return JSON.parse(data);
-                            }).catch((error) => {
-                                console.log('ERROR', error);
-                                this.sending = false;
-                            });
-                    } catch(e) {
-                        console.error(e);
-                    }
-                }
             })
             .then(tx => {
                 const now = moment().unix();

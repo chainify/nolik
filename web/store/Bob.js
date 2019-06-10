@@ -1,5 +1,6 @@
 import { action, observable, toJS } from 'mobx';
 import axios from 'axios';
+import Router from 'next/router';
 import stringFromUTF8Array from './../utils/batostr';
 
 class BobsStore {
@@ -19,6 +20,19 @@ class BobsStore {
     @observable totalCdmDB = null;
 
     @observable bobDB = null;
+    @observable showAddContactModal = false;
+    @observable showContactInfoModal = false;
+    @observable showContactEditModal = false;
+    @observable showAddGroupModal = false;
+
+    @observable firstNameEdit = '';
+    @observable lastNameEdit = '';
+
+    @observable fullName = null;
+
+    @observable contactLastName = '';
+    @observable contactFirstName = '';
+    @observable contactPublicKey = '';
 
     @action
     initLevelDB() {
@@ -29,8 +43,61 @@ class BobsStore {
     }
 
     @action
+    setBob(publicKey) {
+        sessionStorage.setItem('bobPublicKey', publicKey);
+        this.publicKey = publicKey;
+    }
+
+    @action
+    reset() {
+        const { cdm } = this.stores;
+        this.publicKey = null;
+        this.fullName = null;
+        cdm.list = [];
+        sessionStorage.removeItem('bobPublicKey');
+        Router.push('/');
+    }
+
+    @action
+    saveUserInfo() {
+        const { alice } = this.stores;
+        const formConfig = {}
+        const formData = new FormData();
+        formData.append('account', alice.publicKey);
+        formData.append('publicKey', this.publicKey);
+        formData.append('firstName', this.firstNameEdit);
+        formData.append('lastName', this.lastNameEdit);
+
+        axios
+            .post(`${process.env.API_HOST}/api/v1/contact`, formData, formConfig)
+            .then(res => {
+                this.showContactEditModal = false;
+                const fullName = `${this.firstNameEdit} ${this.lastNameEdit}`.trim();
+                this.fullName = fullName;
+            })
+    }
+
+
+    @action
+    saveContact() {
+        const { alice, contacts } = this.stores;
+        const formConfig = {}
+        const formData = new FormData();
+        formData.append('account', alice.publicKey);
+        formData.append('publicKey', this.contactPublicKey);
+        formData.append('firstName', this.contactFirstName);
+        formData.append('lastName', this.contactLastName);
+
+        axios
+            .post(`${process.env.API_HOST}/api/v1/contact`, formData, formConfig)
+            .then(res => {
+                this.showAddContactModal = false;
+            })
+    }
+
+    @action
     getList() {
-        const { alice, bob, utils, cdm } = this.stores;
+        const { alice, bob, utils, cdm, contacts } = this.stores;
         const formConfig = {}
 
         if (alice.publicKey === null) {
@@ -38,10 +105,11 @@ class BobsStore {
         }
         
         this.getListStatus = 'fetching';
-        utils.sleep(this.list ? 1000 : 0).then(() => {
+        utils.sleep(this.list ? 400 : 0).then(() => {
             axios
                 .get(`${process.env.API_HOST}/api/v1/interlocutors/${alice.publicKey}`, formConfig)
                 .then(res => {
+                    contacts.list = res.data.contacts;
                     return this.decryptList(res.data.interlocutors);
                 }) 
                 .then(list => {
@@ -75,17 +143,40 @@ class BobsStore {
                     if (currentEl.length > 0) { return list; }
                     if (bob.publicKey === null) { return list; }
 
-                    const newContact = {
-                        accounts: [{
-                            publicKey: bob.publicKey,
-                            name: bob.publicKey,
-                            created: '',
-                        }],
-                        totalCdms: 0,
-                        readCdms: 0,
-                        cdm: null,
-                    }
+                    const contact = contacts.list.filter(el => el.publicKey === bob.publicKey);
 
+                    let newContact = null;
+                    let fullName = null;
+                    if (contact.length > 0) {
+                        newContact = {
+                            accounts: [{
+                                publicKey: bob.publicKey,
+                                firstName: contact[0].firstName,
+                                lastName: contact[0].lastName,
+                                created: contact[0].created,
+                            }],
+                            totalCdms: 0,
+                            readCdms: 0,
+                            cdm: null,
+                        }
+                        fullName = [contact[0].firstName, contact[0].lastName].join(' ').trim()
+                    } else {
+                        newContact = {
+                            accounts: [{
+                                publicKey: bob.publicKey,
+                                firstName: null,
+                                lastName: null,
+                                created: null,
+                            }],
+                            totalCdms: 0,
+                            readCdms: 0,
+                            cdm: null,
+                        }
+                        fullName = bob.publicKey;
+                    }
+                    
+                    bob.fullName = fullName;
+                    cdm.list = [];
                     list.splice(1, 0, newContact);
                     return list;
                 })

@@ -19,7 +19,7 @@ class MyApp extends App {
     return (
       <Provider {...stores}>
         <Container>
-          <Head title="Nolik Messenger"></Head>
+          <Head title="Nolik Instant Messenger"></Head>
           <Layout>
             <Component {...pageProps} />
           </Layout>
