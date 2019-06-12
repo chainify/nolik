@@ -24,10 +24,9 @@ class Header extends React.Component {
                     className="button"
                     onClick={() => {
                         if (bob.publicKey !== item.accounts[0].publicKey) {
-                            bob.publicKey = item.accounts[0].publicKey;
+                            bob.setBob(item.accounts[0].publicKey);
                             bob.fullName = fullName || item.accounts[0].publicKey;
                             cdm.list = item.cdm ? [item.cdm] : []
-                            Router.push(`/index?publicKey=${item.accounts[0].publicKey}`, `/pk/${item.accounts[0].publicKey}`);
                         }
                     }}
                 >
@@ -47,10 +46,10 @@ class Header extends React.Component {
                             </div>
                         </div>
                         <div className="badgeDiv">
-                            {item.inCdms - item.readCdms > 0 && (
-                                <Badge count={item.inCdms - item.readCdms} style={{ backgroundColor: '#64b5f6' }} />
+                            {item.totalCdms - item.readCdms > 0 && (
+                                <Badge count={item.totalCdms - item.readCdms} style={{ backgroundColor: '#64b5f6' }} />
                             )}
-                            {item.inCdms - item.readCdms < 0 && (
+                            {item.totalCdms - item.readCdms < 0 && (
                                 <Badge count={<Icon type="clock-circle" style={{ marginRight: 10 }} />} />
                             )}
                         </div>

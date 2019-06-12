@@ -16,8 +16,8 @@ app.prepare().then(() => {
   server.use(cors())
   server.use(nextI18NextMiddleware(nextI18next))
 
-  server.get('/passport/:id', (req, res) => {
-    return app.render(req, res, '/passport', { id: req.params.id })
+  server.get('/', (req, res) => {
+    res.redirect('/login');
   })
 
   server.get('/pk/:publicKey', (req, res) => {

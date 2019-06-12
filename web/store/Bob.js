@@ -34,8 +34,13 @@ class BobsStore {
 
     @action
     setBob(publicKey) {
+        const { alice, cdm } = this.stores;
         sessionStorage.setItem('bobPublicKey', publicKey);
         this.publicKey = publicKey;
+        Router.push(`/index?publicKey=${publicKey}`, `/pk/${publicKey}`);
+        
+        cdm.initLevelDB(alice.publicKey, publicKey)
+        cdm.getList();
     }
 
     @action
@@ -109,7 +114,7 @@ class BobsStore {
                             cdm.initLevelDB(alice.publicKey, list[i].accounts[0].publicKey)
                         }
                         const p = cdm.readCdmDB.get(list[i].accounts[0].publicKey).then(res => {
-                            const listEl =  list[i]
+                            const listEl =  list[i];
                             listEl.readCdms = parseInt(stringFromUTF8Array(res));
                             return listEl;
                         })
@@ -118,7 +123,7 @@ class BobsStore {
                                 const listEl =  list[i]
                                 listEl.readCdms = 0;
                                 return listEl;
-                            }
+                            }   
                             console.log(e);
                         });
                         promises.push(p);

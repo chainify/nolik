@@ -1,4 +1,3 @@
-import Passport from './Passport';
 import Index from './Index';
 import Alice from './Alice';
 import Bob from './Bob';
@@ -12,7 +11,6 @@ import Login from './Login';
 
 const stores = {};
 
-stores.passport = new Passport(stores);
 stores.alice = new Alice(stores);
 stores.bob = new Bob(stores);
 stores.utils = new Utils(stores);

@@ -40,8 +40,6 @@ class CdmStore {
         const formConfig = {}
         this.getListStatus = 'fetching';
 
-        this.initLevelDB(alice.publicKey, bob.publicKey);
-
         axios
             .get(`${process.env.API_HOST}/api/v1/cdm/${alice.publicKey}/${bob.publicKey}`, formConfig)
             .then(res => {
@@ -55,18 +53,20 @@ class CdmStore {
                 return this.decryptList(list);
             })
             .then(list => {
-                this.readCdmDB.put(bob.publicKey, list.filter(el => el.type === 'incoming').length);
+                this.readCdmDB.put(bob.publicKey, list.length);
                 this.list = list;
                 this.getListStatus = 'success';
-            }) 
+            })
             .then(() => {
-                const currentBob = bob.list.filter(el => el.accounts[0].publicKey === bob.publicKey)[0];
-                if (currentBob.index === 0) {
-                    bob.fullName = 'Saved Messages';
-                } else {
-                    bob.firstNameEdit = currentBob.accounts[0].firstName;
-                    bob.lastNameEdit = currentBob.accounts[0].lastName;
-                    bob.fullName = [currentBob.accounts[0].firstName, currentBob.accounts[0].lastName].join(' ').trim();
+                const currentBob = bob.list && bob.list.filter(el => el.accounts[0].publicKey === bob.publicKey)[0];
+                if (currentBob) {
+                    if (currentBob.index === 0) {
+                        bob.fullName = 'Saved Messages';
+                    } else {
+                        bob.firstNameEdit = currentBob.accounts[0].firstName;
+                        bob.lastNameEdit = currentBob.accounts[0].lastName;
+                        bob.fullName = [currentBob.accounts[0].firstName, currentBob.accounts[0].lastName].join(' ').trim();
+                    }
                 }
             })
             .then(() => {
@@ -81,6 +81,7 @@ class CdmStore {
                             'type': 'pending',
                             'timestamp': now
                         }]);
+                        // this.pendnigDB.del(ecnMessage);
                     })
             })
             .catch(e => {
@@ -147,6 +148,9 @@ class CdmStore {
                 }
 
                 Promise.all(promises);
+            })
+            .then(_ => {
+                this.readCdmDB.put(bob.publicKey, this.list.length);
             })
             .then(_ => {
                 this.sendCdmStatus = 'success'
