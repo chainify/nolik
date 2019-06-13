@@ -33,8 +33,8 @@ class Cdm extends React.Component {
                         }
                         return (
                             <div key={`message_${item.hash}_${item.index}`}>
-                                {showDivider && (
-                                    <Divider dashed style={{ color: '#fff' }}>
+                                {cdm.getListStatus === 'success' && showDivider && (
+                                    <Divider dashed style={{ background: '#fff', opacity: 0.5 }}>
                                         <div className="divider">{moment.unix(item.timestamp).format('MMM DD')}</div>
                                     </Divider>
                                 )}
@@ -48,7 +48,8 @@ class Cdm extends React.Component {
                     .content {
                         flex-grow: 1;
                         overflow-y: auto;
-                        background: #42a5f5;
+                        background: #efebe9;
+                        padding: 0 4em;
                     }
 
                     .list {
@@ -61,7 +62,7 @@ class Cdm extends React.Component {
                     }
 
                     .divider {
-                        font-size: 12px;
+                        font-size: 14px;
                         font-weight: 100;
                     }
                 `}</style>

@@ -8,13 +8,16 @@ import Wrapper from '../components/Wrapper';
 import Header from '../components/Header';
 import Cdm from '../components/Cdm';
 import Skeleton from '../components/Skeleton';
-import { Row, Col, Input, Button, Icon, Modal, Dropdown, Menu, Divider, PageHeader } from 'antd';
+import { Row, Col, Input, Button, Icon, Modal, Dropdown, Menu, Divider, PageHeader, Typography } from 'antd';
 const { TextArea } = Input;
-import * as moment from 'moment';
 import mouseTrap from 'react-mousetrap';
 
 import SearchModal from '../modals/SearchModal';
-import BobsStore from '../store/Bob';
+const { Paragraph } = Typography;
+const paragrapStyle = {
+    margin: 0,
+    padding: 0,
+};
 
 
 @inject('alice', 'bob', 'index', 'cdm', 'contacts')
@@ -40,6 +43,13 @@ class Index extends React.Component {
         this.contactsPeriodicChecker = autorun(() => {
             if (bob.getListStatus === 'success') {
                 bob.getList();
+            }
+        });
+
+        autorun(() => {
+            if (bob.list.length > 0 && bob.publicKey && bob.fullName === null) {
+                bob.setFullName();
+                cdm.getList();
             }
         });
     }
@@ -90,7 +100,6 @@ class Index extends React.Component {
                         const currentBob = bob.list.filter(el => el.accounts[0].publicKey === bob.publicKey)[0];
                         bob.firstNameEdit = currentBob.accounts[0].firstName;
                         bob.lastNameEdit = currentBob.accounts[0].lastName;
-                        bob.fullName = [currentBob.accounts[0].firstName, currentBob.accounts[0].lastName].join(' ').trim();
                     }
                     if (e.key === '1') {
                         bob.showAddGroupModal = true;
@@ -218,7 +227,7 @@ class Index extends React.Component {
                 <Row>
                     <Col xs={bob.publicKey === null ? 24 : 0} sm={10} md={8}>
                         <div className="contacts">
-                            {bob.list && (
+                            {bob.list.length > 0 && (
                                 <PageHeader
                                     onBack={() => {
                                         bob.reset();
@@ -228,6 +237,14 @@ class Index extends React.Component {
                                     backIcon={<Icon type="poweroff" />}
                                     extra={[
                                         <Button
+                                            key="settingBtn"
+                                            onClick={_ => {
+                                                // bob.showAddContactModal = true;
+                                            }}
+                                        >
+                                            <Icon type="setting" />
+                                        </Button>,
+                                        <Button
                                             key="addContactBtn"
                                             onClick={_ => {
                                                 bob.showAddContactModal = true;
@@ -236,30 +253,35 @@ class Index extends React.Component {
                                             <Icon type="user-add" />
                                         </Button>
                                     ]}
+                                    style={{
+                                        borderBottom: '1px solid #ddd',
+                                        background: '#eee',
+                                    }}
                                 />
                             )}
-                            {!bob.list && index.fakeHeaders.map(item => (
+                            {bob.list.length === 0 && index.fakeHeaders.map(item => (
                                 <Skeleton rows={2} key={`header_${item}`} />
                             ))}
-                            {bob.list && bob.list.length === 0 && !bob.newBob && (
-                                <div className="noContacts">No conversations</div>
-                            )}
                             {bob.newBob && (
                                 <Header item={bob.newBob} key={`header_${bob.newBob.index}`} />
                             )}
-                            {bob.list && bob.list.map(item => (
+                            {bob.list.map(item => (
                                 <Header item={item} key={`header_${item.index}`} />
                             ))}
                         </div>
                     </Col>
                     <Col xs={bob.publicKey === null ? 0 : 24} sm={14} md={16}>
                         {bob.publicKey === null && <div className={`cdm empty`} />}
-                        {bob.publicKey && bob.list && (
+                        {bob.publicKey && bob.list.length === 0 && <div className={`cdm loading`}>Loading...</div>}
+                        {bob.list.length > 0 && bob.publicKey  && (
                             <div className="cdm">
-
                                 <PageHeader
                                     onBack={() => bob.reset()}
-                                    title={bob.fullName}
+                                    title={
+                                        <span className="pageHeader">
+                                            {bob.fullName}
+                                        </span>
+                                    }
                                     key="chatHeader"
                                     subTitle=""
                                     extra={bob.list.filter(el => el.accounts[0].publicKey === bob.publicKey && el.index === 0).length === 0 && [
@@ -274,22 +296,13 @@ class Index extends React.Component {
                                         </Dropdown>
                                     ]}
                                     style={{
-                                        borderLeft: '1px solid #ddd',
+                                        borderBottom: '1px solid #ddd',
+                                        background: '#eee',
                                     }}
                                 />
+                                {cdm.getListStatus === 'fetching' && <div className="cdmLoading" />}
                                 <Cdm />
                                 <div className="actions">
-                                    {/* <div className={`actionButtons ${!cdm.message && 'hidden'}`}>
-                                        <button
-                                            className="actionButton"
-                                            disabled={cdm.sendCdmStatus === 'pending'}
-                                            onClick={() => {
-                                                cdm.sendCdm();
-                                            }}
-                                        >   
-                                            {cdm.sendCdmStatus === 'pending' ? <Icon type="loading" style={{ fontSize: 24 }} /> : <div className="paperPlane" />}
-                                        </button>
-                                    </div> */}
                                     <TextArea
                                         value={cdm.message}
                                         ref={elem => this.tArea = elem}
@@ -300,14 +313,15 @@ class Index extends React.Component {
                                         }}
                                         className="mousetrap"
                                         style={{
-                                            border: 'none',
-                                            background: 'none',
+                                            border: '1px solid #ddd',
+                                            background: '#fff',
+                                            borderRadius: 10,
                                             margin: 0,
-                                            padding: 0,
+                                            padding: 10,
                                             outline: 'none',
                                             boxShadow: 'none',
-                                            color: '#fff',
-                                            fontSize: '1.2em'
+                                            fontSize: '1.2em',
+                                            resize: 'none',
                                         }}
                                     />
                                 </div>
@@ -319,8 +333,8 @@ class Index extends React.Component {
                     .contacts {
                         height: 100vh;
                         overflow-y: auto;
-                        background: #64b5f6;
-                        // border-right: 1px solid #ddd;
+                        background: #fff;
+                        border-right: 1px solid #ddd;
                     }
 
                     .contacts .noContacts {
@@ -341,47 +355,46 @@ class Index extends React.Component {
                         background-size: 20%;
                     }
 
-                    .cdm .actions {
-                        background: #42a5f5;
-                        padding: 20px;
-                        position: relative
+                    .cdm.loading {
+                        height: 100vh;
+                        background: #eee;
+                        padding: 2em;
+                        color: #999;
                     }
 
-                    .actionButtons {
-                        position: absolute;
-                        top: -50px;
-                        right: 30px;
+                    .pageHeader {
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
                     }
 
-                    .actionButtons.hidden {
-                        display: none;
+                    .cdmLoading {
+                        width: 100%;
+                        height: 6px;
+                        background-image: 
+                        repeating-linear-gradient(
+                            90deg,
+                            #64b5f6,
+                            #90caf9
+                        );
+                        background-position: 0px 0px;
+                        animation: move 1s linear infinite;
+                        display: block;
                     }
 
-                    .actionButton {
-                        height: 40px;
-                        width: 40px;
-                        border: 0px;
-                        cursor: pointer;
-                        background: #1e88e5;
-                        border-radius: 50%;
-                        border: 2px solid #fff;
+                    @keyframes move {
+                        from {
+                          background-position: 0px 0px;
+                        }
+                        to {
+                          background-position: 1000px 0px;
+                        }
                     }
 
-                    .actionButton[disabled] {
-                        cursor: default;
-                        background: #90caf9;
-                        color: #fff;
-                    }
-
-                    .actionButton:hover:not[disabled] {
-                        background: #42a5f5;
-                    }
-
-                    .paperPlane {
-                        height: 20px;
-                        width: 20px;
-                        background: url(./../static/paper-plane-solid-fff.png) no-repeat center center;
-                        background-size: cover;
+                    .actions {
+                        background: #eee;
+                        padding: 1em 4em;
+                        border-top: 1px solid #ddd;
                     }
                 `}</style>
             </Wrapper>

@@ -30,10 +30,8 @@ class Index extends React.Component {
     render() {
         const { login, alice } = this.props;
         const radioStyle = {
-            color: '#fff',
             display: 'block',
             fontSize: '1.2em',
-            
             marginBottom: 10,
         }
         return (
@@ -41,7 +39,6 @@ class Index extends React.Component {
                 <Row>
                     <Col xs={{ offset: 4, span: 16}}>
                         <h1>Login required</h1>
-                        
                     </Col>
                 </Row>
                 <Row>
@@ -68,7 +65,6 @@ class Index extends React.Component {
                             {login.withWaves === true && (<h3>This method is not recomended</h3>)}
                             <TextArea
                                 style={{
-                                    color: '#fff',
                                     border: '1px solid #fff',
                                     padding: 20,
                                     background: 'transparent',
@@ -85,9 +81,9 @@ class Index extends React.Component {
                     <Col xs={{ offset: 4, span: 16}} >
                         {login.loginWith && (
                             <Button
-                                type="ghost"
+                                type="primary"
                                 size="large"
-                                style={{ color: '#fff', marginTop: '2em' }}
+                                style={{ marginTop: '2em' }}
                                 onClick={() => {
                                     if (login.loginWith === 'keeper') {
                                         alice.auth();
@@ -109,7 +105,7 @@ class Index extends React.Component {
                 <style jsx>{`
                     .main {
                         height: 100vh;
-                        background: #2196f3;
+                        background: #fff;
                     }
 
                     h1 {
@@ -117,25 +113,25 @@ class Index extends React.Component {
                         font-weight: 400;
                         font-family: 'Roboto', sans-serif;
                         margin-top: 1.4em;
-                        color: #fff;
+                        color: #666;
                     }
 
                     h2 {
                         font-weight: 100;
                         font-family: 'Roboto', sans-serif;
-                        color: #fff;
+                        color: #666;
                         font-size: 1.2em;
                         margin-bottom: 2em;
                     }
 
                     h3 {
-                        color: #fff;
+                        color: #666;
                         font-weight: 100;
                         font-style: italic;
                     }
 
                     div.loading {
-                        color: #fff;
+                        color: #666;
                     }
                 `}</style>
             </div>

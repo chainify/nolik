@@ -56,9 +56,10 @@ class Message extends React.Component {
                         border-radius: 4px;
                         padding: 6px 10px;
                         margin-bottom: 4px;
-                        color: #333;
+                        color: #666;
                         text-align: left;
                         font-size: 1.1em;
+                        font-weight: 100;
                         font-family: 'Roboto', sans-serif;
                         max-width: 60%;
                     }

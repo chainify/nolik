@@ -1,22 +1,19 @@
 import React from 'react';
-import { toJS } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import Router, { withRouter } from 'next/router';
-import { Badge, Icon } from 'antd';
-// import { Router as TRouter } from '../i18n';
+import { Badge, Icon, Typography } from 'antd';
+const { Paragraph } = Typography;
 
 @inject('bob', 'cdm')
 @observer
 class Header extends React.Component {
     render() {
         const { item, bob, cdm } = this.props;
-        let fullName = null;
-        if (item.index === 0) {
-            fullName = 'Saved Messages';
-        } else {
-            fullName = [item.accounts[0].firstName, item.accounts[0].lastName].join(' ').trim();
-        }
-        
+        const paragrapStyle = {
+            margin: 0,
+            padding: 0,
+            color: '#999',
+        };
+
         return (
             <div>
                 <button
@@ -25,25 +22,21 @@ class Header extends React.Component {
                     onClick={() => {
                         if (bob.publicKey !== item.accounts[0].publicKey) {
                             bob.setBob(item.accounts[0].publicKey);
-                            bob.fullName = fullName || item.accounts[0].publicKey;
-                            cdm.list = item.cdm ? [item.cdm] : []
                         }
                     }}
                 >
                     <div className={`header ${bob.publicKey === item.accounts[0].publicKey && 'active'}`}>
                         <div className="headerBody">
-                            <div className="address">
-                                <b>
-                                    {item.accounts && item.accounts.map((el, index) => (
-                                        <span key={`name_${item.index}_${index}`}>
-                                            {fullName || el.publicKey}
-                                        </span>
-                                    ))}
-                                </b>
-                            </div>
-                            <div className="message">
-                                {item.cdm ? item.cdm.message : 'No messages yet'}
-                            </div>
+                            <Paragraph ellipsis style={paragrapStyle}>
+                                <div className="headerTitle">
+                                    {item.accounts[0].fullName}
+                                </div>
+                            </Paragraph>
+                            <Paragraph ellipsis style={paragrapStyle}>
+                                <div className="headerMessage">
+                                    {item.cdm ? item.cdm.message : 'No messages yet'}
+                                </div>
+                            </Paragraph>
                         </div>
                         <div className="badgeDiv">
                             {item.totalCdms - item.readCdms > 0 && (
@@ -66,11 +59,11 @@ class Header extends React.Component {
                         box-shadow: none;
                         outline:0;
                         cursor: pointer;
-                        color: #fff;
+                        color: #999;
                     }
 
                     .button:hover {
-                        background: #ef9a9a;
+                        background: #eee;
                     }
 
                     .button * {
@@ -79,18 +72,25 @@ class Header extends React.Component {
 
                     .header {
                         padding: 10px 10px 10px 0px;
-                        overflow-x: hidden;
                         display: flex;
                     }
 
                     .header.active {
-                        background: #ef5350; 
-                        color: #fff;
+                        background: #ddd; 
                     }
 
                     .headerBody {
                         flex-grow: 1;
-                        padding-left: 20px;
+                        padding-left: 40px;
+                        overflow-x: hidden;
+                    }
+
+                    .headerTitle {
+                        color: #333;
+                    }
+
+                    .headerMessage {
+
                     }
 
                     .badgeDiv {
@@ -98,32 +98,6 @@ class Header extends React.Component {
                         min-width: 40px;
                         height: 40px;
                         text-align: right;
-                    }
-
-                    .address {
-                        display: -webkit-box;
-                        -webkit-line-clamp: 1;
-                        -webkit-box-orient: vertical;
-                        width: 100%;
-
-                        overflow: hidden;
-                        white-space: no-wrap;
-                        text-overflow: ellipsis;
-                        word-break: break-all;
-                    }
-
-                    .message {
-                        display: -webkit-box;
-                        -webkit-line-clamp: 1;
-                        -webkit-box-orient: vertical;
-
-                        overflow: hidden;
-                        white-space: no-wrap;
-                        text-overflow: ellipsis;
-                        word-break: break-all;
-                        
-                        width: 100%;
-                        text-overflow: ellipsis;
                     }
                 `}</style>
             </div>

@@ -24,24 +24,23 @@ class CryptoStore {
                 const signature = signBytes(Buffer.from(sha), settings.seed);
                 
                 const promises = [];
-                let msg = '';
-                msg += '-----BEGIN_BLOCKCHAIN WAVES-----';
+                let msg = '-----BEGIN_BLOCKCHAIN WAVES-----';
 
                 for( let i = 0; i < recipients.length; i += 1) {
                     const recipientPublicKey = recipients[i];
                     const p = window.Waves
                         .encryptMessage(cdm.message, recipientPublicKey, 'chainify')
                         .then(emcMsg => {
-                            msg += `\n-----BEGIN_PUBLIC_KEY ${recipientPublicKey}-----\n${emcMsg}\n-----END_PUBLIC_KEY ${recipientPublicKey}-----`;
-                            msg += `\n-----BEGIN_SHA256 ${recipientPublicKey}-----\n${sha}\n-----END_SHA256 ${recipientPublicKey}-----`;
+                            msg += `\r\n-----BEGIN_PUBLIC_KEY ${recipientPublicKey}-----\r\n${emcMsg}\r\n-----END_PUBLIC_KEY ${recipientPublicKey}-----`;
+                            msg += `\r\n-----BEGIN_SHA256 ${recipientPublicKey}-----\r\n${sha}\r\n-----END_SHA256 ${recipientPublicKey}-----`;
                         });
                     promises.push(p);
                 }
 
                 Promise.all(promises)
                     .then(_ => {
-                        msg += `\n-----BEGIN_SIGNATURE ${alice.publicKey}-----\n${signature}\n-----END_SIGNATURE ${alice.publicKey}-----`;
-                        msg += '\n-----END_BLOCKCHAIN WAVES-----';
+                        msg += `\r\n-----BEGIN_SIGNATURE ${alice.publicKey}-----\r\n${signature}\r\n-----END_SIGNATURE ${alice.publicKey}-----`;
+                        msg += '\r\n-----END_BLOCKCHAIN WAVES-----';
                         resolve(msg);
                     })
                     .catch(e => {

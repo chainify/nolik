@@ -10,19 +10,16 @@ class MyDocument extends Document {
     return (
       <html lang={this.props.__NEXT_DATA__.props.initialLanguage}>
         <Head>
-          <style>{`body { margin: 0 } /* custom! */`}</style>
+          <meta charset="utf-8" />
+          <style>{`body { margin: 0; background: #fff; } /* custom! */`}</style>
         </Head>
         <body className="custom_class">
           <Main />
           <NextScript />
         </body>
         <style jsx>{`
-          body {
-            background: #2196f3!important;
-          }
-
           body.custom_class {
-            background: #2196f3;
+            background: #fff;
           }
         `}</style>
       </html>

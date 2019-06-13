@@ -12,12 +12,10 @@ class BobsStore {
     }
 
     @observable publicKey = null;
-    @observable list = null;
-    @observable data = null;
+    @observable list = [];
     @observable newBob = null;
     @observable getListStatus = 'init';
 
-    @observable bobDB = null;
     @observable showAddContactModal = false;
     @observable showContactInfoModal = false;
     @observable showContactEditModal = false;
@@ -25,7 +23,6 @@ class BobsStore {
 
     @observable firstNameEdit = '';
     @observable lastNameEdit = '';
-
     @observable fullName = null;
 
     @observable contactLastName = '';
@@ -38,8 +35,9 @@ class BobsStore {
         sessionStorage.setItem('bobPublicKey', publicKey);
         this.publicKey = publicKey;
         Router.push(`/index?publicKey=${publicKey}`, `/pk/${publicKey}`);
-        
-        cdm.initLevelDB(alice.publicKey, publicKey)
+
+        this.setFullName();
+        cdm.initLevelDB(alice.publicKey, publicKey);
         cdm.getList();
     }
 
@@ -51,6 +49,23 @@ class BobsStore {
         cdm.list = [];
         sessionStorage.removeItem('bobPublicKey');
         Router.push('/');
+    }
+
+    @action
+    setFullName() {
+        const { cdm } = this.stores;
+        if (this.list.length > 0) {
+            const currentEl = this.list.filter(el => el.accounts[0].publicKey === this.publicKey)[0];
+            if (currentEl.index === 0) {
+                this.fullName = 'Saved Messages';
+            }
+            if (currentEl.index > 0) {
+                const fullName = [currentEl.accounts[0].firstName, currentEl.accounts[0].lastName].join(' ').trim();
+                this.fullName = fullName === '' ? currentEl.accounts[0].publicKey : fullName;
+            }
+            cdm.getListStatus = 'init';
+            cdm.list = currentEl.cdm ? [currentEl.cdm] : [];
+        }
     }
 
     @action
@@ -92,13 +107,15 @@ class BobsStore {
 
     @action
     getList() {
-        const { alice, bob, utils, cdm, contacts } = this.stores;
+        const { alice, utils, cdm, contacts } = this.stores;
         const formConfig = {}
 
         if (alice.publicKey === null) {
             return;
         }
+
         
+                    
         this.getListStatus = 'fetching';
         utils.sleep(this.list ? 400 : 0).then(() => {
             axios
@@ -106,7 +123,7 @@ class BobsStore {
                 .then(res => {
                     contacts.list = res.data.contacts;
                     return this.decryptList(res.data.interlocutors);
-                }) 
+                })
                 .then(list => {
                     const promises = [];
                     for (let i = 0; i < list.length; i += 1) {
@@ -134,18 +151,17 @@ class BobsStore {
                     });
                 })
                 .then(list => {                    
-                    const currentEl = list.filter(el => el.accounts[0].publicKey === bob.publicKey);
+                    const currentEl = list.filter(el => el.accounts[0].publicKey === this.publicKey);
                     if (currentEl.length > 0) { return list; }
-                    if (bob.publicKey === null) { return list; }
+                    if (this.publicKey === null) { return list; }
 
-                    const contact = contacts.list.filter(el => el.publicKey === bob.publicKey);
+                    const contact = contacts.list.filter(el => el.publicKey === this.publicKey);
 
                     let newContact = null;
-                    let fullName = null;
                     if (contact.length > 0) {
                         newContact = {
                             accounts: [{
-                                publicKey: bob.publicKey,
+                                publicKey: this.publicKey,
                                 firstName: contact[0].firstName,
                                 lastName: contact[0].lastName,
                                 created: contact[0].created,
@@ -154,11 +170,10 @@ class BobsStore {
                             readCdms: 0,
                             cdm: null,
                         }
-                        fullName = [contact[0].firstName, contact[0].lastName].join(' ').trim()
                     } else {
                         newContact = {
                             accounts: [{
-                                publicKey: bob.publicKey,
+                                publicKey: this.publicKey,
                                 firstName: null,
                                 lastName: null,
                                 created: null,
@@ -167,18 +182,15 @@ class BobsStore {
                             readCdms: 0,
                             cdm: null,
                         }
-                        fullName = bob.publicKey;
                     }
                     
-                    bob.fullName = fullName;
                     cdm.list = [];
                     list.splice(1, 0, newContact);
                     return list;
                 })
                 .then(list => {
-                    if (bob.publicKey === null) { return list; }
-                    
-                    const currentEl = list.filter(el => el.accounts[0].publicKey === bob.publicKey)[0];
+                    if (this.publicKey === null) { return list }
+                    const currentEl = list.filter(el => el.accounts[0].publicKey === this.publicKey)[0];
                     const pending = cdm.list.filter(el => el.type === 'pending');
                     if (currentEl.totalCdms > cdm.list.length - pending.length) {
                         cdm.getList();
@@ -209,7 +221,6 @@ class BobsStore {
                         decList.push(list[i]);
                     });
                 promises.push(p);
-                
             } else {
                 decList.push(list[i]);
             }

@@ -58,30 +58,18 @@ class CdmStore {
                 this.getListStatus = 'success';
             })
             .then(() => {
-                const currentBob = bob.list && bob.list.filter(el => el.accounts[0].publicKey === bob.publicKey)[0];
-                if (currentBob) {
-                    if (currentBob.index === 0) {
-                        bob.fullName = 'Saved Messages';
-                    } else {
-                        bob.firstNameEdit = currentBob.accounts[0].firstName;
-                        bob.lastNameEdit = currentBob.accounts[0].lastName;
-                        bob.fullName = [currentBob.accounts[0].firstName, currentBob.accounts[0].lastName].join(' ').trim();
-                    }
-                }
-            })
-            .then(() => {
                 this.pendnigDB.createReadStream()
                     .on('data', data => {
-                        const ecnMessage = stringFromUTF8Array(data.key);
+                        const attachmentHash = stringFromUTF8Array(data.key);
                         const message = stringFromUTF8Array(data.value);
                         const now = moment().unix();
                         this.list = this.list.concat([{
-                            'hash': ecnMessage,
+                            'hash': attachmentHash,
                             'message': message,
                             'type': 'pending',
                             'timestamp': now
                         }]);
-                        // this.pendnigDB.del(ecnMessage);
+                        // this.pendnigDB.del(attachmentHash);
                     })
             })
             .catch(e => {

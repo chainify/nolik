@@ -41,6 +41,7 @@ class AliceStore {
                     window.Waves.publicState().then(data => {
                         this.publicKey = data.account.publicKey; 
                         const bobPublicKey = sessionStorage.getItem('bobPublicKey');
+                        cdm.list = [];
                         cdm.initLevelDB(data.account.publicKey, bobPublicKey);
                         if (bobPublicKey) {
                             Router.push(`/index?publicKey=${bobPublicKey}`, `/pk/${bobPublicKey}`);
@@ -60,7 +61,6 @@ class AliceStore {
                     console.log('Keeper needed');
                 }
             }
-            
         }
     }
 
@@ -77,8 +77,6 @@ class AliceStore {
                         }
                     } else {
                         if (this.publicKey !== null && this.publicKey !== res.account.publicKey) {
-                            // this.publicKey = res.account.publicKey;
-                            // cdm.initLevelDB(res.account.publicKey, bob.publicKey);
                             bob.reset();
                             this.publicKey = null;
                         }
