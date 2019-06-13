@@ -41,6 +41,7 @@ class AliceStore {
                     window.Waves.publicState().then(data => {
                         this.publicKey = data.account.publicKey; 
                         const bobPublicKey = sessionStorage.getItem('bobPublicKey');
+                        cdm.initLevelDB(data.account.publicKey, bobPublicKey);
                         if (bobPublicKey) {
                             Router.push(`/index?publicKey=${bobPublicKey}`, `/pk/${bobPublicKey}`);
                         } else {
@@ -66,7 +67,7 @@ class AliceStore {
 
     @action
     authCheck() {
-        const { login } = this.stores;
+        const { login, bob } = this.stores;
         if (typeof window !== 'undefined') {
             try {
                 window.Waves.publicState().then(res => {   
@@ -75,8 +76,11 @@ class AliceStore {
                             this.publicKey = null;
                         }
                     } else {
-                        if (this.publicKey !== res.account.publicKey) {
-                            this.publicKey = res.account.publicKey;
+                        if (this.publicKey !== null && this.publicKey !== res.account.publicKey) {
+                            // this.publicKey = res.account.publicKey;
+                            // cdm.initLevelDB(res.account.publicKey, bob.publicKey);
+                            bob.reset();
+                            this.publicKey = null;
                         }
                     }
                 })

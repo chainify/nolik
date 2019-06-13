@@ -30,7 +30,7 @@ class CdmStore {
         const levelup = require('levelup');
         const leveljs = require('level-js');
 
-        this.readCdmDB = levelup(leveljs(`/root/.leveldb/read_cdms`));
+        this.readCdmDB = levelup(leveljs(`/root/.leveldb/read_cdms_${alicePubKey}`));
         this.pendnigDB = levelup(leveljs(`/root/.leveldb/pending_cdms_${alicePubKey}_${bobPubKey}`));
     }
 
