@@ -5,7 +5,7 @@ import { observer, inject } from 'mobx-react';
 import { autorun, toJS, action } from 'mobx';
 // import { i18n, Link as Tlink, withNamespaces } from '../i18n';
 import Wrapper from '../components/Wrapper';
-import Header from '../components/Header';
+import Group from '../components/Group';
 import Cdm from '../components/Cdm';
 import Skeleton from '../components/Skeleton';
 import { Row, Col, Input, Button, Icon, Modal, Dropdown, Menu, Divider, PageHeader, Typography } from 'antd';
@@ -13,6 +13,7 @@ const { TextArea } = Input;
 import mouseTrap from 'react-mousetrap';
 
 import SearchModal from '../modals/SearchModal';
+import ContactInfoModal from '../modals/ContactInfoModal';
 const { Paragraph } = Typography;
 const paragrapStyle = {
     margin: 0,
@@ -20,7 +21,7 @@ const paragrapStyle = {
 };
 
 
-@inject('alice', 'bob', 'index', 'cdm', 'contacts')
+@inject('alice', 'index', 'cdm', 'contacts', 'groups')
 @observer
 class Index extends React.Component {
 
@@ -28,37 +29,37 @@ class Index extends React.Component {
     contactsPeriodicChecker = null;
     constructor(props) {
         super(props);
-        const { alice, bob, router, cdm } = this.props;
+        const { alice, groups, router, cdm } = this.props;
         
         this.authPeriodicChecker = setInterval(() => {
             alice.authCheck();
         }, 200);
         
         autorun(() => {
-            if (router.query.publicKey) {
-                bob.setBob(router.query.publicKey);
+            if (router.query.groupHash) {
+                groups.setGroup(router.query.groupHash);
             }
         });
         
         this.contactsPeriodicChecker = autorun(() => {
-            if (bob.getListStatus === 'success') {
-                bob.getList();
+            if (groups.getListStatus === 'success') {
+                groups.getList();
             }
         });
 
         autorun(() => {
-            if (bob.list.length > 0 && bob.publicKey && bob.fullName === null) {
-                bob.setFullName();
+            if (groups.list.length > 0 && groups.groupHash && cdm.list.length === 0) {
                 cdm.getList();
+                groups.setFullName(groups.groupHash);
             }
         });
     }
 
     componentDidMount() {
-        const { cdm, bob } = this.props;
+        const { cdm, groups } = this.props;
         
-        if (bob.getListStatus === 'init') {
-            bob.getList();
+        if (groups.getListStatus === 'init') {
+            groups.getList();
         }
         
         this.props.bindShortcut('meta+enter', () => {
@@ -74,7 +75,7 @@ class Index extends React.Component {
     }
 
     render() {
-        const { bob, cdm, index, alice } = this.props;
+        const { groups, cdm, index, alice, contacts } = this.props;
         // const contactsDropdownMenu = (
         //     <Menu
         //         onClick={e => {
@@ -96,13 +97,13 @@ class Index extends React.Component {
             <Menu
                 onClick={e => {
                     if (e.key === '0') {
-                        bob.showContactInfoModal = true;
-                        const currentBob = bob.list.filter(el => el.accounts[0].publicKey === bob.publicKey)[0];
-                        bob.firstNameEdit = currentBob.accounts[0].firstName;
-                        bob.lastNameEdit = currentBob.accounts[0].lastName;
+                        index.showContactInfoModal = true;
+                        // const currentBob = bob.list.filter(el => el.accounts[0].publicKey === bob.publicKey)[0];
+                        // bob.firstNameEdit = currentBob.accounts[0].firstName;
+                        // bob.lastNameEdit = currentBob.accounts[0].lastName;
                     }
                     if (e.key === '1') {
-                        bob.showAddGroupModal = true;
+                        index.showAddGroupModal = true;
                     }
                 }}
             >
@@ -118,48 +119,20 @@ class Index extends React.Component {
 
         return (
             <Wrapper>
-                <Modal
-                    title="User info"
-                    key="userInfo"
-                    visible={bob.showContactInfoModal}
-                    closable={true}
-                    onCancel={_ => {
-                        bob.showContactInfoModal = false;
-                    }}
-                    footer={[
-                        <Button
-                            key="cancel"
-                            onClick={_ => {
-                                bob.showContactEditModal = true;
-                            }}
-                        >
-                            Edit
-                        </Button>,
-                    ]}
-                >
-                    <p className="title">Address</p>
-                    <p className="contactInfo">
-                        {`https://nolik.im/pk/${bob.publicKey}`}
-                    </p>
-                    <Divider />
-                    <p className="title">Full name</p>
-                    <p className="contactInfo">
-                        {bob.publicKey === bob.fullName ? '' : bob.fullName}
-                    </p>
-                </Modal>
+                
                 <Modal
                     title="Update user info"
                     key="userInfoEdit"
-                    visible={bob.showContactEditModal}
+                    visible={index.showContactEditModal}
                     closable={true}
                     onCancel={_ => {
-                        bob.showContactEditModal = false;
+                        index.showContactEditModal = false;
                     }}
                     footer={[
                         <Button
                             key="cancelUserInfo"
                             onClick={_ => {
-                                bob.showContactEditModal = false;
+                                index.showContactEditModal = false;
                             }}
                         >
                             Cancel
@@ -168,41 +141,32 @@ class Index extends React.Component {
                             key="saveUserInfo"
                             type="primary"
                             onClick={_ => {
-                                bob.saveUserInfo();
+                                contacts.saveContact();
                             }}
                         >
                             Save
                         </Button>,
                     ]}
                 >
-                    <p className="title">First Name</p>
+                    <p className="title">Group or Contact name</p>
                     <Input
-                        placeholder="Enter first name"
-                        value={bob.firstNameEdit}
+                        placeholder="Enter group or contact name"
+                        value={contacts.fullNameEdit}
                         onChange={e => {
-                            bob.firstNameEdit = e.target.value;
-                        }}
-                    />
-                    <p className="title">&nbsp;</p>
-                    <p className="title">Last Name</p>
-                    <Input
-                        placeholder="Enter last name"
-                        value={bob.lastNameEdit}
-                        onChange={e => {
-                            bob.lastNameEdit = e.target.value;
+                            contacts.fullNameEdit = e.target.value;
                         }}
                     />
                 </Modal>
                 <Modal
                     title="Add members to group"
                     key="addMembers"
-                    visible={bob.showAddGroupModal}
+                    visible={index.showAddGroupModal}
                     closable={false}
                     footer={[
                         <Button
                             key="cancelAddMembers"
                             onClick={_ => {
-                                bob.showAddGroupModal = false;
+                                index.showAddGroupModal = false;
                             }}
                         >
                             Cancel
@@ -224,13 +188,14 @@ class Index extends React.Component {
                     <p>Bla bla ...</p>
                 </Modal>
                 <SearchModal />
+                <ContactInfoModal />
                 <Row>
-                    <Col xs={bob.publicKey === null ? 24 : 0} sm={10} md={8}>
+                    <Col xs={groups.groupHash === null ? 24 : 0} sm={10} md={8}>
                         <div className="contacts">
-                            {bob.list.length > 0 && (
+                            {groups.list.length > 0 && (
                                 <PageHeader
                                     onBack={() => {
-                                        bob.reset();
+                                        groups.resetGroup();
                                         alice.publicKey = null;
                                     }}
                                     key="contactsHeader"
@@ -247,7 +212,7 @@ class Index extends React.Component {
                                         <Button
                                             key="addContactBtn"
                                             onClick={_ => {
-                                                bob.showAddContactModal = true;
+                                                index.showAddContactModal = true;
                                             }}
                                         >
                                             <Icon type="user-add" />
@@ -259,32 +224,28 @@ class Index extends React.Component {
                                     }}
                                 />
                             )}
-                            {bob.list.length === 0 && index.fakeHeaders.map(item => (
+                            {groups.list.length === 0 && index.fakeHeaders.map(item => (
                                 <Skeleton rows={2} key={`header_${item}`} />
                             ))}
-                            {bob.newBob && (
-                                <Header item={bob.newBob} key={`header_${bob.newBob.index}`} />
-                            )}
-                            {bob.list.map(item => (
-                                <Header item={item} key={`header_${item.index}`} />
+                            {/* {bob.newBob && (
+                                <Group item={bob.newBob} key={`header_${bob.newBob.index}`} />
+                            )} */}
+                            {groups.list.map(item => (
+                                <Group item={item} key={`header_${item.index}`} />
                             ))}
                         </div>
                     </Col>
-                    <Col xs={bob.publicKey === null ? 0 : 24} sm={14} md={16}>
-                        {bob.publicKey === null && <div className={`cdm empty`} />}
-                        {bob.publicKey && bob.list.length === 0 && <div className={`cdm loading`}>Loading...</div>}
-                        {bob.list.length > 0 && bob.publicKey  && (
+                    <Col xs={groups.groupHash === null ? 0 : 24} sm={14} md={16}>
+                        {groups.groupHash === null && <div className={`cdm empty`} />}
+                        {groups.groupHash && groups.list.length === 0 && <div className={`cdm loading`}>Loading...</div>}
+                        {groups.list.length > 0 && groups.groupHash  && (
                             <div className="cdm">
                                 <PageHeader
-                                    onBack={() => bob.reset()}
-                                    title={
-                                        <span className="pageHeader">
-                                            {bob.fullName}
-                                        </span>
-                                    }
+                                    onBack={() => groups.resetGroup()}
+                                    title={groups.fullName}
                                     key="chatHeader"
                                     subTitle=""
-                                    extra={bob.list.filter(el => el.accounts[0].publicKey === bob.publicKey && el.index === 0).length === 0 && [
+                                    extra={groups.list.filter(el => el.groupHash === groups.groupHash && el.index === 0).length === 0 && [
                                         <Dropdown
                                             overlay={chatDropdownMenu}
                                             trigger={['click']}
@@ -363,9 +324,7 @@ class Index extends React.Component {
                     }
 
                     .pageHeader {
-                        white-space: nowrap;
-                        overflow: hidden;
-                        text-overflow: ellipsis;
+                        overflow-x: hidden;
                     }
 
                     .cdmLoading {

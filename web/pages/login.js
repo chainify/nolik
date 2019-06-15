@@ -2,15 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Router, { withRouter } from 'next/router';
 import { observer, inject } from 'mobx-react';
-import { autorun, toJS } from 'mobx';
-// import { i18n, Link as Tlink, withNamespaces } from '../i18n';
-import Wrapper from '../components/Wrapper';
-import Header from '../components/Header';
-import Cdm from '../components/Cdm';
-import Skeleton from '../components/Skeleton';
-import { Row, Col, Input, Divider, Icon, Button, Radio } from 'antd';
+import { Row, Col, Input, Button, Radio } from 'antd';
 const { TextArea } = Input;
-import * as moment from 'moment';
 import mouseTrap from 'react-mousetrap';
 
 

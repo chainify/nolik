@@ -1,12 +1,10 @@
-import { action, observable, toJS } from 'mobx';
+import { action, observable } from 'mobx';
 import axios from 'axios';
 import * as moment from 'moment';
-import base58 from './../utils/base58';
-const { transfer, broadcast } = require('@waves/waves-transactions')
-import stringFromUTF8Array from './../utils/batostr';
 import { message } from 'antd';
 import { sha256 } from 'js-sha256';
-
+import { toJS } from 'mobx';
+import stringFromUTF8Array from './../utils/batostr';
 
 class CdmStore {
     stores = null;
@@ -26,22 +24,26 @@ class CdmStore {
     @observable pendingMessagesDB = null;
     
     @action
-    initLevelDB(alicePubKey, bobPubKey) {
+    initLevelDB(alicePubKey, groupHash) {
         const levelup = require('levelup');
         const leveljs = require('level-js');
 
         this.readCdmDB = levelup(leveljs(`/root/.leveldb/read_cdms_${alicePubKey}`));
-        this.pendnigDB = levelup(leveljs(`/root/.leveldb/pending_cdms_${alicePubKey}_${bobPubKey}`));
+        this.pendnigDB = levelup(leveljs(`/root/.leveldb/pending_cdms_${alicePubKey}_${groupHash}`));
     }
 
     @action
     getList() {
-        const { alice, bob } = this.stores;
+        const { alice, groups } = this.stores;
         const formConfig = {}
-        this.getListStatus = 'fetching';
 
+        const currentGroup = groups.currentGroup();
+        if (currentGroup === null) { return }
+        this.list = [currentGroup.lastCdm];
+
+        this.getListStatus = 'fetching';
         axios
-            .get(`${process.env.API_HOST}/api/v1/cdm/${alice.publicKey}/${bob.publicKey}`, formConfig)
+            .get(`${process.env.API_HOST}/api/v1/cdms/${alice.publicKey}/${currentGroup.members[0].publicKey}`, formConfig)
             .then(res => {
                 const list = res.data.cdms;
                 for (let i = 0; i < list.length; i += 1) {
@@ -53,7 +55,7 @@ class CdmStore {
                 return this.decryptList(list);
             })
             .then(list => {
-                this.readCdmDB.put(bob.publicKey, list.length);
+                this.readCdmDB.put(groups.groupHash, list.length);
                 this.list = list;
                 this.getListStatus = 'success';
             })
@@ -81,12 +83,14 @@ class CdmStore {
 
     @action
     decryptList(list) {
-        const { bob, crypto } = this.stores;
+        const { crypto, groups } = this.stores;
+        const currentGroup = groups.currentGroup();
+
         const decList = [];
         const promices = [];
         for (let i = 0; i < list.length; i += 1) {
             const cdm = list[i];
-            const p = crypto.decryptMessage(cdm.message, bob.publicKey)
+            const p = crypto.decryptMessage(cdm.message, currentGroup.members[0].publicKey)
                 .then(msg => {
                     cdm.message = msg;
                     decList.push(cdm);
@@ -104,10 +108,14 @@ class CdmStore {
 
     @action
     sendCdm() {
-        const { cdm, bob, crypto, utils } = this.stores;
+        const { groups, crypto } = this.stores;
         this.sendCdmStatus = 'pending';
-
-        crypto.encryptCdm([bob.publicKey])
+        
+        const currentGroup = groups.currentGroup();
+        if (currentGroup === null) { return }
+        const recipients = currentGroup.members.map(el => el.publicKey);
+        
+        crypto.encryptCdm(recipients)
             .then(ecnMessage => {
                 const now = moment().unix();
                 this.list = this.list.concat([{
@@ -125,20 +133,20 @@ class CdmStore {
                 return ecnMessage;
             })
             .then(ecnMessage => {
-                const recipients = [bob.publicKey];
                 const promises = [];
                 for (let i = 0 ; i < recipients.length; i += 1) {
                     const formConfig = {};
                     const formData = new FormData();
                     formData.append('message', ecnMessage);
-                    formData.append('recipient', bob.publicKey);
-                    const p = axios.post(`${process.env.API_HOST}/api/v1/cdm`, formData, formConfig);
+                    formData.append('recipient', recipients[i]);
+                    const p = axios.post(`${process.env.API_HOST}/api/v1/cdms`, formData, formConfig);
+                    promises.push(p);
                 }
 
                 Promise.all(promises);
             })
             .then(_ => {
-                this.readCdmDB.put(bob.publicKey, this.list.length);
+                this.readCdmDB.put(groups.groupHash, this.list.length);
             })
             .then(_ => {
                 this.sendCdmStatus = 'success'
@@ -146,7 +154,7 @@ class CdmStore {
             .catch(e => {
                 console.log(e);
                 message.error(e.message || e);
-                self.sendCdmStatus = 'error';
+                this.sendCdmStatus = 'error';
             });
     }
 }

@@ -3,11 +3,11 @@ import { observer, inject } from 'mobx-react';
 import { Badge, Icon, Typography } from 'antd';
 const { Paragraph } = Typography;
 
-@inject('bob', 'cdm')
+@inject('groups')
 @observer
 class Header extends React.Component {
     render() {
-        const { item, bob, cdm } = this.props;
+        const { item, groups } = this.props;
         const paragrapStyle = {
             margin: 0,
             padding: 0,
@@ -20,27 +20,25 @@ class Header extends React.Component {
                     type="button"
                     className="button"
                     onClick={() => {
-                        if (bob.publicKey !== item.accounts[0].publicKey) {
-                            bob.setBob(item.accounts[0].publicKey);
+                        if (groups.groupHash !== item.groupHash) {
+                            groups.setGroup(item.groupHash);
                         }
                     }}
                 >
-                    <div className={`header ${bob.publicKey === item.accounts[0].publicKey && 'active'}`}>
+                    <div className={`header ${groups.groupHash === item.groupHash && 'active'}`}>
                         <div className="headerBody">
                             <Paragraph ellipsis style={paragrapStyle}>
-                                <div className="headerTitle">
-                                    {item.accounts[0].fullName}
-                                </div>
+                                <span className="headerTitle">{item.fullName}</span>
                             </Paragraph>
                             <Paragraph ellipsis style={paragrapStyle}>
-                                <div className="headerMessage">
-                                    {item.cdm ? item.cdm.message : 'No messages yet'}
-                                </div>
+                                <span className="headerMessage">
+                                    {item.lastCdm ? item.lastCdm.message : 'No messages yet'}
+                                </span>
                             </Paragraph>
                         </div>
                         <div className="badgeDiv">
                             {item.totalCdms - item.readCdms > 0 && (
-                                <Badge count={item.totalCdms - item.readCdms} style={{ backgroundColor: '#64b5f6' }} />
+                                <Badge count={item.totalCdms - item.readCdms} />
                             )}
                             {item.totalCdms - item.readCdms < 0 && (
                                 <Badge count={<Icon type="clock-circle" style={{ marginRight: 10 }} />} />
@@ -89,9 +87,7 @@ class Header extends React.Component {
                         color: #333;
                     }
 
-                    .headerMessage {
-
-                    }
+                    .headerMessage {}
 
                     .badgeDiv {
                         flex-basis: 40px;

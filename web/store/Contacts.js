@@ -1,36 +1,51 @@
 import { action, observable } from 'mobx';
-import axios from 'axios';
-import * as WavesAPI from 'waves-api';
+import stringFromUTF8Array from './../utils/batostr';
 
 class WrapperStore {
     stores = null;
     constructor(stores) {
         this.stores = stores;
 
+        this.initLevelDB = this.initLevelDB.bind(this);
         this.saveContact = this.saveContact.bind(this);
-        this.getContacts = this.getContacts.bind(this);
+        this.getContact = this.getContact.bind(this);
     }
-    @observable list = null;
 
-    @observable getContactStatus = 'init';
+    @observable fullNameEdit = '';
+    @observable contactsDB = null;
+
+    @action
+    initLevelDB() {
+        const { alice } = this.stores;
+        const levelup = require('levelup');
+        const leveljs = require('level-js');
+
+        this.contactsDB = levelup(leveljs(`/root/.leveldb/contacts_${alice.publicKey}`));
+    }
 
     @action
     saveContact() {
-        
+        const { groups } = this.stores;
+        this.contactsDB.put(groups.groupHash, this.fullNameEdit);
     }
 
     @action
-    getContacts() {
-        const { alice } = this.stores;
-        const formConfig = {};
-        
-        this.getContactStatus = 'fetching';
-        axios
-            .get(`${process.env.API_HOST}/api/v1/contacts/${alice.publicKey}`, formConfig)
-            .then(res => {
-                this.list = res.data.contacts;
-                this.getContactStatus = 'success';
-            }) 
+    getContact(groupHash) {
+        this.initLevelDB();
+        return new Promise((resolve, reject) => {
+            this.contactsDB.get(groupHash)
+                .then(res => {
+                    console.log('RES', res);
+                    resolve(stringFromUTF8Array(res));
+                })
+                .catch(e => {
+                    if (e.type === 'NotFoundError') {
+                        resolve(null);
+                    } else {
+                        reject(e);
+                    }
+                });
+        })
     }
 }
 
