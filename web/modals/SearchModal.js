@@ -9,7 +9,7 @@ import { toJS } from 'mobx';
 const Search = Input.Search;
 
 
-@inject('bob', 'contacts')
+@inject('alice', 'index', 'contacts', 'groups')
 @observer
 class SearchModal extends React.Component {
 
@@ -18,64 +18,68 @@ class SearchModal extends React.Component {
     }
 
     render() {
-        const { bob, contacts } = this.props;
+        const { alice, index, contacts, groups } = this.props;
         return (
             <div>
                 <Modal
                     title="Search Contact"
                     key="searchContact"
-                    visible={bob.showAddContactModal}
+                    visible={index.showAddContactModal}
                     closable
                     onCancel={_ => {
-                        bob.showAddContactModal = false;
-                        bob.contactPublicKey = '';
+                        index.showAddContactModal = false;
+                        contacts.searchValue = '';
                     }}
                     footer={null}
                 >
                     <Search
                         placeholder="Enter name or public key"
-                        value={bob.contactPublicKey}
+                        value={contacts.searchValue}
                         autoFocus
                         onChange={e => {
-                            bob.contactPublicKey = e.target.value;
+                            contacts.searchValue = e.target.value;
                         }}
                     />
-                    {bob.contactPublicKey && contacts.list && contacts.list.filter(el => {
-                        const fullName = [el.firstName, el.lastName].join(' ').trim().toLowerCase();
-                        return fullName.search(bob.contactPublicKey) > -1;
-                    }).map(el => (
-                        <button
-                            key={`key_${el.id}`}
-                            onClick={_ => {
-                                Router.push(`/index?publicKey=${el.publicKey}`, `/pk/${el.publicKey}`);
-                                bob.setBob(el.publicKey);
-                                bob.showAddContactModal = false;
-                                bob.contactPublicKey = '';
-                            }}
-                            className="contactBtn"
-                        >
-                            {[el.firstName, el.lastName].join(' ')}
-                        </button>
-                    ))}
-                    {bob.contactPublicKey.length === 44 && (
-                        <div>
+                    {groups.list.filter(el => el.fullName.toLowerCase().search(contacts.searchValue) > -1)
+                        .map(el => (
                             <button
-                                key={`key_${bob.contactPublicKey}`}
+                                key={`key_${el.groupHash}`}
                                 onClick={_ => {
-                                    Router.push(`/index?publicKey=${bob.contactPublicKey}`, `/pk/${bob.contactPublicKey}`);
-                                    bob.setBob(bob.contactPublicKey);
-                                    bob.showAddContactModal = false;
-                                    bob.contactPublicKey = '';
+                                    // Router.push(`/index?publicKey=${el.publicKey}`, `/pk/${el.publicKey}`);
+                                    // bob.setBob(el.publicKey);
+                                    // bob.showAddContactModal = false;
+                                    // bob.contactPublicKey = '';
                                 }}
                                 className="contactBtn"
                             >
-                                {contacts.list.filter(el => el.publicKey === bob.contactPublicKey).length > 0
+                                {el.fullName}
+                            </button>
+                        ))}
+                    {contacts.searchValue.length === 44 && (
+                        <div>
+                            <button
+                                key={`key_${contacts.searchValue}`}
+                                onClick={_ => {
+                                    const groupHash = groups.createGroupHash([alice.publicKey, contacts.searchValue]);
+                                    groups.newGroupMembers = [{
+                                        publicKey: contacts.searchValue,
+                                        lastActive: null,
+                                    }];
+                                    Router.push(`/index?groupHash=${groupHash}`, `/gr/${groupHash}`);
+                                    index.showAddContactModal = false;
+                                    groups.setGroup(groupHash);
+                                    contacts.searchValue = '';
+                                }}
+                                className="contactBtn"
+                            >
+                                {contacts.searchValue}
+                                {/* {contacts.list.filter(el => el.publicKey === bob.contactPublicKey).length > 0
                                     ? [
                                         contacts.list.filter(el => el.publicKey === bob.contactPublicKey)[0].firstName,
                                         contacts.list.filter(el => el.publicKey === bob.contactPublicKey)[0].lastName
                                     ].join(' ').trim()
                                     :bob.contactPublicKey
-                                }
+                                } */}
                             </button>
                         </div>
                     )}

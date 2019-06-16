@@ -1,7 +1,7 @@
 import { action, observable, toJS } from 'mobx';
 import axios from 'axios';
 import Router from 'next/router';
-import stringFromUTF8Array from './../utils/batostr';
+import stringFromUTF8Array from '../utils/batostr';
 
 class BobsStore {
     stores = null;

@@ -15,7 +15,7 @@ class CdmStore {
         this.sendCdm = this.sendCdm.bind(this);
     }
 
-    @observable list = [];
+    @observable list = null;
     @observable getListStatus = 'init';
     @observable message = '';
     @observable sendCdmStatus = 'init';
@@ -86,6 +86,7 @@ class CdmStore {
         const { crypto, groups } = this.stores;
         const currentGroup = groups.currentGroup();
 
+        if (list.length === 0) { return list }
         const decList = [];
         const promices = [];
         for (let i = 0; i < list.length; i += 1) {
@@ -146,7 +147,7 @@ class CdmStore {
                 Promise.all(promises);
             })
             .then(_ => {
-                this.readCdmDB.put(groups.groupHash, this.list.length);
+                this.readCdmDB.put(groups.groupHash, this.list ? this.list.length : 0);
             })
             .then(_ => {
                 this.sendCdmStatus = 'success'

@@ -21,7 +21,7 @@ class Cdm extends React.Component {
         return (
             <div className="content" ref={el => { this.contentDiv = el; }}>
                 <div className="list">
-                    {cdm.list.map((item, index) => {
+                    {cdm.list && cdm.list.map((item, index) => {
                         let showDivider = false;
                         if (index === 0) { showDivider = true }
                         if (

@@ -12,8 +12,11 @@ import { Row, Col, Input, Button, Icon, Modal, Dropdown, Menu, Divider, PageHead
 const { TextArea } = Input;
 import mouseTrap from 'react-mousetrap';
 
-import SearchModal from '../modals/SearchModal';
 import ContactInfoModal from '../modals/ContactInfoModal';
+// import SearchModal from '../modals/SearchModal';
+// import ContactEditModal from '../modals/ContactEditModal';
+
+const Search = Input.Search;
 const { Paragraph } = Typography;
 const paragrapStyle = {
     margin: 0,
@@ -48,17 +51,23 @@ class Index extends React.Component {
         });
 
         autorun(() => {
-            if (groups.list.length > 0 && groups.groupHash && cdm.list.length === 0) {
+            if (
+                groups.list.length > 0 &&
+                groups.groupHash &&
+                cdm.getListStatus === 'init' &&
+                cdm.list === null
+            ) {
+                console.log('YADDA');
                 cdm.getList();
-                groups.setFullName(groups.groupHash);
+                // groups.setFullName(groups.groupHash);
             }
         });
     }
 
     componentDidMount() {
-        const { cdm, groups } = this.props;
+        const { cdm, groups, alice } = this.props;
         
-        if (groups.getListStatus === 'init') {
+        if (alice.publicKey && groups.getListStatus === 'init') {
             groups.getList();
         }
         
@@ -119,44 +128,6 @@ class Index extends React.Component {
 
         return (
             <Wrapper>
-                
-                <Modal
-                    title="Update user info"
-                    key="userInfoEdit"
-                    visible={index.showContactEditModal}
-                    closable={true}
-                    onCancel={_ => {
-                        index.showContactEditModal = false;
-                    }}
-                    footer={[
-                        <Button
-                            key="cancelUserInfo"
-                            onClick={_ => {
-                                index.showContactEditModal = false;
-                            }}
-                        >
-                            Cancel
-                        </Button>,
-                        <Button
-                            key="saveUserInfo"
-                            type="primary"
-                            onClick={_ => {
-                                contacts.saveContact();
-                            }}
-                        >
-                            Save
-                        </Button>,
-                    ]}
-                >
-                    <p className="title">Group or Contact name</p>
-                    <Input
-                        placeholder="Enter group or contact name"
-                        value={contacts.fullNameEdit}
-                        onChange={e => {
-                            contacts.fullNameEdit = e.target.value;
-                        }}
-                    />
-                </Modal>
                 <Modal
                     title="Add members to group"
                     key="addMembers"
@@ -187,12 +158,11 @@ class Index extends React.Component {
                     <p>Bla bla ...</p>
                     <p>Bla bla ...</p>
                 </Modal>
-                <SearchModal />
                 <ContactInfoModal />
                 <Row>
                     <Col xs={groups.groupHash === null ? 24 : 0} sm={10} md={8}>
                         <div className="contacts">
-                            {groups.list.length > 0 && (
+                            {groups.list && (
                                 <PageHeader
                                     onBack={() => {
                                         groups.resetGroup();
@@ -201,22 +171,19 @@ class Index extends React.Component {
                                     key="contactsHeader"
                                     backIcon={<Icon type="poweroff" />}
                                     extra={[
-                                        <Button
-                                            key="settingBtn"
-                                            onClick={_ => {
-                                                // bob.showAddContactModal = true;
+                                        <Input
+                                            placeholder="Public key / Full name"
+                                            // prefix={<Icon type="search" />}
+                                            suffix={<Icon type="search" />}
+                                            key="groupsSearchInput"
+                                            size="small"
+                                            value={groups.searchValue}
+                                            onChange={e => {
+                                                groups.searchValue = e.target.value;
+                                                groups.list = groups.list
+                                                    .filter(el => el.fullName.toLowerCase().search(groups.searchValue.toLowerCase()) > -1);
                                             }}
-                                        >
-                                            <Icon type="setting" />
-                                        </Button>,
-                                        <Button
-                                            key="addContactBtn"
-                                            onClick={_ => {
-                                                index.showAddContactModal = true;
-                                            }}
-                                        >
-                                            <Icon type="user-add" />
-                                        </Button>
+                                        />
                                     ]}
                                     style={{
                                         borderBottom: '1px solid #ddd',
@@ -224,21 +191,21 @@ class Index extends React.Component {
                                     }}
                                 />
                             )}
-                            {groups.list.length === 0 && index.fakeHeaders.map(item => (
+                            {groups.list === null && index.fakeHeaders.map(item => (
                                 <Skeleton rows={2} key={`header_${item}`} />
                             ))}
                             {/* {bob.newBob && (
                                 <Group item={bob.newBob} key={`header_${bob.newBob.index}`} />
                             )} */}
-                            {groups.list.map(item => (
+                            {groups.list && groups.list.map(item => (
                                 <Group item={item} key={`header_${item.index}`} />
                             ))}
                         </div>
                     </Col>
                     <Col xs={groups.groupHash === null ? 0 : 24} sm={14} md={16}>
                         {groups.groupHash === null && <div className={`cdm empty`} />}
-                        {groups.groupHash && groups.list.length === 0 && <div className={`cdm loading`}>Loading...</div>}
-                        {groups.list.length > 0 && groups.groupHash  && (
+                        {groups.groupHash && groups.list === null && <div className={`cdm loading`}>Loading...</div>}
+                        {groups.list && groups.groupHash  && (
                             <div className="cdm">
                                 <PageHeader
                                     onBack={() => groups.resetGroup()}

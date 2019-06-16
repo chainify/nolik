@@ -1,6 +1,5 @@
 import Index from './Index';
 import Alice from './Alice';
-import Bob from './Bob';
 import Groups from './Groups';
 import Cdm from './Cdm';
 import Utils from './Utils';
@@ -13,7 +12,6 @@ import Login from './Login';
 const stores = {};
 
 stores.alice = new Alice(stores);
-stores.bob = new Bob(stores);
 stores.groups = new Groups(stores);
 stores.utils = new Utils(stores);
 stores.crypto = new Crypto(stores);

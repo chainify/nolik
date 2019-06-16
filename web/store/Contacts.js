@@ -11,7 +11,9 @@ class WrapperStore {
         this.getContact = this.getContact.bind(this);
     }
 
+    @observable list = [];
     @observable fullNameEdit = '';
+    @observable searchValue = '';
     @observable contactsDB = null;
 
     @action
@@ -25,8 +27,10 @@ class WrapperStore {
 
     @action
     saveContact() {
-        const { groups } = this.stores;
+        const { groups, index } = this.stores;
         this.contactsDB.put(groups.groupHash, this.fullNameEdit);
+        groups.fullName = this.fullNameEdit;
+        index.showContactEditModal = false;
     }
 
     @action
@@ -35,7 +39,6 @@ class WrapperStore {
         return new Promise((resolve, reject) => {
             this.contactsDB.get(groupHash)
                 .then(res => {
-                    console.log('RES', res);
                     resolve(stringFromUTF8Array(res));
                 })
                 .catch(e => {

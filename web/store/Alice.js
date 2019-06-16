@@ -41,7 +41,7 @@ class AliceStore {
                     window.Waves.publicState().then(data => {
                         this.publicKey = data.account.publicKey; 
                         const groupHash = sessionStorage.getItem('groupHash');
-                        cdm.list = [];
+                        cdm.list = null;
                         cdm.initLevelDB(data.account.publicKey, groupHash);
                         if (groupHash) {
                             Router.push(`/index?groupHash=${groupHash}`, `/gr/${groupHash}`);
@@ -67,7 +67,7 @@ class AliceStore {
 
     @action
     authCheck() {
-        const { login, bob } = this.stores;
+        const { login, groups } = this.stores;
         if (typeof window !== 'undefined') {
             try {
                 window.Waves.publicState().then(res => {   
@@ -77,7 +77,7 @@ class AliceStore {
                         }
                     } else {
                         if (this.publicKey !== null && this.publicKey !== res.account.publicKey) {
-                            bob.reset();
+                            groups.resetGroup();
                             this.publicKey = null;
                         }
                     }
@@ -91,7 +91,7 @@ class AliceStore {
                     console.log('Keeper needed');
                 } else {
                     console.log(e);
-                }w
+                }
             } finally {
                 if (this.publicKey === null) {
                     Router.push('/login');

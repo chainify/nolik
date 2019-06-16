@@ -2,14 +2,13 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Router, { withRouter } from 'next/router';
 import { observer, inject } from 'mobx-react';
-import { Input, Button, Modal, Divider } from 'antd';
+import { Input, Button, Modal, Divider, Typography } from 'antd';
 import mouseTrap from 'react-mousetrap';
 import { toJS } from 'mobx';
 
-const Search = Input.Search;
+const { Paragraph } = Typography;
 
-
-@inject('index', 'groups')
+@inject('index', 'groups', 'contacts')
 @observer
 class ContactInfoModal extends React.Component {
 
@@ -18,39 +17,35 @@ class ContactInfoModal extends React.Component {
     }
 
     render() {
-        const { index, groups } = this.props;
+        const { index, groups, contacts } = this.props;
+        const currentGroup = groups.currentGroup();
         return (
             <div>
                 <Modal
-                    title="User info"
-                    key="userInfo"
+                    title={currentGroup && currentGroup.members.length > 1 ? 'Group info' : 'User info'}
                     visible={index.showContactInfoModal}
                     closable={true}
                     onCancel={_ => {
                         index.showContactInfoModal = false;
                     }}
-                    footer={[
-                        <Button
-                            key="cancel"
-                            onClick={_ => {
-                                index.showContactEditModal = true;
-                            }}
-                        >
-                            Edit
-                        </Button>,
-                    ]}
+                    footer={null}
                 >
-                    <p className="title">Address</p>
-                    <p className="contactInfo">
-                        {groups.fullName}
-                        {/* {`https://nolik.im/pk/${bob.publicKey}`} */}
-                    </p>
-                    <Divider />
+                    {/* <p className="title">Address</p>
+                    <Paragraph copyable>
+                        {currentGroup && currentGroup.groupHash}
+                    </Paragraph>
+                    <Divider /> */}
                     <p className="title">Full name</p>
-                    <p className="contactInfo">
+                    <Paragraph
+                        editable={{
+                            onChange: (e) => {
+                                contacts.fullNameEdit = e;
+                                contacts.saveContact();
+                            }
+                        }}
+                    >
                         {groups.fullName}
-                        {/* {bob.publicKey === bob.fullName ? '' : bob.fullName} */}
-                    </p>
+                    </Paragraph>
                 </Modal>
 
                 <style jsx>{`

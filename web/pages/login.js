@@ -36,58 +36,14 @@ class Index extends React.Component {
                 </Row>
                 <Row>
                     <Col xs={{ offset: 4, span: 16}}>
-                        {login.withWaves === null ? (
-                            <div className="loading">Please wait...</div>
-                        ) : (
-                            <Radio.Group
-                                size="large"
-                                value={login.loginWith}
-                                onChange={e => {
-                                    login.loginWith = e.target.value;
-                                }}
-                            >
-                                <Radio style={radioStyle} value="keeper" disabled={!login.withWaves}>Unlock with Waves Keeper</Radio>
-                                <Radio style={radioStyle} value="seed">Unlock with Seed phrase</Radio>
-                            </Radio.Group>
-                        )}
-                    </Col>
-                </Row>
-                {login.loginWith === 'seed' && (
-                    <Row>
-                        <Col xs={{ offset: 4, span: 16}}>
-                            {login.withWaves === true && (<h3>This method is not recomended</h3>)}
-                            <TextArea
-                                style={{
-                                    border: '1px solid #fff',
-                                    padding: 20,
-                                    background: 'transparent',
-                                }}
-                                value={login.seed}
-                                onChange={e => {
-                                    login.seed = e.target.value;
-                                }}
-                            />
-                        </Col>
-                    </Row>
-                )}
-                <Row>
-                    <Col xs={{ offset: 4, span: 16}} >
-                        {login.loginWith && (
+                        {login.withWaves === null && <div className="loading">Please wait...</div>}
+                        {login.withWaves === false && <div>Get Waves Keeper</div>}
+                        {login.withWaves === true && (
                             <Button
                                 type="primary"
                                 size="large"
                                 style={{ marginTop: '2em' }}
-                                onClick={() => {
-                                    if (login.loginWith === 'keeper') {
-                                        alice.auth();
-                                    } else {
-                                        alice.init();
-                                    }
-                                }}
-                                disabled={
-                                    (login.loginWith === 'seed' && login.seed === '') ||
-                                    login.loginWith === null
-                                }
+                                onClick={() => alice.auth()}
                             >
                                 Unlock
                             </Button>
