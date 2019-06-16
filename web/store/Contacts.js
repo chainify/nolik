@@ -28,8 +28,8 @@ class WrapperStore {
     @action
     saveContact() {
         const { groups, index } = this.stores;
-        this.contactsDB.put(groups.groupHash, this.fullNameEdit);
-        groups.fullName = this.fullNameEdit;
+        this.contactsDB.put(groups.current.groupHash, this.fullNameEdit);
+        groups.setFullName(this.fullNameEdit);
         index.showContactEditModal = false;
     }
 

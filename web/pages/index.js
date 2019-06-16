@@ -1,8 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import Router, { withRouter } from 'next/router';
+import { withRouter } from 'next/router';
 import { observer, inject } from 'mobx-react';
-import { autorun, toJS, action } from 'mobx';
+import { autorun } from 'mobx';
 // import { i18n, Link as Tlink, withNamespaces } from '../i18n';
 import Wrapper from '../components/Wrapper';
 import Group from '../components/Group';
@@ -38,9 +38,16 @@ class Index extends React.Component {
             alice.authCheck();
         }, 200);
         
+        // autorun(() => {
+        //     if (router.query.groupHash) {
+        //         groups.setGroup(router.query.groupHash);
+        //     }
+        // });
+
+
         autorun(() => {
-            if (router.query.groupHash) {
-                groups.setGroup(router.query.groupHash);
+            if (alice.publicKey && groups.list === null) {
+                groups.getList();
             }
         });
         
@@ -52,24 +59,21 @@ class Index extends React.Component {
 
         autorun(() => {
             if (
-                groups.list.length > 0 &&
-                groups.groupHash &&
-                cdm.getListStatus === 'init' &&
+                groups.list &&
+                groups.current &&
                 cdm.list === null
             ) {
-                console.log('YADDA');
                 cdm.getList();
-                // groups.setFullName(groups.groupHash);
             }
         });
     }
 
     componentDidMount() {
         const { cdm, groups, alice } = this.props;
-        
-        if (alice.publicKey && groups.getListStatus === 'init') {
-            groups.getList();
-        }
+
+        // if (alice.publicKey && groups.getListStatus === 'init') {
+        //     groups.getList();
+        // }
         
         this.props.bindShortcut('meta+enter', () => {
             if (cdm.message.trim() !== "") {
@@ -106,6 +110,7 @@ class Index extends React.Component {
             <Menu
                 onClick={e => {
                     if (e.key === '0') {
+                        contacts.fullNameEdit = groups.current.fullName;
                         index.showContactInfoModal = true;
                         // const currentBob = bob.list.filter(el => el.accounts[0].publicKey === bob.publicKey)[0];
                         // bob.firstNameEdit = currentBob.accounts[0].firstName;
@@ -160,7 +165,7 @@ class Index extends React.Component {
                 </Modal>
                 <ContactInfoModal />
                 <Row>
-                    <Col xs={groups.groupHash === null ? 24 : 0} sm={10} md={8}>
+                    <Col sm={10} md={8}>
                         <div className="contacts">
                             {groups.list && (
                                 <PageHeader
@@ -173,8 +178,17 @@ class Index extends React.Component {
                                     extra={[
                                         <Input
                                             placeholder="Public key / Full name"
-                                            // prefix={<Icon type="search" />}
-                                            suffix={<Icon type="search" />}
+                                            prefix={<Icon type="search" style={{ color: '#ddd' }} />}
+                                            suffix={groups.searchValue.length > 0 && (
+                                                <button
+                                                    className="clearSearch"
+                                                    onClick={_ => {
+                                                        groups.searchValue = '';
+                                                    }}
+                                                >
+                                                    <Icon type="close-circle" theme="filled" />
+                                                </button>
+                                            )}
                                             key="groupsSearchInput"
                                             size="small"
                                             value={groups.searchValue}
@@ -194,25 +208,22 @@ class Index extends React.Component {
                             {groups.list === null && index.fakeHeaders.map(item => (
                                 <Skeleton rows={2} key={`header_${item}`} />
                             ))}
-                            {/* {bob.newBob && (
-                                <Group item={bob.newBob} key={`header_${bob.newBob.index}`} />
-                            )} */}
                             {groups.list && groups.list.map(item => (
                                 <Group item={item} key={`header_${item.index}`} />
                             ))}
                         </div>
                     </Col>
-                    <Col xs={groups.groupHash === null ? 0 : 24} sm={14} md={16}>
-                        {groups.groupHash === null && <div className={`cdm empty`} />}
-                        {groups.groupHash && groups.list === null && <div className={`cdm loading`}>Loading...</div>}
-                        {groups.list && groups.groupHash  && (
+                    <Col sm={14} md={16}>
+                        {groups.current === null && <div className={`cdm empty`} />}
+                        {groups.list === null && <div className={`cdm loading`}>Loading...</div>}
+                        {groups.list && groups.current  && (
                             <div className="cdm">
                                 <PageHeader
                                     onBack={() => groups.resetGroup()}
                                     title={groups.fullName}
                                     key="chatHeader"
                                     subTitle=""
-                                    extra={groups.list.filter(el => el.groupHash === groups.groupHash && el.index === 0).length === 0 && [
+                                    extra={groups.list.filter(el => el.groupHash === groups.current.groupHash && el.index === 0).length === 0 && [
                                         <Dropdown
                                             overlay={chatDropdownMenu}
                                             trigger={['click']}
@@ -321,6 +332,22 @@ class Index extends React.Component {
                         background: #eee;
                         padding: 1em 4em;
                         border-top: 1px solid #ddd;
+                    }
+
+                    button.clearSearch {
+                        border: none;
+                        background: transparent;
+                        padding: 0;
+                        margin: 0;
+                        width: 100%;
+                        box-shadow: none;
+                        outline:0;
+                        cursor: pointer;
+                        color: #999;
+                    }
+
+                    .messageMD {
+                        color: red;!
                     }
                 `}</style>
             </Wrapper>

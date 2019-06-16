@@ -39,7 +39,8 @@ class CdmStore {
 
         const currentGroup = groups.currentGroup();
         if (currentGroup === null) { return }
-        this.list = [currentGroup.lastCdm];
+        this.list = null;
+        // this.list = currentGroup.lastCdm ? [currentGroup.lastCdm] : null;
 
         this.getListStatus = 'fetching';
         axios
@@ -55,7 +56,7 @@ class CdmStore {
                 return this.decryptList(list);
             })
             .then(list => {
-                this.readCdmDB.put(groups.groupHash, list.length);
+                this.readCdmDB.put(groups.current.groupHash, list.length);
                 this.list = list;
                 this.getListStatus = 'success';
             })
@@ -111,10 +112,7 @@ class CdmStore {
     sendCdm() {
         const { groups, crypto } = this.stores;
         this.sendCdmStatus = 'pending';
-        
-        const currentGroup = groups.currentGroup();
-        if (currentGroup === null) { return }
-        const recipients = currentGroup.members.map(el => el.publicKey);
+        const recipients = groups.current.members.map(el => el.publicKey);
         
         crypto.encryptCdm(recipients)
             .then(ecnMessage => {
@@ -147,7 +145,7 @@ class CdmStore {
                 Promise.all(promises);
             })
             .then(_ => {
-                this.readCdmDB.put(groups.groupHash, this.list ? this.list.length : 0);
+                this.readCdmDB.put(groups.current.groupHash, this.list ? this.list.length : 0);
             })
             .then(_ => {
                 this.sendCdmStatus = 'success'

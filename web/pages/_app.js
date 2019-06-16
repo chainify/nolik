@@ -2,7 +2,7 @@ import React from 'react'
 import App, { Container } from 'next/app'
 import { Provider } from 'mobx-react';
 import stores from '../store/stores';
-import { appWithTranslation } from './../i18n';
+// import { appWithTranslation } from './../i18n';
 import Head from '../components/Head';
 import stylesheet from 'antd/dist/antd.min.css'
 
@@ -30,4 +30,5 @@ class MyApp extends App {
   }
 }
 
-export default appWithTranslation(MyApp)
+// export default appWithTranslation(MyApp)
+export default MyApp

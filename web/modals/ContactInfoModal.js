@@ -18,11 +18,10 @@ class ContactInfoModal extends React.Component {
 
     render() {
         const { index, groups, contacts } = this.props;
-        const currentGroup = groups.currentGroup();
         return (
             <div>
                 <Modal
-                    title={currentGroup && currentGroup.members.length > 1 ? 'Group info' : 'User info'}
+                    title={'Contact Info'}
                     visible={index.showContactInfoModal}
                     closable={true}
                     onCancel={_ => {
@@ -30,27 +29,23 @@ class ContactInfoModal extends React.Component {
                     }}
                     footer={null}
                 >
-                    {/* <p className="title">Address</p>
-                    <Paragraph copyable>
-                        {currentGroup && currentGroup.groupHash}
-                    </Paragraph>
-                    <Divider /> */}
                     <p className="title">Full name</p>
                     <Paragraph
                         editable={{
+                            onStart: () => {},
                             onChange: (e) => {
                                 contacts.fullNameEdit = e;
                                 contacts.saveContact();
                             }
                         }}
                     >
-                        {groups.fullName}
+                        {contacts.fullNameEdit}
                     </Paragraph>
                 </Modal>
 
                 <style jsx>{`
                     p.title {
-                        margin: 0;
+                        margin: 0 0 0.5em 0;
                         color: #999;
                     }
 

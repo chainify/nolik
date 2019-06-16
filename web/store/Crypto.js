@@ -17,19 +17,24 @@ class CryptoStore {
 
     @action
     encryptCdm(recipients) {
-        const { cdm, alice, settings } = this.stores;
+        const { cdm, alice, settings, utils } = this.stores;
         return new Promise((resolve, reject) => {            
             if (typeof window !== 'undefined') {
-                const sha = sha256(cdm.message);
+                const rawMessage = cdm.message;
+                const rand = sha256(utils.generateRandom(64));
+                const randMessage = rawMessage + '@' + rand;
+                
+                const sha = sha256(randMessage);
                 const signature = signBytes(Buffer.from(sha), settings.seed);
                 
                 const promises = [];
-                let msg = '-----BEGIN_BLOCKCHAIN WAVES-----';
+                let msg = '-----BEGIN_CDM VERSION_1-----';
+                msg += '\r\n-----BEGIN_BLOCKCHAIN WAVES-----';
 
                 for( let i = 0; i < recipients.length; i += 1) {
                     const recipientPublicKey = recipients[i];
                     const p = window.Waves
-                        .encryptMessage(cdm.message, recipientPublicKey, 'chainify')
+                        .encryptMessage(randMessage, recipientPublicKey, 'chainify')
                         .then(emcMsg => {
                             msg += `\r\n-----BEGIN_PUBLIC_KEY ${recipientPublicKey}-----\r\n${emcMsg}\r\n-----END_PUBLIC_KEY ${recipientPublicKey}-----`;
                             msg += `\r\n-----BEGIN_SHA256 ${recipientPublicKey}-----\r\n${sha}\r\n-----END_SHA256 ${recipientPublicKey}-----`;
@@ -41,6 +46,7 @@ class CryptoStore {
                     .then(_ => {
                         msg += `\r\n-----BEGIN_SIGNATURE ${alice.publicKey}-----\r\n${signature}\r\n-----END_SIGNATURE ${alice.publicKey}-----`;
                         msg += '\r\n-----END_BLOCKCHAIN WAVES-----';
+                        msg += '\r\n-----END_CDM VERSION_1-----';
                         resolve(msg);
                     })
                     .catch(e => {
@@ -58,7 +64,7 @@ class CryptoStore {
                 window.Waves
                     .decryptMessage(cypherText, publicKey, 'chainify')
                     .then(res => {
-                        resolve(res);
+                        resolve(res.replace(/@[\w]{64}$/gmi, ""));
                     })
                     .catch(e => {
                         console.log(e);
@@ -67,28 +73,6 @@ class CryptoStore {
             }
         })
     }
-
-    @action
-    decryptMessageSync(cypherText, address, publicKey) {
-        if (typeof window !== 'undefined') {
-            const rule = `(?:-----BEGIN ${address}-----)(.*)(?:-----END ${address}-----)`;
-            const re = new RegExp(rule, "gms");
-            const match = re.exec(cypherText);
-            const msg = match[1].trim();
-            
-            return window.Waves
-                .decrypt(msg, publicKey)
-                .then(res => {
-                    console.log(res);
-                    
-                    return res;
-                })
-                .catch(e => {
-                    console.log(e);
-                });
-        }
-    }
-
 }
 
 export default CryptoStore;

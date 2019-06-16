@@ -67,7 +67,7 @@ class SearchModal extends React.Component {
                                     }];
                                     Router.push(`/index?groupHash=${groupHash}`, `/gr/${groupHash}`);
                                     index.showAddContactModal = false;
-                                    groups.setGroup(groupHash);
+                                    // groups.setGroup(groupHash);
                                     contacts.searchValue = '';
                                 }}
                                 className="contactBtn"

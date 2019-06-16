@@ -20,12 +20,15 @@ class Header extends React.Component {
                     type="button"
                     className="button"
                     onClick={() => {
-                        if (groups.groupHash !== item.groupHash) {
-                            groups.setGroup(item.groupHash);
+                        if (
+                            groups.current === null ||
+                            (groups.current && groups.current.groupHash !== item.groupHash)
+                        ) {
+                            groups.setGroup(item);
                         }
                     }}
                 >
-                    <div className={`header ${groups.groupHash === item.groupHash && 'active'}`}>
+                    <div className={`header ${groups.current && groups.current.groupHash === item.groupHash && 'active'}`}>
                         <div className="headerBody">
                             <Paragraph ellipsis style={paragrapStyle}>
                                 <span className="headerTitle">{item.fullName}</span>

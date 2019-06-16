@@ -2,17 +2,26 @@ import React from 'react';
 import { observer, inject } from 'mobx-react';
 import * as moment from 'moment';
 import { Icon } from 'antd';
+const ReactMarkdown = require('react-markdown');
+
+// const MarkdownIt = require('markdown-it');
+// const md = new MarkdownIt();
 
 @inject('cdm')
 @observer
 class Message extends React.Component {
     render() {
-        const { item, cdm } = this.props;
+        const { item } = this.props;
+        const message = <ReactMarkdown
+            source={item.message}
+            linkTarget="_blank"
+            className="messageDM"
+        />;
         return (
             <div>
                 <div className={`msgRow ${item.type}`}>
                     <div className={`message ${item.type}`}>
-                        <div className="body">{item.message}</div>
+                        <div className="body">{message}</div>
                         {item.type === 'incoming' && (
                             <div className="footer">
                                 <div className="time">
@@ -49,6 +58,10 @@ class Message extends React.Component {
 
                     .msgRow.pending {
                         justify-content: flex-end;
+                    }
+
+                    .messageDM p {
+                        margin-bottom: 0px!important;
                     }
 
                     .message {

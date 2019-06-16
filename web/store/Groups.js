@@ -3,6 +3,7 @@ import axios from 'axios';
 import Router from 'next/router';
 import { sha256 } from 'js-sha256';
 import stringFromUTF8Array from './../utils/batostr';
+const ReactMarkdown = require('react-markdown');
 
 class GroupsStore {
     stores = null;
@@ -15,6 +16,7 @@ class GroupsStore {
     @observable publicKey = null;
     @observable groupHash = null;
     @observable list = null;
+    @observable current = null;
     @observable newGroupMembers = [];
     @observable fullName = null;
     @observable getListStatus = 'init';
@@ -27,24 +29,22 @@ class GroupsStore {
     }
 
     @action
-    setGroup(groupHash) {
-        console.log('GROUP SETTING');
-        
+    setGroup(group) {
         const { alice, cdm } = this.stores;
-        sessionStorage.setItem('groupHash', groupHash);
-        this.groupHash = groupHash;
-        Router.push(`/index?groupHash=${groupHash}`, `/gr/${groupHash}`);
+        sessionStorage.setItem('groupHash', group.groupHash);
+        this.current = group;
+        Router.push(`/index?groupHash=${group.groupHash}`, `/gr/${group.groupHash}`);
 
-        this.setFullName(groupHash);
-        cdm.initLevelDB(alice.publicKey, groupHash);
-        // cdm.getList();
+        this.setFullName(group.fullName);
+        cdm.initLevelDB(alice.publicKey, group.groupHash);
+        cdm.getList();
     }
 
     @action
     resetGroup() {
         const { cdm } = this.stores;
-        this.groupHash = null;
         this.fullName = null;
+        this.current = null;
         cdm.list = null;
         sessionStorage.removeItem('groupHash');
         Router.push('/');
@@ -52,22 +52,14 @@ class GroupsStore {
 
     @action
     currentGroup() {
-        const currentGroup = this.list && this.list.filter(el => el.groupHash === this.groupHash);
+        const currentGroup = this.list && this.list.filter(el => el.groupHash === this.current.groupHash);
         if (!currentGroup) { return null }
         return currentGroup.length > 0 ? currentGroup[0] : null;
     }
 
     @action
-    setFullName(groupHash) {
-        const { contacts } = this.stores;
-
-        contacts.getContact(groupHash)
-            .then(contact => {
-                this.fullName = contact ? contact.length > 20 ? contact.substring(0, 20) + '...' : contact : groupHash.substring(0, 20) + '...';
-            })
-            .catch(e => {
-                console.log('e', e);
-            });
+    setFullName(fullName) {
+        this.fullName =  fullName.length > 20 ? fullName.substring(0, 20) + '...' : fullName;
     }
 
     @action
@@ -85,21 +77,25 @@ class GroupsStore {
                 .then(list => {
                     const promises = [];
                     for (let i = 0; i < list.length; i += 1) {
+                        
                         const groupHash = list[i].groupHash;
-                        if (cdm.readCdmDB === null) {
-                            cdm.initLevelDB(alice.publicKey, groupHash)
-                        }
+                        // if (cdm.readCdmDB === null) {
+                        //     cdm.initLevelDB(alice.publicKey, groupHash)
+                        // }
                         const listEl = list[i];
                         listEl.readCdms = 0;
                         const p = cdm.readCdmDB.get(groupHash)
                             .then(res => {
                                 listEl.readCdms = parseInt(stringFromUTF8Array(res));
                                 return listEl;
+                            })
+                            .catch(e => {
+                                return listEl;
                             });
                         promises.push(p);
                     }
                     return Promise.all(promises)
-                        .then(res => {
+                        .then(res => {       
                             return res
                         });
                 })
@@ -127,22 +123,10 @@ class GroupsStore {
                 .then(list => {
                     const filtered = list
                         .filter(el => el.fullName.toLowerCase().search(this.searchValue.toLowerCase()) > -1);
-                    return filtered;
-                })
-                .then(list => {
-                    if (this.groupHash === null) { return list }
-                    const currentGroup = this.currentGroup();
-                    if (currentGroup === null) { return list }
-                    const pending = cdm.list.filter(el => el.type === 'pending');
-                    if (currentGroup.totalCdms > cdm.list.length - pending.length) {
-                        cdm.getList();
-                    }
-                    return list;
-                })
-                .then(list => {
+                    
                     if (this.searchValue.length === 44) {
                         const groupHash = this.createGroupHash([alice.publicKey, this.searchValue])
-                        return [{
+                        return filtered.concat([{
                             members: [{
                                 publicKey: this.searchValue,
                                 lastActive: null,
@@ -152,20 +136,29 @@ class GroupsStore {
                             fullName: 'NEW:' + groupHash,
                             totalCdms: 0,
                             lastCdm: null,
-                        }]
+                        }])
                     } else {
-                        return list;
+                        return filtered;
                     }
                 })
                 .then(list => {
-                    if (this.groupHash === null) { return list }
-                    const filtered = list.filter(el => el.groupHash === this.groupHash);
+                    if (this.current === null) { return list }
+                    if (cdm.list === null) { return list }
+                    const currentGroup = this.currentGroup();
+                    if (currentGroup === null) { return list }
+                    const pending = cdm.list.filter(el => el.type === 'pending');
+                    if (currentGroup.totalCdms > cdm.list.length - pending.length) {
+                        cdm.getList();
+                    }
+                    return list;
+                })
+                .then(list => {
+                    if (this.current === null) { return list }
+                    const filtered = list.filter(el => el.groupHash === this.current.groupHash);
                     if (filtered.length === 0) { this.resetGroup() }
                     return list;
                 })
                 .then(list => {
-                    console.log('SUCCESS GET LIST');
-                    
                     this.list = list;
                     this.getListStatus = 'success';
                 })
@@ -184,6 +177,13 @@ class GroupsStore {
             if (list[i].lastCdm) {
                 const p = crypto.decryptMessage(list[i].lastCdm.message, list[i].members[0].publicKey)
                     .then(res => {
+                        // list[i].lastCdm.message = <ReactMarkdown source={res} skipHtml={true} />;
+                        const rule = `[\w\s]`;
+                        // const re = new RegExp(rule, "gm");
+                        // const match = re.exec(res);
+                        // const msg = match[1].trim();
+                        // console.log(match);
+
                         list[i].lastCdm.message = res;
                         decList.push(list[i]);
                     });
