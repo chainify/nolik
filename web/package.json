@@ -10,7 +10,7 @@
     "@waves/waves-transactions": "^3.3.11",
     "@zeit/next-css": "^1.0.1",
     "antd": "^3.13.4",
-    "axios": "^0.18.0",
+    "axios": ">=0.18.1",
     "babel-plugin-import": "^1.11.0",
     "babel-plugin-inline-import": "^3.0.0",
     "bs58": "^4.0.1",
