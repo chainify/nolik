@@ -2,8 +2,8 @@ version: "2"
 
 services:
   nginx:
-    image: chainify/app-nginx
-    container_name: app-nginx
+    image: chainify/nolik-nginx
+    container_name: nolik-nginx
     ports:
       - 80:80
       - 443:443
@@ -15,8 +15,8 @@ services:
     restart: always
 
   web:
-    image: chainify/app-web
-    container_name: app-web
+    image: chainify/nolik-web
+    container_name: nolik-web
     depends_on:
       - api
     restart: always
