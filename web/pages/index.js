@@ -124,7 +124,7 @@ class Index extends React.Component {
                 <Menu.Item key="0">
                     <Icon type="user" /> Contact info
                 </Menu.Item>
-                <Menu.Item key="1">
+                <Menu.Item key="1" disabled>
                     <Icon type="usergroup-add" /> Add group members
                 </Menu.Item>
                 {/* <Menu.Divider /> */}
@@ -177,7 +177,7 @@ class Index extends React.Component {
                                     backIcon={<Icon type="poweroff" />}
                                     extra={[
                                         <Input
-                                            placeholder="Public key / Full name"
+                                            placeholder="Public key / Contact"
                                             prefix={<Icon type="search" style={{ color: '#ddd' }} />}
                                             suffix={groups.searchValue.length > 0 && (
                                                 <button

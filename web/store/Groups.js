@@ -122,16 +122,19 @@ class GroupsStore {
                 })
                 .then(list => {
                     const filtered = list
-                        .filter(el => el.fullName.toLowerCase().search(this.searchValue.toLowerCase()) > -1);
+                        .filter(el => (
+                            el.fullName.toLowerCase().search(this.searchValue.toLowerCase()) > -1 ||
+                            el.members.filter(m => m.publicKey === this.searchValue).length > 0
+                        ));
                     
-                    if (this.searchValue.length === 44) {
+                    if (filtered.length === 0 && this.searchValue.length === 44) {
                         const groupHash = this.createGroupHash([alice.publicKey, this.searchValue])
                         return filtered.concat([{
                             members: [{
                                 publicKey: this.searchValue,
                                 lastActive: null,
                             }],
-                            index: 0,
+                            index: list.length,
                             groupHash: groupHash,
                             fullName: 'NEW:' + groupHash,
                             totalCdms: 0,
@@ -178,7 +181,7 @@ class GroupsStore {
                 const p = crypto.decryptMessage(list[i].lastCdm.message, list[i].members[0].publicKey)
                     .then(res => {
                         // list[i].lastCdm.message = <ReactMarkdown source={res} skipHtml={true} />;
-                        const rule = `[\w\s]`;
+                        // const rule = `[\w\s]`;
                         // const re = new RegExp(rule, "gm");
                         // const match = re.exec(res);
                         // const msg = match[1].trim();

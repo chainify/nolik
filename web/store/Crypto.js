@@ -20,7 +20,7 @@ class CryptoStore {
         const { cdm, alice, settings, utils } = this.stores;
         return new Promise((resolve, reject) => {            
             if (typeof window !== 'undefined') {
-                const rawMessage = cdm.message;
+                const rawMessage = cdm.message.trim();
                 const rand = sha256(utils.generateRandom(64));
                 const randMessage = rawMessage + '@' + rand;
                 

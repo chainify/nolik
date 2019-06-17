@@ -72,9 +72,7 @@ class AliceStore {
             try {
                 window.Waves.publicState().then(res => {   
                     if (res.locked === true) {
-                        if (login.loginWith === 'keeper') {
-                            this.publicKey = null;
-                        }
+                        this.publicKey = null;
                     } else {
                         if (this.publicKey !== null && this.publicKey !== res.account.publicKey) {
                             groups.resetGroup();
