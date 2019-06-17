@@ -37,9 +37,9 @@ class CdmStore {
         const { alice, groups } = this.stores;
         const formConfig = {}
 
-        const currentGroup = groups.currentGroup();
-        if (currentGroup === null) { return }
-        this.list = null;
+        // const currentGroup = groups.currentGroup();
+        // if (currentGroup === null) { return }
+        // this.list = null;
         // this.list = currentGroup.lastCdm ? [currentGroup.lastCdm] : null;
 
         this.getListStatus = 'fetching';

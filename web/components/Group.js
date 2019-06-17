@@ -3,11 +3,11 @@ import { observer, inject } from 'mobx-react';
 import { Badge, Icon, Typography } from 'antd';
 const { Paragraph } = Typography;
 
-@inject('groups')
+@inject('groups', 'cdm')
 @observer
 class Header extends React.Component {
     render() {
-        const { item, groups } = this.props;
+        const { item, groups, cdm } = this.props;
         const paragrapStyle = {
             margin: 0,
             padding: 0,
@@ -24,6 +24,7 @@ class Header extends React.Component {
                             groups.current === null ||
                             (groups.current && groups.current.groupHash !== item.groupHash)
                         ) {
+                            cdm.list = [];
                             groups.setGroup(item);
                         }
                     }}
