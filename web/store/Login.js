@@ -7,8 +7,6 @@ class LoginStore {
     }
 
     @observable withWaves = null;
-    @observable loginWith = null;
-    @observable seed = '';
 }
 
 export default LoginStore;

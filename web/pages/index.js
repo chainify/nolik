@@ -8,20 +8,12 @@ import Wrapper from '../components/Wrapper';
 import Group from '../components/Group';
 import Cdm from '../components/Cdm';
 import Skeleton from '../components/Skeleton';
-import { Row, Col, Input, Button, Icon, Modal, Dropdown, Menu, Divider, PageHeader, Typography } from 'antd';
+import { Row, Col, Input, Button, Icon, Dropdown, Menu, PageHeader } from 'antd';
 const { TextArea } = Input;
 import mouseTrap from 'react-mousetrap';
 
 import ContactInfoModal from '../modals/ContactInfoModal';
-// import SearchModal from '../modals/SearchModal';
-// import ContactEditModal from '../modals/ContactEditModal';
-
-const Search = Input.Search;
-const { Paragraph } = Typography;
-const paragrapStyle = {
-    margin: 0,
-    padding: 0,
-};
+import GroupInfoModal from '../modals/GroupInfoModal';
 
 
 @inject('alice', 'index', 'cdm', 'contacts', 'groups')
@@ -37,13 +29,6 @@ class Index extends React.Component {
         this.authPeriodicChecker = setInterval(() => {
             alice.authCheck();
         }, 200);
-        
-        // autorun(() => {
-        //     if (router.query.groupHash) {
-        //         groups.setGroup(router.query.groupHash);
-        //     }
-        // });
-
 
         autorun(() => {
             if (alice.publicKey && groups.list === null) {
@@ -69,55 +54,39 @@ class Index extends React.Component {
     }
 
     componentDidMount() {
-        const { cdm, groups, alice } = this.props;
-
-        // if (alice.publicKey && groups.getListStatus === 'init') {
-        //     groups.getList();
-        // }
-        
+        const { cdm } = this.props;
         this.props.bindShortcut('meta+enter', () => {
-            if (cdm.message.trim() !== "") {
-                cdm.sendCdm();
+            if (cdm.textareaFocused) {
+                cdm.message = cdm.message + '\r\n';
+            }
+        });
+
+        this.props.bindShortcut('enter', () => {
+            if (cdm.textareaFocused) {
+                if (cdm.message.trim() !== "") {
+                    cdm.sendCdm();
+                }
             }
         });
     }
 
     componentWillUnmount() {
+        console.log('unmounted');
         this.contactsPeriodicChecker();
         clearInterval(this.authPeriodicChecker);
     }
 
     render() {
         const { groups, cdm, index, alice, contacts } = this.props;
-        // const contactsDropdownMenu = (
-        //     <Menu
-        //         onClick={e => {
-        //             if (e.key === '0') {
-        //                 bob.showAddContactModal = true;
-        //             }
-        //             // if (e.key === '1') {
-        //             //     bob.showAddGroupModal = true;
-        //             // }
-        //         }}
-        //     >
-        //         <Menu.Item key="0">
-        //             <Icon type="search" /> Search contacts
-        //         </Menu.Item>
-        //         {/* <Menu.Divider /> */}
-        //         </Menu>
-        // );
         const chatDropdownMenu = (
             <Menu
                 onClick={e => {
                     if (e.key === '0') {
                         contacts.fullNameEdit = groups.current.fullName;
                         index.showContactInfoModal = true;
-                        // const currentBob = bob.list.filter(el => el.accounts[0].publicKey === bob.publicKey)[0];
-                        // bob.firstNameEdit = currentBob.accounts[0].firstName;
-                        // bob.lastNameEdit = currentBob.accounts[0].lastName;
                     }
                     if (e.key === '1') {
-                        index.showAddGroupModal = true;
+                        index.showGroupInfoModal = true;
                     }
                 }}
             >
@@ -127,45 +96,15 @@ class Index extends React.Component {
                 <Menu.Item key="1" disabled>
                     <Icon type="usergroup-add" /> Add group members
                 </Menu.Item>
-                {/* <Menu.Divider /> */}
                 </Menu>
         );
 
         return (
             <Wrapper>
-                <Modal
-                    title="Add members to group"
-                    key="addMembers"
-                    visible={index.showAddGroupModal}
-                    closable={false}
-                    footer={[
-                        <Button
-                            key="cancelAddMembers"
-                            onClick={_ => {
-                                index.showAddGroupModal = false;
-                            }}
-                        >
-                            Cancel
-                        </Button>,
-                        <Button
-                            key="addMembersSubmit"
-                            type="primary"
-                            loading={false}
-                            onClick={_ => {
-
-                            }}
-                        >
-                            Add
-                        </Button>,
-                    ]}
-                >
-                    <p>Bla bla ...</p>
-                    <p>Bla bla ...</p>
-                    <p>Bla bla ...</p>
-                </Modal>
                 <ContactInfoModal />
+                <GroupInfoModal />
                 <Row>
-                    <Col sm={10} md={8}>
+                    <Col xs={10} md={8}>
                         <div className="contacts">
                             {groups.list && (
                                 <PageHeader
@@ -213,7 +152,7 @@ class Index extends React.Component {
                             ))}
                         </div>
                     </Col>
-                    <Col sm={14} md={16}>
+                    <Col xs={14} md={16}>
                         {groups.current === null && <div className={`cdm empty`} />}
                         {groups.list === null && <div className={`cdm loading`}>Loading...</div>}
                         {groups.list && groups.current  && (
@@ -245,10 +184,19 @@ class Index extends React.Component {
                                     <TextArea
                                         value={cdm.message}
                                         ref={elem => this.tArea = elem}
-                                        autosize={{ "minRows" : 2, "maxRows" : 20 }}
-                                        placeholder={`Type your message here. ⌘ / ❖ + Enter to send message`}
+                                        autosize={{ "minRows" : 1, "maxRows" : 8 }}
+                                        placeholder={`Type your message here`}
                                         onChange={e => {
                                             cdm.message = e.target.value;
+                                        }}
+                                        onPressEnter={e => {
+                                            e.preventDefault();
+                                        }}
+                                        onFocus={_ => {
+                                            cdm.textareaFocused = true;
+                                        }}
+                                        onBlur={_ => {
+                                            cdm.textareaFocused = false;
                                         }}
                                         className="mousetrap"
                                         style={{
@@ -301,10 +249,6 @@ class Index extends React.Component {
                         color: #999;
                     }
 
-                    .pageHeader {
-                        overflow-x: hidden;
-                    }
-
                     .cdmLoading {
                         width: 100%;
                         height: 6px;
@@ -330,7 +274,7 @@ class Index extends React.Component {
 
                     .actions {
                         background: #eee;
-                        padding: 1em 4em;
+                        padding: 1em 2em;
                         border-top: 1px solid #ddd;
                     }
 
@@ -344,10 +288,6 @@ class Index extends React.Component {
                         outline:0;
                         cursor: pointer;
                         color: #999;
-                    }
-
-                    .messageMD {
-                        color: red;!
                     }
                 `}</style>
             </Wrapper>

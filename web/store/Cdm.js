@@ -4,6 +4,7 @@ import * as moment from 'moment';
 import { message } from 'antd';
 import { sha256 } from 'js-sha256';
 import { toJS } from 'mobx';
+import base58 from '../utils/base58';
 import stringFromUTF8Array from './../utils/batostr';
 
 class CdmStore {
@@ -22,6 +23,7 @@ class CdmStore {
     @observable readCdmDB = null;
     @observable pendingTimestampsDB = null;
     @observable pendingMessagesDB = null;
+    @observable textareaFocused = false;
     
     @action
     initLevelDB(alicePubKey, groupHash) {
@@ -37,14 +39,11 @@ class CdmStore {
         const { alice, groups } = this.stores;
         const formConfig = {}
 
-        // const currentGroup = groups.currentGroup();
-        // if (currentGroup === null) { return }
-        // this.list = null;
-        // this.list = currentGroup.lastCdm ? [currentGroup.lastCdm] : null;
+        if (groups.current === null)  { return }
 
         this.getListStatus = 'fetching';
         axios
-            .get(`${process.env.API_HOST}/api/v1/cdms/${alice.publicKey}/${currentGroup.members[0].publicKey}`, formConfig)
+            .get(`${process.env.API_HOST}/api/v1/cdms/${alice.publicKey}/${groups.current.members[0].publicKey}`, formConfig)
             .then(res => {
                 const list = res.data.cdms;
                 for (let i = 0; i < list.length; i += 1) {
@@ -66,13 +65,17 @@ class CdmStore {
                         const attachmentHash = stringFromUTF8Array(data.key);
                         const message = stringFromUTF8Array(data.value);
                         const now = moment().unix();
-                        this.list = this.list.concat([{
-                            'hash': attachmentHash,
-                            'message': message,
-                            'type': 'pending',
-                            'timestamp': now
-                        }]);
-                        // this.pendnigDB.del(attachmentHash);
+
+                        const count = this.list.filter(el => el.attachmentHash  === attachmentHash);
+                        if (count.length === 0) {
+                            this.list = this.list.concat([{
+                                'hash': attachmentHash,
+                                'message': message,
+                                'type': 'pending',
+                                'timestamp': now
+                            }]);
+                        }
+                        this.pendnigDB.del(attachmentHash);
                     })
             })
             .catch(e => {
@@ -85,14 +88,13 @@ class CdmStore {
     @action
     decryptList(list) {
         const { crypto, groups } = this.stores;
-        const currentGroup = groups.currentGroup();
 
         if (list.length === 0) { return list }
         const decList = [];
         const promices = [];
         for (let i = 0; i < list.length; i += 1) {
             const cdm = list[i];
-            const p = crypto.decryptMessage(cdm.message, currentGroup.members[0].publicKey)
+            const p = crypto.decryptMessage(cdm.message, groups.current.members[0].publicKey)
                 .then(msg => {
                     cdm.message = msg;
                     decList.push(cdm);
@@ -110,44 +112,65 @@ class CdmStore {
 
     @action
     sendCdm() {
-        const { groups, crypto } = this.stores;
+        const { groups, alice, crypto } = this.stores;
         this.sendCdmStatus = 'pending';
         const recipients = groups.current.members.map(el => el.publicKey);
-        
-        crypto.encryptCdm(recipients)
-            .then(ecnMessage => {
+
+        crypto.generateCdm(recipients)
+            .then(encMessage => {
                 const now = moment().unix();
                 this.list = this.list.concat([{
-                    'hash': sha256(ecnMessage),
+                    'hash': sha256(encMessage),
                     'message': this.message,
                     'type': 'pending',
                     'timestamp': now
                 }]);
 
-                return ecnMessage;
+                return encMessage;
             })
-            .then(ecnMessage => {
-                this.pendnigDB.put(sha256(ecnMessage), this.message);
-                this.message = '';
-                return ecnMessage;
-            })
-            .then(ecnMessage => {
-                const promises = [];
-                for (let i = 0 ; i < recipients.length; i += 1) {
-                    const formConfig = {};
-                    const formData = new FormData();
-                    formData.append('message', ecnMessage);
-                    formData.append('recipient', recipients[i]);
-                    const p = axios.post(`${process.env.API_HOST}/api/v1/cdms`, formData, formConfig);
-                    promises.push(p);
-                }
-
-                Promise.all(promises);
-            })
-            .then(_ => {
+            .then(encMessage => {
+                this.pendnigDB.put(sha256(encMessage), this.message);
                 this.readCdmDB.put(groups.current.groupHash, this.list ? this.list.length : 0);
+                this.message = '';
+                return encMessage;
             })
-            .then(_ => {
+            .then(encMessage => {
+                const formConfig = {};
+                const formData = new FormData();
+                formData.append('data', encMessage);
+                return axios.post(`${process.env.API_HOST}/api/v1/ipfs`, formData, formConfig)
+                    .then(ipfsData => {
+                        return ipfsData;
+                    });
+            })
+            .then(ipfsData => {
+                // const ipfsHash = base58.encode(Buffer.from(ipfsData.data['Hash']));
+                if (typeof window !== 'undefined') {
+                    return window.Waves.publicState().then(udata => {
+                        const txData = {
+                            type: 4,
+                            data: {
+                                amount: {
+                                   assetId: process.env.ASSET_ID,
+                                   tokens: "0.00000001"
+                                },
+                                fee: {
+                                    assetId: process.env.ASSET_ID,
+                                    tokens: "0.001"
+                                },
+                                recipient: udata.account.address,
+                                attachment: ipfsData.data['Hash']
+                            }
+                        };
+                        return window.WavesKeeper.signAndPublishTransaction(txData).then(data => {
+                            return data;
+                        }).catch(e => { 
+                            console.log(e);
+                        });
+                    });   
+                }
+            })
+            .then(data => {
                 this.sendCdmStatus = 'success'
             })
             .catch(e => {

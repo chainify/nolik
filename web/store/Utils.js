@@ -14,12 +14,6 @@ class AliceStore {
     }
 
     @action
-    addressFromPublicKey(publicKey) {
-        const Waves = WavesAPI.create(WavesAPI.TESTNET_CONFIG);
-        return Waves.tools.getAddressFromPublicKey(publicKey);
-    }
-
-    @action
     generateRandom(length) {
         const chars = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
         var result = '';

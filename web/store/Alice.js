@@ -9,25 +9,11 @@ class AliceStore {
     stores = null;
     constructor(stores) {
         this.stores = stores;
-        // this.init = this.init.bind(this);
         this.auth = this.auth.bind(this);
         this.authCheck = this.authCheck.bind(this);
-
-        this.publicKey = null;
-        this.privateKey = null;
     }
 
     @observable publicKey = null;
-
-    @action
-    init() {
-        const { login } = this.stores;
-        const keyPair = wckp(login.seed);
-        this.publicKey = keyPair.public;
-        this.privateKey = keyPair.private;
-        
-        Router.push('/');
-    }
 
     @action
     auth() {
@@ -35,7 +21,7 @@ class AliceStore {
         if (typeof window !== 'undefined') {
             try {
                 window.Waves.auth({
-                    name: 'Chainify',
+                    name: 'Nolik',
                     data: process.env.SECRET,
                 }).then(() => {
                     window.Waves.publicState().then(data => {

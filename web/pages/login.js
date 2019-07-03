@@ -30,11 +30,6 @@ class Index extends React.Component {
 
     render() {
         const { login, alice } = this.props;
-        const radioStyle = {
-            display: 'block',
-            fontSize: '1.2em',
-            marginBottom: 10,
-        }
         return (
             <div className="main">
                 <Row>
@@ -140,7 +135,6 @@ class Index extends React.Component {
                         font-size: 2em;
                         margin-bottom: 2em;
                     }
-
 
                     div.loading {
                         color: #666;

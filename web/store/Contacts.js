@@ -30,7 +30,6 @@ class WrapperStore {
         const { groups, index } = this.stores;
         this.contactsDB.put(groups.current.groupHash, this.fullNameEdit);
         groups.setFullName(this.fullNameEdit);
-        index.showContactEditModal = false;
     }
 
     @action

@@ -56,7 +56,6 @@ class Cdm extends React.Component {
 
                     .list {
                         min-height: calc(100vh - 110px);
-
                         display: flex;
                         justify-content: flex-end;
                         flex-direction: column;

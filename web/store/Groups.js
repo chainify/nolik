@@ -51,13 +51,6 @@ class GroupsStore {
     }
 
     @action
-    currentGroup() {
-        const currentGroup = this.list && this.list.filter(el => el.groupHash === this.current.groupHash);
-        if (!currentGroup) { return null }
-        return currentGroup.length > 0 ? currentGroup[0] : null;
-    }
-
-    @action
     setFullName(fullName) {
         this.fullName =  fullName.length > 20 ? fullName.substring(0, 20) + '...' : fullName;
     }
@@ -146,19 +139,17 @@ class GroupsStore {
                 })
                 .then(list => {
                     if (this.current === null) { return list }
-                    if (cdm.list === null) { return list }
-                    const currentGroup = this.currentGroup();
-                    if (currentGroup === null) { return list }
-                    const pending = cdm.list.filter(el => el.type === 'pending');
-                    if (currentGroup.totalCdms > cdm.list.length - pending.length) {
+                    const localCurrent = list.filter(el => el.groupHash === this.current.groupHash)[0];
+                    if (localCurrent.totalCdms !== this.current.totalCdms) {
                         cdm.getList();
+                        this.current = localCurrent;
                     }
                     return list;
                 })
                 .then(list => {
                     if (this.current === null) { return list }
                     const filtered = list.filter(el => el.groupHash === this.current.groupHash);
-                    if (filtered.length === 0) { this.resetGroup() }
+                    if (filtered.length === 0) {this.resetGroup() }
                     return list;
                 })
                 .then(list => {

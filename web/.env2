@@ -1,5 +1,0 @@
-API_HOST = http://engine.loc
-NODE_URL = https://testnode2.wavesnodes.com
-ASSET_ID = mpsm2X6guMHikAhvwEvk81XJA6HDsXQCQtVxx1iagiS
-SECRET = KKuQKWRSmSn4V2faKXZLkx0DglFRU3jTZXnKZjzfvxElwKcRHFzNGMoh9duu8SvTycBtwmqU4BO8c1WvLpgoqF7dYopEgcqXTex
-NETWORK = testnet

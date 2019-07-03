@@ -5,7 +5,6 @@ import Cdm from './Cdm';
 import Utils from './Utils';
 import Crypto from './Crypto';
 import Wrapper from './Wrapper';
-import Settings from './Settings';
 import Contacts from './Contacts';
 import Login from './Login';
 
@@ -18,7 +17,6 @@ stores.crypto = new Crypto(stores);
 stores.wrapper = new Wrapper(stores);
 stores.index = new Index(stores);
 stores.cdm = new Cdm(stores);
-stores.settings = new Settings(stores);
 stores.contacts = new Contacts(stores);
 stores.login = new Login(stores);
 
