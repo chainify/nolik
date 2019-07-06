@@ -17,7 +17,7 @@ class Index extends React.Component {
     componentDidMount() {
         const { login } = this.props;
         login.withWaves = typeof window.Waves !== 'undefined'; 
-        this.openNotification();
+        // this.openNotification();
     }
 
     openNotification() {

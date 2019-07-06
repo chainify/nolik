@@ -19,9 +19,6 @@ import GroupInfoModal from '../modals/GroupInfoModal';
 @inject('alice', 'index', 'cdm', 'contacts', 'groups')
 @observer
 class Index extends React.Component {
-
-    authPeriodicChecker = null;
-    contactsPeriodicChecker = null;
     constructor(props) {
         super(props);
         const { alice, groups, router, cdm } = this.props;
@@ -31,11 +28,11 @@ class Index extends React.Component {
         }, 200);
 
         autorun(() => {
-            if (alice.publicKey && groups.list === null) {
+            if (alice.publicKey && groups.list === null && groups.getListStatus === 'init') {
                 groups.getList();
             }
         });
-        
+           
         this.contactsPeriodicChecker = autorun(() => {
             if (groups.getListStatus === 'success') {
                 groups.getList();
@@ -61,6 +58,12 @@ class Index extends React.Component {
             }
         });
 
+        this.props.bindShortcut('shift+enter', () => {
+            if (cdm.textareaFocused) {
+                cdm.message = cdm.message + '\r\n';
+            }
+        });
+
         this.props.bindShortcut('enter', () => {
             if (cdm.textareaFocused) {
                 if (cdm.message.trim() !== "") {
@@ -71,7 +74,6 @@ class Index extends React.Component {
     }
 
     componentWillUnmount() {
-        console.log('unmounted');
         this.contactsPeriodicChecker();
         clearInterval(this.authPeriodicChecker);
     }

@@ -1,10 +1,9 @@
 import { action, observable } from 'mobx';
 import axios from 'axios';
 import * as moment from 'moment';
-import { message } from 'antd';
+import { message, notification } from 'antd';
 import { sha256 } from 'js-sha256';
 import { toJS } from 'mobx';
-import base58 from '../utils/base58';
 import stringFromUTF8Array from './../utils/batostr';
 
 class CdmStore {
@@ -19,6 +18,7 @@ class CdmStore {
     @observable list = null;
     @observable getListStatus = 'init';
     @observable message = '';
+    @observable messageHash = null;
     @observable sendCdmStatus = 'init';
     @observable readCdmDB = null;
     @observable pendingTimestampsDB = null;
@@ -119,17 +119,17 @@ class CdmStore {
         crypto.generateCdm(recipients)
             .then(encMessage => {
                 const now = moment().unix();
+                this.messageHash = sha256(encMessage);
                 this.list = this.list.concat([{
-                    'hash': sha256(encMessage),
+                    'hash': this.messageHash,
                     'message': this.message,
                     'type': 'pending',
                     'timestamp': now
                 }]);
-
                 return encMessage;
             })
             .then(encMessage => {
-                this.pendnigDB.put(sha256(encMessage), this.message);
+                this.pendnigDB.put(this.messageHash, this.message);
                 this.readCdmDB.put(groups.current.groupHash, this.list ? this.list.length : 0);
                 this.message = '';
                 return encMessage;
@@ -144,7 +144,6 @@ class CdmStore {
                     });
             })
             .then(ipfsData => {
-                // const ipfsHash = base58.encode(Buffer.from(ipfsData.data['Hash']));
                 if (typeof window !== 'undefined') {
                     return window.Waves.publicState().then(udata => {
                         const txData = {
@@ -166,11 +165,30 @@ class CdmStore {
                             return data;
                         }).catch(e => { 
                             console.log(e);
+                            if (e.code && e.code === "15") {
+                                notification['warning']({
+                                    message: 'The message is not sent',
+                                    description:
+                                        <div>
+                                            <p>Plese make sure your account has a positive balance</p>
+                                        </div>
+                                  });
+                            } else {
+                                message.error(e.message || e);
+                            }
                         });
                     });   
                 }
             })
             .then(data => {
+                if (!data) {
+                    const list = this.list;
+                    list.splice(-1, 1);
+                    this.list = list;
+                    this.readCdmDB.put(groups.current.groupHash, this.list.length);
+                    this.pendnigDB.del(this.messageHash);
+                }
+                this.messageHash = null;
                 this.sendCdmStatus = 'success'
             })
             .catch(e => {

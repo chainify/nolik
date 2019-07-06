@@ -17,7 +17,7 @@ class AliceStore {
 
     @action
     auth() {
-        const { cdm } = this.stores;
+        const { cdm, groups } = this.stores;
         if (typeof window !== 'undefined') {
             try {
                 window.Waves.auth({
@@ -26,8 +26,9 @@ class AliceStore {
                 }).then(() => {
                     window.Waves.publicState().then(data => {
                         this.publicKey = data.account.publicKey; 
-                        const groupHash = sessionStorage.getItem('groupHash');
                         cdm.list = null;
+                        groups.list = null;
+                        const groupHash = sessionStorage.getItem('groupHash') || 'none';
                         cdm.initLevelDB(data.account.publicKey, groupHash);
                         if (groupHash) {
                             Router.push(`/index?groupHash=${groupHash}`, `/gr/${groupHash}`);

@@ -67,14 +67,10 @@ class GroupsStore {
                 .then(res => {
                     return this.decryptList(res.data.groups);
                 })
-                .then(list => {
+                .then(list => {                    
                     const promises = [];
                     for (let i = 0; i < list.length; i += 1) {
-                        
                         const groupHash = list[i].groupHash;
-                        // if (cdm.readCdmDB === null) {
-                        //     cdm.initLevelDB(alice.publicKey, groupHash)
-                        // }
                         const listEl = list[i];
                         listEl.readCdms = 0;
                         const p = cdm.readCdmDB.get(groupHash)
@@ -172,13 +168,18 @@ class GroupsStore {
                 const p = crypto.decryptMessage(list[i].lastCdm.message, list[i].members[0].publicKey)
                     .then(res => {
                         // list[i].lastCdm.message = <ReactMarkdown source={res} skipHtml={true} />;
-                        // const rule = `[\w\s]`;
-                        // const re = new RegExp(rule, "gm");
-                        // const match = re.exec(res);
-                        // const msg = match[1].trim();
-                        // console.log(match);
+                        const regex = /[\w\s\ud83d\ude00-\ude4f]/gm;
+                        let m;
+                        let msg = '';
+                        while ((m = regex.exec(res)) !== null) {
+                            // This is necessary to avoid infinite loops with zero-width matches
+                            if (m.index === regex.lastIndex) {
+                                regex.lastIndex++;
+                            }
+                            msg += m[0];
+                        }
 
-                        list[i].lastCdm.message = res;
+                        list[i].lastCdm.message = msg;
                         decList.push(list[i]);
                     });
                 promises.push(p);
