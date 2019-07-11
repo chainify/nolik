@@ -173,6 +173,8 @@ class CdmStore {
                                             <p>Plese make sure your account has a positive balance</p>
                                         </div>
                                   });
+                            } else if (e.code && e.code === "10") {
+                                message.info('Message sending has been canceled');
                             } else {
                                 message.error(e.message || e);
                             }

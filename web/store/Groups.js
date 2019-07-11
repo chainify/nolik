@@ -75,7 +75,7 @@ class GroupsStore {
                         listEl.readCdms = 0;
                         const p = cdm.readCdmDB.get(groupHash)
                             .then(res => {
-                                listEl.readCdms = parseInt(stringFromUTF8Array(res));
+                                listEl.readCdms = parseInt(stringFromUTF8Array(res)) || 0;
                                 return listEl;
                             })
                             .catch(e => {
@@ -167,17 +167,9 @@ class GroupsStore {
             if (list[i].lastCdm) {
                 const p = crypto.decryptMessage(list[i].lastCdm.message, list[i].members[0].publicKey)
                     .then(res => {
-                        // list[i].lastCdm.message = <ReactMarkdown source={res} skipHtml={true} />;
-                        const regex = /[\w\s\ud83d\ude00-\ude4f]/gm;
-                        let m;
-                        let msg = '';
-                        while ((m = regex.exec(res)) !== null) {
-                            // This is necessary to avoid infinite loops with zero-width matches
-                            if (m.index === regex.lastIndex) {
-                                regex.lastIndex++;
-                            }
-                            msg += m[0];
-                        }
+                        list[i].lastCdm.message = <ReactMarkdown source={res} skipHtml={true} />;
+                        let msg = res;
+                        msg = msg.replace(/[`*]/gm, '');
 
                         list[i].lastCdm.message = msg;
                         decList.push(list[i]);

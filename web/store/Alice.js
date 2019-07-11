@@ -28,8 +28,8 @@ class AliceStore {
                         this.publicKey = data.account.publicKey; 
                         cdm.list = null;
                         groups.list = null;
-                        const groupHash = sessionStorage.getItem('groupHash') || 'none';
-                        cdm.initLevelDB(data.account.publicKey, groupHash);
+                        const groupHash = sessionStorage.getItem('groupHash');
+                        cdm.initLevelDB(data.account.publicKey, groupHash || 'none');
                         if (groupHash) {
                             Router.push(`/index?groupHash=${groupHash}`, `/gr/${groupHash}`);
                         } else {
