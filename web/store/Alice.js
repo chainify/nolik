@@ -30,11 +30,12 @@ class AliceStore {
                         groups.list = null;
                         const groupHash = sessionStorage.getItem('groupHash');
                         cdm.initLevelDB(data.account.publicKey, groupHash || 'none');
-                        if (groupHash) {
-                            Router.push(`/index?groupHash=${groupHash}`, `/gr/${groupHash}`);
-                        } else {
-                            Router.push('/');
-                        }
+                        Router.push('/');
+                        // if (groupHash) {
+                        //     Router.push(`/index?groupHash=${groupHash}`, `/gr/${groupHash}`);
+                        // } else {
+                        //     Router.push('/');
+                        // }
                     })
                     .catch(e => {
                         console.error(e);

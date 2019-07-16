@@ -27,9 +27,37 @@ class WrapperStore {
 
     @action
     saveContact() {
-        const { groups, index } = this.stores;
+        const { groups } = this.stores;
         this.contactsDB.put(groups.current.groupHash, this.fullNameEdit);
         groups.setFullName(this.fullNameEdit);
+    }
+
+    @action
+    getList() {
+        const { groups } = this.stores;
+        this.initLevelDB();
+        this.list = [];
+        this.contactsDB.createReadStream()
+            .on('data', data => {
+                const groupHash = stringFromUTF8Array(data.key);
+                const fullName = stringFromUTF8Array(data.value);
+
+                let publicKey = null;
+                const filtered = groups.list.filter(el => el.groupHash === groupHash);
+
+                if (filtered.length > 0) {
+                    const current = filtered[0];
+                    if (current.members.length === 1) {
+                        publicKey = current.members[0].publicKey;
+                    }
+                }
+
+                this.list.push({
+                    groupHash,
+                    fullName,
+                    publicKey
+                })
+            });
     }
 
     @action

@@ -24,7 +24,7 @@ class GroupsStore {
 
     @action
     createGroupHash(publicKeys) {
-        const sorted = publicKeys.sort();
+        const sorted = publicKeys.sort().join('');
         return sha256(sorted);
     }
 
@@ -59,7 +59,7 @@ class GroupsStore {
     getList() {
         const { alice, utils, cdm, contacts } = this.stores;
         const formConfig = {}
- 
+
         this.getListStatus = 'fetching';
         utils.sleep(this.list ? 400 : 0).then(() => {
             axios
@@ -67,7 +67,7 @@ class GroupsStore {
                 .then(res => {
                     return this.decryptList(res.data.groups);
                 })
-                .then(list => {                    
+                .then(list => {      
                     const promises = [];
                     for (let i = 0; i < list.length; i += 1) {
                         const groupHash = list[i].groupHash;
@@ -122,6 +122,10 @@ class GroupsStore {
                             members: [{
                                 publicKey: this.searchValue,
                                 lastActive: null,
+                            },
+                            {
+                                publicKey: alice.publicKey,
+                                lastActive: null,
                             }],
                             index: list.length,
                             groupHash: groupHash,
@@ -159,13 +163,13 @@ class GroupsStore {
     }
 
     @action
-    decryptList(list) {
+    decryptList(list, clearHash = true) {
         const { alice, crypto } = this.stores;
         const decList = [];
         const promises = [];
         for (let i = 0; i < list.length; i += 1) {
             if (list[i].lastCdm) {
-                const p = crypto.decryptMessage(list[i].lastCdm.message, list[i].members[0].publicKey)
+                const p = crypto.decryptMessage(list[i].lastCdm.message, list[i].lastCdm.recipient, clearHash)
                     .then(res => {
                         list[i].lastCdm.message = <ReactMarkdown source={res} skipHtml={true} />;
                         let msg = res;

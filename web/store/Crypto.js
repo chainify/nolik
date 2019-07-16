@@ -8,37 +8,37 @@ class CryptoStore {
     stores = null;
     constructor(stores) {
         this.stores = stores;
-        this.generateCdm = this.generateCdm.bind(this);
+        this.wrapCdm = this.wrapCdm.bind(this);
         this.encryptCdm = this.encryptCdm.bind(this);
         this.decryptMessage = this.decryptMessage.bind(this);
+        this.generateForwardCdm = this.generateForwardCdm.bind(this);
     }
 
     @action
-    generateCdm(recipients) {
-        return new Promise((resolve, reject) => {
-            const { alice } = this.stores;                     
-            
-            this.encryptCdm(recipients).then(res => {
-                let cdm = '-----BEGIN_CDM VERSION_1-----';
-                cdm += '\r\n-----BEGIN_BLOCKCHAIN WAVES-----';
-                cdm += res;
-                cdm += '\r\n-----END_BLOCKCHAIN WAVES-----';
-                cdm += '\r\n-----END_CDM VERSION_1-----';
-                resolve(cdm);
-            })
-            // cdm += `\r\n-----BEGIN_SIGNATURE ${alice.publicKey}-----\r\n${signature}\r\n-----END_SIGNATURE ${alice.publicKey}-----`;
-        });       
+    wrapCdm(msg) {          
+        let cdm = '-----BEGIN_CDM VERSION_2-----';
+        cdm += '\r\n-----BEGIN_BLOCKCHAIN WAVES-----';
+        cdm += msg;
+        cdm += '\r\n-----END_BLOCKCHAIN WAVES-----';
+        cdm += '\r\n-----END_CDM VERSION_1-----';
+        return cdm;
+        // cdm += `\r\n-----BEGIN_SIGNATURE ${alice.publicKey}-----\r\n${signature}\r\n-----END_SIGNATURE ${alice.publicKey}-----`;     
     }
 
     @action
-    encryptCdm(recipients) {
-        const { cdm, utils } = this.stores;         
+    encryptCdm(recipients, message, msgHash = false) {
+        const { utils } = this.stores;     
         if (typeof window !== 'undefined') {
-            const rawMessage = cdm.message.trim();
-            const rand = sha256(utils.generateRandom(64));
-            const randMessage = rawMessage + '@' + rand;
             
-            const sha = sha256(randMessage);
+            let randMessage= message;
+            let sha = msgHash;
+            const rawMessage = message.trim();
+            if (msgHash === false) {
+                const rand = sha256(utils.generateRandom(64));
+                randMessage = rawMessage + '@' + rand;
+                sha = sha256(randMessage);
+            }
+
             let msg = '';
             const promises = [];
             for( let i = 0; i < recipients.length; i += 1) {
@@ -52,22 +52,56 @@ class CryptoStore {
                 promises.push(p);
             }
 
-            return Promise.all(promises).then(_ => { return msg });
+            return Promise.all(promises).then(_ => {
+                return msg;
+            });
         }
+    }
+
+    @action
+    generateCdm(recipients, message) {
+        return new Promise((resolve, reject) => {
+            this.encryptCdm(recipients, message).then(res => {
+                resolve(this.wrapCdm(res));
+            })
+        })
+    }
+
+    @action
+    generateForwardCdm(recipients, list) {
+        return new Promise((resolve, reject) => {
+            const promises = [];
+            for (let i = 0; i < list.length; i += 1) {
+                const p = this.encryptCdm(recipients, list[i].message, list[i].hash);
+                promises.push(p);
+            }
+
+            Promise.all(promises).then(res => { 
+                return resolve(this.wrapCdm(res));
+            });
+        })
+        
     }
 
 
     @action
-    decryptMessage(cypherText, publicKey) {
+    decryptMessage(cypherText, publicKey, clearHash) {
+        const { alice } = this.stores;
         return new Promise((resolve, reject) => {
             if (typeof window !== 'undefined') {
                 window.Waves
                     .decryptMessage(cypherText, publicKey, 'chainify')
                     .then(res => {
-                        resolve(res.replace(/@[\w]{64}$/gmi, ""));
+                        if (clearHash === true) {
+                            resolve(res.replace(/@[\w]{64}$/gmi, ""));
+                        } else {
+                            resolve(res)
+                        }
                     })
                     .catch(e => {
                         console.log(e);
+                        console.log('cypherText', cypherText);
+                        
                         resolve('⚠️ Decoding error');
                     });
             }

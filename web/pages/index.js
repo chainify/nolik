@@ -21,11 +21,20 @@ import GroupInfoModal from '../modals/GroupInfoModal';
 class Index extends React.Component {
     constructor(props) {
         super(props);
-        const { alice, groups, router, cdm } = this.props;
+        const { alice, groups, router, cdm, contacts } = this.props;
         
         this.authPeriodicChecker = setInterval(() => {
             alice.authCheck();
         }, 200);
+
+        // autorun(() => {
+        //     if (groups.list && !groups.current && router.query.groupHash) {
+        //         console.log('router', router.query.groupHash);
+                
+        //         const item = groups.list.filter(el => el.groupHash === router.query.groupHash)[0];
+        //         groups.setGroup(item);
+        //     };
+        // });
 
         autorun(() => {
             if (alice.publicKey && groups.list === null && groups.getListStatus === 'init') {
@@ -74,6 +83,8 @@ class Index extends React.Component {
     }
 
     componentWillUnmount() {
+        const { groups } = this.props;
+        groups.list = null;
         this.contactsPeriodicChecker();
         clearInterval(this.authPeriodicChecker);
     }
@@ -88,14 +99,20 @@ class Index extends React.Component {
                         index.showContactInfoModal = true;
                     }
                     if (e.key === '1') {
+                        contacts.getList();
                         index.showGroupInfoModal = true;
                     }
                 }}
             >
                 <Menu.Item key="0">
-                    <Icon type="user" /> Contact info
+                    {groups.current && groups.current.members.length > 2 ? (
+                        <span><Icon type="user" /> Group info</span>
+                    ) : (
+                        <span><Icon type="user" /> Contact info</span>
+                    )}
+                    
                 </Menu.Item>
-                <Menu.Item key="1" disabled>
+                <Menu.Item key="1">
                     <Icon type="usergroup-add" /> Add group members
                 </Menu.Item>
                 </Menu>

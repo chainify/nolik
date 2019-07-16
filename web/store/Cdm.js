@@ -20,6 +20,7 @@ class CdmStore {
     @observable message = '';
     @observable messageHash = null;
     @observable sendCdmStatus = 'init';
+    @observable forwardCdmStatus = 'init';
     @observable readCdmDB = null;
     @observable pendingTimestampsDB = null;
     @observable pendingMessagesDB = null;
@@ -43,7 +44,7 @@ class CdmStore {
 
         this.getListStatus = 'fetching';
         axios
-            .get(`${process.env.API_HOST}/api/v1/cdms/${alice.publicKey}/${groups.current.members[0].publicKey}`, formConfig)
+            .get(`${process.env.API_HOST}/api/v1/cdms/${alice.publicKey}/${groups.current.groupHash}`, formConfig)
             .then(res => {
                 const list = res.data.cdms;
                 for (let i = 0; i < list.length; i += 1) {
@@ -86,15 +87,15 @@ class CdmStore {
 
 
     @action
-    decryptList(list) {
-        const { crypto, groups } = this.stores;
+    decryptList(list, clearHash = true) {
+        const { crypto, groups, alice } = this.stores;
 
         if (list.length === 0) { return list }
         const decList = [];
         const promices = [];
         for (let i = 0; i < list.length; i += 1) {
             const cdm = list[i];
-            const p = crypto.decryptMessage(cdm.message, groups.current.members[0].publicKey)
+            const p = crypto.decryptMessage(cdm.message, cdm.recipient, clearHash)
                 .then(msg => {
                     cdm.message = msg;
                     decList.push(cdm);
@@ -112,12 +113,15 @@ class CdmStore {
 
     @action
     sendCdm() {
-        const { groups, alice, crypto } = this.stores;
+        const { groups, crypto } = this.stores;
         this.sendCdmStatus = 'pending';
         const recipients = groups.current.members.map(el => el.publicKey);
-
-        crypto.generateCdm(recipients)
+        console.log('recipients', recipients);
+        
+        crypto.generateCdm(recipients, this.message)
             .then(encMessage => {
+                console.log(encMessage);
+                
                 const now = moment().unix();
                 this.messageHash = sha256(encMessage);
                 this.list = this.list.concat([{
@@ -197,6 +201,98 @@ class CdmStore {
                 console.log(e);
                 message.error(e.message || e);
                 this.sendCdmStatus = 'error';
+            });
+    }
+
+    @action
+    forwardCdms() {
+        const { alice, groups, index, crypto } = this.stores;
+        const formConfig = {}
+
+        if (groups.current === null)  { return }
+
+        this.forwardCdmStatus = 'pending';
+        axios
+            .get(`${process.env.API_HOST}/api/v1/cdms/${alice.publicKey}/${groups.current.groupHash}`, formConfig)
+            .then(res => {
+                return res.data.cdms;
+            })
+            .then(list => {
+                return this.decryptList(list, false);
+            })
+            .then(list => {
+                const recipients = toJS(groups.current.members.map(el => el.publicKey)).concat(index.newGroupMembers);
+                return crypto.generateForwardCdm(recipients, list)
+                    .then(cdm => {
+                        return cdm;
+                    });
+            })
+            .then(cdm => {
+                const formConfig = {};
+                const formData = new FormData();
+                formData.append('data', cdm);
+                return axios.post(`${process.env.API_HOST}/api/v1/ipfs`, formData, formConfig)
+                    .then(ipfsData => {
+                        return ipfsData;
+                    });
+            })
+            .then(ipfsData => {
+                if (typeof window !== 'undefined') {
+                    return window.Waves.publicState().then(udata => {
+                        const txData = {
+                            type: 4,
+                            data: {
+                                amount: {
+                                   assetId: process.env.ASSET_ID,
+                                   tokens: "0.00000001"
+                                },
+                                fee: {
+                                    assetId: process.env.ASSET_ID,
+                                    tokens: "0.001"
+                                },
+                                recipient: udata.account.address,
+                                attachment: ipfsData.data['Hash']
+                            }
+                        };
+                        return window.WavesKeeper.signAndPublishTransaction(txData)
+                        .then(data => {
+                            return data;
+                        })
+                        .catch(e => { 
+                            console.log(e);
+                            if (e.code && e.code === "15") {
+                                notification['warning']({
+                                    message: 'The message is not sent',
+                                    description:
+                                        <div>
+                                            <p>Plese make sure your account has a positive balance</p>
+                                        </div>
+                                  });
+                            } else if (e.code && e.code === "10") {
+                                message.info('Message sending has been canceled');
+                            } else {
+                                message.error(e.message || e);
+                            }
+                        });
+                    });   
+                }
+            })
+            .then(data => {
+                // if (!data) {
+                //     const list = this.list;
+                //     list.splice(-1, 1);
+                //     this.list = list;
+                //     this.readCdmDB.put(groups.current.groupHash, this.list.length);
+                //     this.pendnigDB.del(this.messageHash);
+                // }
+                this.messageHash = null;
+                index.showGroupInfoModal = false;
+                this.forwardCdmStatus = 'success'
+            })
+            .catch(e => {
+                console.log(e);
+                message.error(e.message || e);
+                this.forwardCdmStatus = 'error';
             });
     }
 }
