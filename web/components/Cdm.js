@@ -34,7 +34,7 @@ class Cdm extends React.Component {
                                 showDivider = true;
                             }
                             return (
-                                <div key={`message_${item.hash}_${item.type}`}>
+                                <div key={`message_${item.hash}_${item.timestamp}`}>
                                     {cdm.getListStatus === 'success' && showDivider && (
                                         <Divider dashed style={{ background: '#fff', opacity: 0.5 }}>
                                             <div className="divider">{moment.unix(item.timestamp).format('MMM DD')}</div>

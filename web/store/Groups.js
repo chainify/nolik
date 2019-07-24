@@ -17,10 +17,15 @@ class GroupsStore {
     @observable groupHash = null;
     @observable list = null;
     @observable current = null;
-    @observable newGroupMembers = [];
+    @observable newGroups = [];
     @observable fullName = null;
     @observable getListStatus = 'init';
     @observable searchValue = '';
+    @observable searchedList = null;
+    @observable initLoadingStatus = null;
+
+    @observable activeGroups = [];
+    @observable activeSenders = [];
 
     @action
     createGroupHash(publicKeys) {
@@ -32,12 +37,19 @@ class GroupsStore {
     setGroup(group) {
         const { alice, cdm } = this.stores;
         sessionStorage.setItem('groupHash', group.groupHash);
-        this.current = group;
-        Router.push(`/index?groupHash=${group.groupHash}`, `/gr/${group.groupHash}`);
+        const groupsWithSameGroupHash = this.list.filter(el => el.groupHash === group.groupHash);
+        if (groupsWithSameGroupHash.length > 0) {
+            const sameGroup = groupsWithSameGroupHash[0];
+            this.current = sameGroup;
+            this.setGroupFullName(sameGroup.fullName);
+        } else {
+            this.current = group;
+            this.setGroupFullName(group.fullName);
+        }
 
-        this.setFullName(group.fullName);
+        Router.push(`/index?groupHash=${group.groupHash}`, `/gr/${group.groupHash}`);
         cdm.initLevelDB(alice.publicKey, group.groupHash);
-        cdm.getList();
+        cdm.getList();        
     }
 
     @action
@@ -45,14 +57,17 @@ class GroupsStore {
         const { cdm } = this.stores;
         this.fullName = null;
         this.current = null;
+        this.newGroups = [];
+        this.searchedList = null;
         cdm.list = null;
+        cdm.message = '';
         sessionStorage.removeItem('groupHash');
         Router.push('/');
     }
 
     @action
-    setFullName(fullName) {
-        this.fullName =  fullName.length > 20 ? fullName.substring(0, 20) + '...' : fullName;
+    setGroupFullName(fullName) {
+        this.fullName = fullName.length > 20 ? fullName.substring(0, 20) + '...' : fullName;
     }
 
     @action
@@ -61,105 +76,101 @@ class GroupsStore {
         const formConfig = {}
 
         this.getListStatus = 'fetching';
-        utils.sleep(this.list ? 400 : 0).then(() => {
-            axios
-                .get(`${process.env.API_HOST}/api/v1/groups/${alice.publicKey}`, formConfig)
-                .then(res => {
-                    return this.decryptList(res.data.groups);
-                })
-                .then(list => {      
-                    const promises = [];
-                    for (let i = 0; i < list.length; i += 1) {
-                        const groupHash = list[i].groupHash;
-                        const listEl = list[i];
-                        listEl.readCdms = 0;
-                        const p = cdm.readCdmDB.get(groupHash)
-                            .then(res => {
-                                listEl.readCdms = parseInt(stringFromUTF8Array(res)) || 0;
-                                return listEl;
-                            })
-                            .catch(e => {
-                                return listEl;
-                            });
-                        promises.push(p);
-                    }
-                    return Promise.all(promises)
-                        .then(res => {       
-                            return res
+        this.initLoadingStatus = 'Loading...'
+        axios
+            .get(`${process.env.API_HOST}/api/v1/groups/${alice.publicKey}`, formConfig)
+            .then(res => {
+                this.initLoadingStatus = 'Decrypting data...';
+                return this.decryptList(res.data.groups);
+            })
+            .then(list => {
+                const promises = [];
+                for (let i = 0; i < list.length; i += 1) {
+                    const groupHash = list[i].groupHash;
+                    const listEl = list[i];
+                    listEl.readCdms = 0;
+                    const p = cdm.readCdmDB.get(groupHash)
+                        .then(res => {
+                            listEl.isOnline = this.activeGroups.indexOf(listEl.groupHash) > -1;
+                            listEl.readCdms = parseInt(stringFromUTF8Array(res)) || 0;
+                            return listEl;
+                        })
+                        .catch(e => {
+                            return listEl;
                         });
-                })
-                .then(list => {
-                    const promises = [];
-                    for (let i = 0; i < list.length; i += 1) {
-                        const listEl = list[i];
-                        contacts.getContact(listEl.groupHash);
-                        const p = contacts.getContact(listEl.groupHash)
-                            .then(contact => {
-                                listEl.fullName = contact ? contact : listEl.fullName;
+                    promises.push(p);
+                }
+                return Promise.all(promises)
+                    .then(res => {       
+                        return res;
+                    });
+            })
+            .then(list => {
+                const promises = [];
+                for (let i = 0; i < list.length; i += 1) {
+                    const listEl = list[i];
+                    const members = listEl.members.filter(el => el.publicKey !== alice.publicKey);
+                    if (members.length === 1 && listEl.index > 1) {
+                        const p = contacts.getContact(members[0].publicKey)
+                            .then(contactFullName => {
+                                listEl.fullName = contactFullName ? contactFullName : listEl.fullName;
                                 return listEl;
                             })
                             .catch(e => {
                                 console.log('e', e);
                             });
-                        promises.push(p);
-                    }
-                    
-                    return Promise.all(promises)
-                        .then(res => {
-                            return res;
-                        });
-                })
-                .then(list => {
-                    const filtered = list
-                        .filter(el => (
-                            el.fullName.toLowerCase().search(this.searchValue.toLowerCase()) > -1 ||
-                            el.members.filter(m => m.publicKey === this.searchValue).length > 0
-                        ));
-                    
-                    if (filtered.length === 0 && this.searchValue.length === 44) {
-                        const groupHash = this.createGroupHash([alice.publicKey, this.searchValue])
-                        return filtered.concat([{
-                            members: [{
-                                publicKey: this.searchValue,
-                                lastActive: null,
-                            },
-                            {
-                                publicKey: alice.publicKey,
-                                lastActive: null,
-                            }],
-                            index: list.length,
-                            groupHash: groupHash,
-                            fullName: 'NEW:' + groupHash,
-                            totalCdms: 0,
-                            lastCdm: null,
-                        }])
+                        promises.push(p);                            
                     } else {
-                        return filtered;
+                        const p = contacts.getContact(listEl.groupHash)
+                            .then(groupFullName => {
+                                listEl.fullName = groupFullName ? groupFullName : listEl.fullName;
+                                return listEl;
+                            })
+                            .catch(e => {
+                                console.log('e', e);
+                            });
+                        promises.push(p);                            
                     }
-                })
-                .then(list => {
-                    if (this.current === null) { return list }
-                    const localCurrent = list.filter(el => el.groupHash === this.current.groupHash)[0];
-                    if (localCurrent.totalCdms !== this.current.totalCdms) {
-                        cdm.getList();
-                        this.current = localCurrent;
+                }
+                
+                return Promise.all(promises)
+                    .then(res => {
+                        return res;
+                    });
+            })
+            .then(list => { 
+                const newGroupHashes = this.newGroups.map(el => el.groupHash);
+                if (this.newGroups.length > 0 && list.filter(el => newGroupHashes.indexOf(el.groupHash) > -1).length === 0) {
+                    const withNewGroups = list.slice(0,2).concat(this.newGroups).concat(list.slice(2));
+                    return withNewGroups;
+                } else {
+                    return list;
+                }
+            })
+            .then(list => {
+                if (this.current === null) { return list }
+                const localCurrent = list.filter(el => el.groupHash === this.current.groupHash);                    
+                if (localCurrent.length > 0 && localCurrent[0].totalCdms !== this.current.totalCdms) {
+                    cdm.getList();
+                    this.current = localCurrent[0];
+                }
+                return list;
+            })
+            .then(list => {
+                if (this.searchedList && this.searchedList.length === 1) {
+                    if (list.filter(el => el.groupHash === this.searchedList[0].groupHash).length > 0) {
+                        this.searchedList = null;
                     }
-                    return list;
-                })
-                .then(list => {
-                    if (this.current === null) { return list }
-                    const filtered = list.filter(el => el.groupHash === this.current.groupHash);
-                    if (filtered.length === 0) {this.resetGroup() }
-                    return list;
-                })
-                .then(list => {
-                    this.list = list;
-                    this.getListStatus = 'success';
-                })
-                .catch(e => {
-                    this.getListStatus = 'error';
-                })
-        });
+                }
+                return list;
+            })
+            .then(list => {
+                this.list = list;
+                this.getListStatus = 'success';
+            })
+            .catch(e => {
+                this.getListStatus = 'error';
+            });
     }
 
     @action
@@ -169,7 +180,7 @@ class GroupsStore {
         const promises = [];
         for (let i = 0; i < list.length; i += 1) {
             if (list[i].lastCdm) {
-                const p = crypto.decryptMessage(list[i].lastCdm.message, list[i].lastCdm.recipient, clearHash)
+                const p = crypto.decryptMessage(list[i].lastCdm.message, list[i].lastCdm.logicalSender, clearHash)
                     .then(res => {
                         list[i].lastCdm.message = <ReactMarkdown source={res} skipHtml={true} />;
                         let msg = res;

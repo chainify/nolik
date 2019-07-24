@@ -2,18 +2,20 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'next/router';
 import { observer, inject } from 'mobx-react';
-import { autorun } from 'mobx';
+import { autorun, toJS } from 'mobx';
 // import { i18n, Link as Tlink, withNamespaces } from '../i18n';
 import Wrapper from '../components/Wrapper';
 import Group from '../components/Group';
 import Cdm from '../components/Cdm';
 import Skeleton from '../components/Skeleton';
-import { Row, Col, Input, Button, Icon, Dropdown, Menu, PageHeader } from 'antd';
+import { Row, Col, Input, Button, Icon, Dropdown, Menu, PageHeader, Divider } from 'antd';
 const { TextArea } = Input;
 import mouseTrap from 'react-mousetrap';
+// import { toJS } from 'mobx';
 
 import ContactInfoModal from '../modals/ContactInfoModal';
 import GroupInfoModal from '../modals/GroupInfoModal';
+import NewGroupMembersModal from '../modals/NewGroupMembersModal';
 
 
 @inject('alice', 'index', 'cdm', 'contacts', 'groups')
@@ -27,24 +29,44 @@ class Index extends React.Component {
             alice.authCheck();
         }, 200);
 
-        // autorun(() => {
-        //     if (groups.list && !groups.current && router.query.groupHash) {
-        //         console.log('router', router.query.groupHash);
-                
-        //         const item = groups.list.filter(el => el.groupHash === router.query.groupHash)[0];
-        //         groups.setGroup(item);
-        //     };
-        // });
 
         autorun(() => {
-            if (alice.publicKey && groups.list === null && groups.getListStatus === 'init') {
+            if (alice.publicKey && alice.updateHeartbeatStatus === 'init') {
+                alice.updateHeartbeat();
+                cdm.getLastCdm();
+            }
+        });
+
+           
+        this.contactsPeriodicChecker = autorun(() => {
+            if (cdm.getLastCdmStatus === 'success') {
+                cdm.getLastCdm();
+            }
+        });
+
+        autorun(() => {
+            if (
+                cdm.lastCdmHash === null && 
+                groups.list === null
+            ) {
                 groups.getList();
             }
         });
-           
-        this.contactsPeriodicChecker = autorun(() => {
-            if (groups.getListStatus === 'success') {
+
+        autorun(() => {
+            if (
+                groups.list &&
+                cdm.lastCdmHash && 
+                groups.list.slice(0, 3).map(el => el.lastCdm && el.lastCdm.attachmentHash).indexOf(cdm.lastCdmHash) < 0
+            ) {
                 groups.getList();
+            }
+        });
+
+
+        this.aliceHeartbeatPeriodic = autorun(() => {
+            if (alice.updateHeartbeatStatus === 'success') {
+                alice.updateHeartbeat();
             }
         });
 
@@ -86,6 +108,7 @@ class Index extends React.Component {
         const { groups } = this.props;
         groups.list = null;
         this.contactsPeriodicChecker();
+        this.aliceHeartbeatPeriodic();
         clearInterval(this.authPeriodicChecker);
     }
 
@@ -95,22 +118,16 @@ class Index extends React.Component {
             <Menu
                 onClick={e => {
                     if (e.key === '0') {
-                        contacts.fullNameEdit = groups.current.fullName;
-                        index.showContactInfoModal = true;
+                        contacts.groupFullName = groups.current.fullName;
+                        index.showGroupInfoModal = true;
                     }
                     if (e.key === '1') {
-                        contacts.getList();
-                        index.showGroupInfoModal = true;
+                        index.showNewGroupMembersModal = true;
                     }
                 }}
             >
                 <Menu.Item key="0">
-                    {groups.current && groups.current.members.length > 2 ? (
-                        <span><Icon type="user" /> Group info</span>
-                    ) : (
-                        <span><Icon type="user" /> Contact info</span>
-                    )}
-                    
+                    <Icon type="user" /> Group info
                 </Menu.Item>
                 <Menu.Item key="1">
                     <Icon type="usergroup-add" /> Add group members
@@ -122,70 +139,108 @@ class Index extends React.Component {
             <Wrapper>
                 <ContactInfoModal />
                 <GroupInfoModal />
+                <NewGroupMembersModal />
                 <Row>
                     <Col xs={10} md={8}>
-                        <div className="contacts">
+                        <div className="groups">
                             {groups.list && (
-                                <PageHeader
-                                    onBack={() => {
-                                        groups.resetGroup();
-                                        alice.publicKey = null;
-                                    }}
-                                    key="contactsHeader"
-                                    backIcon={<Icon type="poweroff" />}
-                                    extra={[
-                                        <Input
-                                            placeholder="Public key / Contact"
-                                            prefix={<Icon type="search" style={{ color: '#ddd' }} />}
-                                            suffix={groups.searchValue.length > 0 && (
-                                                <button
-                                                    className="clearSearch"
-                                                    onClick={_ => {
-                                                        groups.searchValue = '';
-                                                    }}
-                                                >
-                                                    <Icon type="close-circle" theme="filled" />
-                                                </button>
-                                            )}
-                                            key="groupsSearchInput"
-                                            size="small"
-                                            value={groups.searchValue}
-                                            onChange={e => {
-                                                groups.searchValue = e.target.value;
-                                                groups.list = groups.list
-                                                    .filter(el => el.fullName.toLowerCase().search(groups.searchValue.toLowerCase()) > -1);
-                                            }}
-                                        />
-                                    ]}
-                                    style={{
-                                        borderBottom: '1px solid #ddd',
-                                        background: '#eee',
-                                    }}
-                                />
+                                <div className="groupsHeader">
+                                    <PageHeader
+                                        onBack={() => {
+                                            groups.resetGroup();
+                                            alice.publicKey = null;
+                                        }}
+                                        key="groupsHeader"
+                                        backIcon={<Icon type="poweroff" />}
+                                        extra={[
+                                            <Input
+                                                placeholder="Public key / Contact"
+                                                prefix={<Icon type="search" style={{ color: '#ddd' }} />}
+                                                suffix={groups.searchValue.length > 0 && (
+                                                    <button
+                                                        className="clearSearch"
+                                                        onClick={_ => {
+                                                            groups.searchValue = '';
+                                                            groups.searchedList = null;
+                                                        }}
+                                                    >
+                                                        <Icon type="close-circle" theme="filled" />
+                                                    </button>
+                                                )}
+                                                // disabled
+                                                key="groupsSearchInput"
+                                                size="small"
+                                                value={groups.searchValue}
+                                                onChange={e => {
+                                                    groups.searchValue = e.target.value;
+                                                    if (groups.searchValue === '') {
+                                                        groups.searchedList = null;
+                                                    } else {
+                                                        groups.searchedList = groups.list
+                                                            .filter(el => el.fullName.toLowerCase().search(groups.searchValue.toLowerCase()) > -1);
+                                                        
+                                                        if (groups.searchedList.length === 0 && groups.searchValue.length == 44) {
+                                                            const groupHash = groups.createGroupHash([alice.publicKey, groups.searchValue])
+                                                            contacts.getContact(groups.searchValue)
+                                                                .then(fullName => {
+                                                                    groups.searchedList = [{
+                                                                        members: [{
+                                                                            publicKey: groups.searchValue,
+                                                                            lastActive: null,
+                                                                        },
+                                                                        {
+                                                                            publicKey: alice.publicKey,
+                                                                            lastActive: null,
+                                                                        }],
+                                                                        index: groups.list.length,
+                                                                        groupHash: groupHash,
+                                                                        fullName: fullName || groups.searchValue,
+                                                                        totalCdms: 0,
+                                                                        readCdms: 0,
+                                                                        lastCdm: null,
+                                                                    }];
+                                                                });
+                                                        }
+                                                    }  
+                                                }}
+                                            />
+                                        ]}
+                                        style={{
+                                            borderBottom: '1px solid #ddd',
+                                            background: '#eee',
+                                        }}
+                                    />
+                                </div>
                             )}
-                            {groups.list === null && index.fakeHeaders.map(item => (
-                                <Skeleton rows={2} key={`header_${item}`} />
-                            ))}
-                            {groups.list && groups.list.map(item => (
-                                <Group item={item} key={`header_${item.index}`} />
-                            ))}
+                            <div className="groupsBody">
+                                {groups.list === null && index.fakeHeaders.map(item => (
+                                    <Skeleton rows={2} key={`header_${item}`} />
+                                ))}
+                                {groups.searchedList && groups.searchedList.map(item => (
+                                    <Group item={item} key={`header_${item.index}`} />
+                                ))}
+                                {groups.searchedList && <Divider />}
+                                {groups.searchedList === null && groups.list && groups.list.map(item => (
+                                    <Group item={item} key={`header_${item.index}`} />
+                                ))}
+                            </div>
                         </div>
                     </Col>
                     <Col xs={14} md={16}>
-                        {groups.current === null && <div className={`cdm empty`} />}
-                        {groups.list === null && <div className={`cdm loading`}>Loading...</div>}
+                        {groups.list && groups.current === null && <div className={`cdm empty`} />}
+                        {groups.list === null && <div className={`cdm loading`}>{groups.initLoadingStatus}</div>}
                         {groups.list && groups.current  && (
                             <div className="cdm">
                                 <PageHeader
                                     onBack={() => groups.resetGroup()}
                                     title={groups.fullName}
                                     key="chatHeader"
-                                    subTitle=""
+                                    subTitle={groups.current.usersOnline === 1 && <span className="isOnline">Online</span>}
                                     extra={groups.list.filter(el => el.groupHash === groups.current.groupHash && el.index === 0).length === 0 && [
                                         <Dropdown
                                             overlay={chatDropdownMenu}
                                             trigger={['click']}
-                                            key="asd"
+                                            key="chatDropdownMenu"
                                         >   
                                             <Button>
                                                 <Icon type="down" />
@@ -236,23 +291,31 @@ class Index extends React.Component {
                     </Col>
                 </Row>
                 <style jsx>{`
-                    .contacts {
+                    .groups {
                         height: 100vh;
                         overflow-y: auto;
                         background: #fff;
                         border-right: 1px solid #ddd;
+                        display: flex;
+                        flex-direction: column;
                     }
 
-                    .contacts .noContacts {
-                        line-height: 50px;
-                        text-align: center;
-                        color: #fff;
+                    .groupsHeader {
+                        flex-basis: 70px;
+                    }
+                    
+                    .groupsBody {
+                        flex-grow: 1;
+                        overflow-y: auto;
+                        background: #fff;
+                        padding-bottom: 2em;
                     }
 
                     .cdm {
                         height: 100vh;
                         display: flex;
                         flex-direction: column;
+                        position: relative;
                     }
 
                     .cdm.empty {
@@ -280,6 +343,9 @@ class Index extends React.Component {
                         background-position: 0px 0px;
                         animation: move 1s linear infinite;
                         display: block;
+                        position: absolute;
+                        left: 0px;
+                        top: 58px;
                     }
 
                     @keyframes move {
@@ -307,6 +373,14 @@ class Index extends React.Component {
                         outline:0;
                         cursor: pointer;
                         color: #999;
+                    }
+
+                    .isOnline {
+                        color: #4caf50;
+                        border: 1px solid #4caf50;
+                        padding: 0.2em;
+                        font-size: 0.8em;
+                        border-radius: 4px;
                     }
                 `}</style>
             </Wrapper>

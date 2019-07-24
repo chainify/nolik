@@ -16,11 +16,11 @@ class CryptoStore {
 
     @action
     wrapCdm(msg) {          
-        let cdm = '-----BEGIN_CDM VERSION_2-----';
+        let cdm = '-----BEGIN_CDM_VERSION 3-----';
         cdm += '\r\n-----BEGIN_BLOCKCHAIN WAVES-----';
         cdm += msg;
         cdm += '\r\n-----END_BLOCKCHAIN WAVES-----';
-        cdm += '\r\n-----END_CDM VERSION_1-----';
+        cdm += '\r\n-----END_CDM_VERSION 3-----';
         return cdm;
         // cdm += `\r\n-----BEGIN_SIGNATURE ${alice.publicKey}-----\r\n${signature}\r\n-----END_SIGNATURE ${alice.publicKey}-----`;     
     }
@@ -31,23 +31,25 @@ class CryptoStore {
         if (typeof window !== 'undefined') {
             
             let randMessage= message;
-            let sha = msgHash;
+            let messageHash = msgHash;
             const rawMessage = message.trim();
             if (msgHash === false) {
                 const rand = sha256(utils.generateRandom(64));
                 randMessage = rawMessage + '@' + rand;
-                sha = sha256(randMessage);
+                messageHash = sha256(randMessage);
             }
-
+            
             let msg = '';
             const promises = [];
             for( let i = 0; i < recipients.length; i += 1) {
                 const recipientPublicKey = recipients[i];
                 const p = window.Waves
                     .encryptMessage(randMessage, recipientPublicKey, 'chainify')
-                    .then(emcMsg => {
-                        msg += `\r\n-----BEGIN_PUBLIC_KEY ${recipientPublicKey}-----\r\n${emcMsg}\r\n-----END_PUBLIC_KEY ${recipientPublicKey}-----`;
-                        msg += `\r\n-----BEGIN_SHA256 ${recipientPublicKey}-----\r\n${sha}\r\n-----END_SHA256 ${recipientPublicKey}-----`;
+                    .then(cypherText => {
+                        msg += `\r\n-----BEGIN_RECIPIENT ${recipientPublicKey}-----`;
+                        msg += `\r\n-----BEGIN_MESSAGE-----\r\n${cypherText}\r\n-----END_MESSAGE-----`;
+                        msg += `\r\n-----BEGIN_SHA256-----\r\n${messageHash}\r\n-----END_SHA256-----`;
+                        msg += `\r\n-----END_RECIPIENT ${recipientPublicKey}-----`;
                     });
                 promises.push(p);
             }
@@ -83,10 +85,8 @@ class CryptoStore {
         
     }
 
-
     @action
     decryptMessage(cypherText, publicKey, clearHash) {
-        const { alice } = this.stores;
         return new Promise((resolve, reject) => {
             if (typeof window !== 'undefined') {
                 window.Waves
@@ -95,13 +95,11 @@ class CryptoStore {
                         if (clearHash === true) {
                             resolve(res.replace(/@[\w]{64}$/gmi, ""));
                         } else {
-                            resolve(res)
+                            resolve(res);
                         }
                     })
                     .catch(e => {
-                        console.log(e);
-                        console.log('cypherText', cypherText);
-                        
+                        // console.log(e);
                         resolve('⚠️ Decoding error');
                     });
             }

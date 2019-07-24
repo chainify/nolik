@@ -16,15 +16,18 @@ class CdmStore {
     }
 
     @observable list = null;
+    @observable lastCdmHash = null;
     @observable getListStatus = 'init';
     @observable message = '';
     @observable messageHash = null;
     @observable sendCdmStatus = 'init';
     @observable forwardCdmStatus = 'init';
+    @observable getLastCdmStatus = 'init';
     @observable readCdmDB = null;
     @observable pendingTimestampsDB = null;
     @observable pendingMessagesDB = null;
     @observable textareaFocused = false;
+    @observable forwardedList = null;
     
     @action
     initLevelDB(alicePubKey, groupHash) {
@@ -36,8 +39,29 @@ class CdmStore {
     }
 
     @action
+    getLastCdm() {
+        const formConfig = {}
+        const { utils, alice } = this.stores;
+
+        this.getLastCdmStatus = 'fetching'
+        utils.sleep(1000).then(() => {
+            axios
+                .get(`${process.env.API_HOST}/api/v1/last_cdm/${alice.publicKey}`, formConfig)
+                .then(res => {
+                    const lastCdm = toJS(res.data.lastCdm);
+                    this.lastCdmHash = lastCdm ? lastCdm[0] : null;
+                    this.getLastCdmStatus = 'success';
+                })
+                .catch(e => {
+                    console.log(e);
+                    this.getLastCdmStatus = 'error';
+                })
+        });
+    }
+
+    @action
     getList() {
-        const { alice, groups } = this.stores;
+        const { alice, groups, contacts } = this.stores;
         const formConfig = {}
 
         if (groups.current === null)  { return }
@@ -56,8 +80,42 @@ class CdmStore {
                 return this.decryptList(list);
             })
             .then(list => {
-                this.readCdmDB.put(groups.current.groupHash, list.length);
-                this.list = list;
+                const  promices = [];
+                for (let i = 0; i < list.length; i += 1) {
+                    const listEl = list[i];
+                    const p = contacts.getContact(listEl.logicalSender)
+                        .then(fullName => {
+                            listEl.senderName = fullName || listEl.logicalSender;
+                            return listEl;
+                        })
+                    promices.push(p);
+                }
+
+                return Promise.all(promices)
+                    .then(res => {
+                        return res;
+                    })
+            })
+            .then(list => {
+                if (this.list && this.list.length === list.length) {
+                    for (let i = 0; i < list.length; i += 1) {
+                        if (this.list[i].type === 'pending') {
+                            const listEl = list.filter(el => el.attachmentHash === this.list[i].hash);
+                            if (listEl.length > 0) {
+                                this.list[i].type = 'outgoing';
+                            }
+                        }
+                    }
+                    return null;
+                } else {
+                    return list;
+                }
+            })
+            .then(list => {
+                if (list) { this.list = list }
+                this.readCdmDB.put(groups.current.groupHash, this.list.length);
+                const groupIndex = groups.list.filter(el => el.groupHash === groups.current.groupHash)[0].index;
+                groups.list[groupIndex].readCdms = this.list.length;
                 this.getListStatus = 'success';
             })
             .then(() => {
@@ -76,7 +134,10 @@ class CdmStore {
                                 'timestamp': now
                             }]);
                         }
-                        this.pendnigDB.del(attachmentHash);
+                        // this.pendnigDB.del(attachmentHash);
+                    })
+                    .on('end', _ => {
+                        this.list = this.list;
                     })
             })
             .catch(e => {
@@ -95,7 +156,7 @@ class CdmStore {
         const promices = [];
         for (let i = 0; i < list.length; i += 1) {
             const cdm = list[i];
-            const p = crypto.decryptMessage(cdm.message, cdm.recipient, clearHash)
+            const p = crypto.decryptMessage(cdm.message, cdm.logicalSender, clearHash)
                 .then(msg => {
                     cdm.message = msg;
                     decList.push(cdm);
@@ -115,13 +176,16 @@ class CdmStore {
     sendCdm() {
         const { groups, crypto } = this.stores;
         this.sendCdmStatus = 'pending';
+        if (groups.current === null) {
+            if (groups.searchedList.length > 0) {
+                groups.current = groups.searchedList[0];
+            } else {
+                return;
+            }
+        }
         const recipients = groups.current.members.map(el => el.publicKey);
-        console.log('recipients', recipients);
-        
         crypto.generateCdm(recipients, this.message)
             .then(encMessage => {
-                console.log(encMessage);
-                
                 const now = moment().unix();
                 this.messageHash = sha256(encMessage);
                 this.list = this.list.concat([{
@@ -133,9 +197,13 @@ class CdmStore {
                 return encMessage;
             })
             .then(encMessage => {
-                this.pendnigDB.put(this.messageHash, this.message);
-                this.readCdmDB.put(groups.current.groupHash, this.list ? this.list.length : 0);
                 this.message = '';
+                const readCdms = this.list ? this.list.length : 0;
+                this.pendnigDB.put(this.messageHash, this.message);
+                this.readCdmDB.put(groups.current.groupHash, readCdms);
+
+                const groupIndex = groups.list.filter(el => el.groupHash === groups.current.groupHash)[0].index;
+                groups.list[groupIndex].readCdms = readCdms;
                 return encMessage;
             })
             .then(encMessage => {
@@ -193,6 +261,7 @@ class CdmStore {
                     this.list = list;
                     this.readCdmDB.put(groups.current.groupHash, this.list.length);
                     this.pendnigDB.del(this.messageHash);
+                    this.forwardedList = '';
                 }
                 this.messageHash = null;
                 this.sendCdmStatus = 'success'
@@ -221,6 +290,7 @@ class CdmStore {
                 return this.decryptList(list, false);
             })
             .then(list => {
+                this.forwardedList = list;
                 const recipients = toJS(groups.current.members.map(el => el.publicKey)).concat(index.newGroupMembers);
                 return crypto.generateForwardCdm(recipients, list)
                     .then(cdm => {
@@ -255,39 +325,55 @@ class CdmStore {
                             }
                         };
                         return window.WavesKeeper.signAndPublishTransaction(txData)
-                        .then(data => {
-                            return data;
-                        })
-                        .catch(e => { 
-                            console.log(e);
-                            if (e.code && e.code === "15") {
-                                notification['warning']({
-                                    message: 'The message is not sent',
-                                    description:
-                                        <div>
-                                            <p>Plese make sure your account has a positive balance</p>
-                                        </div>
-                                  });
-                            } else if (e.code && e.code === "10") {
-                                message.info('Message sending has been canceled');
-                            } else {
-                                message.error(e.message || e);
-                            }
-                        });
+                            .then(data => {
+                                return data;
+                            })
+                            .catch(e => { 
+                                console.log(e);
+                                if (e.code && e.code === "15") {
+                                    notification['warning']({
+                                        message: 'The message is not sent',
+                                        description:
+                                            <div>
+                                                <p>Plese make sure your account has a positive balance</p>
+                                            </div>
+                                    });
+                                } else if (e.code && e.code === "10") {
+                                    message.info('Message sending has been canceled');
+                                } else {
+                                    message.error(e.message || e);
+                                }
+                            });
                     });   
                 }
             })
             .then(data => {
-                // if (!data) {
-                //     const list = this.list;
-                //     list.splice(-1, 1);
-                //     this.list = list;
-                //     this.readCdmDB.put(groups.current.groupHash, this.list.length);
-                //     this.pendnigDB.del(this.messageHash);
-                // }
-                this.messageHash = null;
-                index.showGroupInfoModal = false;
-                this.forwardCdmStatus = 'success'
+                if (data) {
+                    groups.setGroup(groups.newGroups[0]);
+                    const pendingCdms = [];
+                    for (let i = 0; i < this.forwardedList.length; i += 1) {
+                        const listEl = this.forwardedList[i];
+                        const message = listEl.message.replace(/@[\w]{64}$/gmi, "");
+                        // this.pendnigDB.put(listEl.attachmentHash, message);
+                        this.readCdmDB.put(groups.current.groupHash, this.forwardedList.length);
+
+                        const now = moment().unix();
+                        pendingCdms.push({
+                            'hash': listEl.attachmentHash,
+                            'message': message,
+                            'type': 'pending',
+                            'timestamp': now
+                        });
+                    }
+                    
+                    this.list = pendingCdms;
+                    index.resetNewGroupMember();
+                    index.showNewGroupMembersModal = false;
+
+                } else {
+                    groups.newGroups = [];
+                }
+                this.forwardCdmStatus = 'success';
             })
             .catch(e => {
                 console.log(e);

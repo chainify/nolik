@@ -1,6 +1,7 @@
 import React from 'react';
 import { observer, inject } from 'mobx-react';
-import { Badge, Icon, Typography } from 'antd';
+import { Badge, Icon, Typography, Progress } from 'antd';
+import { toJS } from 'mobx';
 const { Paragraph } = Typography;
 
 @inject('groups', 'cdm')
@@ -31,8 +32,14 @@ class Header extends React.Component {
                 >
                     <div className={`header ${groups.current && groups.current.groupHash === item.groupHash && 'active'}`}>
                         <div className="headerBody">
+                            {/* {item.usersOnline > 0 && (
+                                <div className="usersOnline">{`${item.usersOnline * 100}%`}</div>
+                            )} */}
+                            {/* <Progress percent={item.usersOnline * 100} showInfo={false} /> */}
                             <Paragraph ellipsis style={paragrapStyle}>
-                                <span className="headerTitle">{item.fullName}</span>
+                                <span className={`headerTitle ${item.isOnline === true && 'oline'}`}>
+                                    {item.fullName}
+                                </span>
                             </Paragraph>
                             <Paragraph ellipsis style={paragrapStyle}>
                                 <span className="headerMessage">
@@ -85,6 +92,7 @@ class Header extends React.Component {
                         flex-grow: 1;
                         padding-left: 40px;
                         overflow-x: hidden;
+                        position: relative;
                     }
 
                     .headerTitle {
@@ -99,6 +107,18 @@ class Header extends React.Component {
                         height: 40px;
                         text-align: right;
                     }
+
+                    .oline {
+                        color: #4caf50;
+                    }
+                    // div.usersOnline {
+                    //     display: block;
+                    //     width: 40px;
+                    //     height: 20px;
+                    //     position: absolute;
+                    //     top: 0px;
+                    //     left: 10px;
+                    // }
                 `}</style>
             </div>
         );

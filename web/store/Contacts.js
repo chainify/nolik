@@ -1,5 +1,6 @@
 import { action, observable } from 'mobx';
 import stringFromUTF8Array from './../utils/batostr';
+import { autorun, toJS } from 'mobx';
 
 class WrapperStore {
     stores = null;
@@ -9,12 +10,24 @@ class WrapperStore {
         this.initLevelDB = this.initLevelDB.bind(this);
         this.saveContact = this.saveContact.bind(this);
         this.getContact = this.getContact.bind(this);
+
+        autorun(() => {
+            if (this.currentPublicKey !== null) {
+                this.getContact(this.currentPublicKey)
+                    .then(name => {
+                        this.currentFullName = name || this.currentPublicKey;
+                    })
+            }
+        })
     }
 
     @observable list = [];
-    @observable fullNameEdit = '';
+    @observable groupFullName = '';
+    @observable contactFullName = '';
     @observable searchValue = '';
     @observable contactsDB = null;
+    @observable currentPublicKey = null;
+    @observable currentFullName = '';
 
     @action
     initLevelDB() {
@@ -26,45 +39,41 @@ class WrapperStore {
     }
 
     @action
-    saveContact() {
+    saveContact(key, name) {
+        this.contactsDB.put(key, name);
+        this.getList();
+    }
+
+    saveGroup() {
         const { groups } = this.stores;
-        this.contactsDB.put(groups.current.groupHash, this.fullNameEdit);
-        groups.setFullName(this.fullNameEdit);
+        this.saveContact(groups.current.groupHash, this.groupFullName);
+        groups.setGroupFullName(this.groupFullName);
     }
 
     @action
     getList() {
-        const { groups } = this.stores;
         this.initLevelDB();
-        this.list = [];
+        const list = [];
         this.contactsDB.createReadStream()
             .on('data', data => {
-                const groupHash = stringFromUTF8Array(data.key);
+                const publicKey = stringFromUTF8Array(data.key);
                 const fullName = stringFromUTF8Array(data.value);
 
-                let publicKey = null;
-                const filtered = groups.list.filter(el => el.groupHash === groupHash);
-
-                if (filtered.length > 0) {
-                    const current = filtered[0];
-                    if (current.members.length === 1) {
-                        publicKey = current.members[0].publicKey;
-                    }
-                }
-
-                this.list.push({
-                    groupHash,
+                list.push({
                     fullName,
                     publicKey
-                })
-            });
+                });
+            })
+            .on('end', _ => {
+                this.list = list;
+            })   
     }
 
     @action
-    getContact(groupHash) {
+    getContact(key) {
         this.initLevelDB();
         return new Promise((resolve, reject) => {
-            this.contactsDB.get(groupHash)
+            this.contactsDB.get(key)
                 .then(res => {
                     resolve(stringFromUTF8Array(res));
                 })

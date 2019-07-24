@@ -1,8 +1,9 @@
 import React from 'react';
 import { observer, inject } from 'mobx-react';
 import * as moment from 'moment';
-import { Icon } from 'antd';
+import { Icon, Typography } from 'antd';
 const ReactMarkdown = require('react-markdown');
+const { Paragraph } = Typography;
 
 // const MarkdownIt = require('markdown-it');
 // const md = new MarkdownIt();
@@ -21,6 +22,19 @@ class Message extends React.Component {
             <div>
                 <div className={`msgRow ${item.type}`}>
                     <div className={`message ${item.type}`}>
+                        {item.type === 'incoming' && (
+                            <div className="header">
+                                <Paragraph
+                                    ellipsis
+                                    style={{
+                                        margin: 0,
+                                        padding: 0,
+                                    }}
+                                >
+                                    {item.senderName}
+                                </Paragraph>
+                            </div>
+                        )}
                         <div className="body">{message}</div>
                         {item.type === 'incoming' && (
                             <div className="footer">
@@ -88,6 +102,11 @@ class Message extends React.Component {
 
                     .message.incoming {
                         background-color: #fff;
+                    }
+
+                    .message .header {
+                        font-weight: bold;
+                        font-size: 0.8em;
                     }
 
                     .footer {
