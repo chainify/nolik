@@ -33,14 +33,12 @@ class Index extends React.Component {
         autorun(() => {
             if (alice.publicKey && alice.updateHeartbeatStatus === 'init') {
                 alice.updateHeartbeat();
-                cdm.getLastCdm();
             }
         });
 
-           
-        this.contactsPeriodicChecker = autorun(() => {
-            if (cdm.getLastCdmStatus === 'success') {
-                cdm.getLastCdm();
+        this.aliceHeartbeatPeriodic = autorun(() => {
+            if (alice.updateHeartbeatStatus === 'success') {
+                alice.updateHeartbeat();
             }
         });
 
@@ -60,13 +58,6 @@ class Index extends React.Component {
                 groups.list.slice(0, 3).map(el => el.lastCdm && el.lastCdm.attachmentHash).indexOf(cdm.lastCdmHash) < 0
             ) {
                 groups.getList();
-            }
-        });
-
-
-        this.aliceHeartbeatPeriodic = autorun(() => {
-            if (alice.updateHeartbeatStatus === 'success') {
-                alice.updateHeartbeat();
             }
         });
 
@@ -184,14 +175,7 @@ class Index extends React.Component {
                                                             contacts.getContact(groups.searchValue)
                                                                 .then(fullName => {
                                                                     groups.searchedList = [{
-                                                                        members: [{
-                                                                            publicKey: groups.searchValue,
-                                                                            lastActive: null,
-                                                                        },
-                                                                        {
-                                                                            publicKey: alice.publicKey,
-                                                                            lastActive: null,
-                                                                        }],
+                                                                        members: [groups.searchValue, alice.publicKey],
                                                                         index: groups.list.length,
                                                                         groupHash: groupHash,
                                                                         fullName: fullName || groups.searchValue,

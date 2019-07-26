@@ -109,9 +109,9 @@ class GroupsStore {
                 const promises = [];
                 for (let i = 0; i < list.length; i += 1) {
                     const listEl = list[i];
-                    const members = listEl.members.filter(el => el.publicKey !== alice.publicKey);
+                    const members = listEl.members.filter(member => member !== alice.publicKey);
                     if (members.length === 1 && listEl.index > 1) {
-                        const p = contacts.getContact(members[0].publicKey)
+                        const p = contacts.getContact(members[0])
                             .then(contactFullName => {
                                 listEl.fullName = contactFullName ? contactFullName : listEl.fullName;
                                 return listEl;

@@ -16,11 +16,11 @@ class CryptoStore {
 
     @action
     wrapCdm(msg) {          
-        let cdm = '-----BEGIN_CDM_VERSION 3-----';
+        let cdm = '-----BEGIN_CDM_VERSION 4-----';
         cdm += '\r\n-----BEGIN_BLOCKCHAIN WAVES-----';
         cdm += msg;
         cdm += '\r\n-----END_BLOCKCHAIN WAVES-----';
-        cdm += '\r\n-----END_CDM_VERSION 3-----';
+        cdm += '\r\n-----END_CDM_VERSION 4-----';
         return cdm;
         // cdm += `\r\n-----BEGIN_SIGNATURE ${alice.publicKey}-----\r\n${signature}\r\n-----END_SIGNATURE ${alice.publicKey}-----`;     
     }

@@ -19,27 +19,36 @@ class AliceStore {
 
     @action
     updateHeartbeat() {
-        const { utils, groups } = this.stores;
+        const { utils, groups, cdm } = this.stores;
+        if (this.publicKey === null) { return }
+
         const formConfig = {};
         const formData = new FormData();
         formData.append('publicKey', this.publicKey);
         this.updateHeartbeatStatus = 'penging';
+        
         utils.sleep(1000).then(() => {
-            axios.post(`${process.env.API_HOST}/api/v1/accounts`, formData, formConfig)
+            axios.post(`${process.env.API_HOST}/api/v1/heartbeat`, formData, formConfig)
                 .then(res => {
-                    const accounts = res.data;
+                    const accounts = res.data.online;
+                    const lastCdm = res.data.lastCdm;
+
+                    cdm.lastCdmHash = lastCdm ? lastCdm[0] : null;
 
                     const distinct = (value, index, self) =>{
                         return self.indexOf(value) ===index;
                     }
-
+                    
                     groups.activeGroups = accounts.map(el => el.groupHash).filter(distinct);
                     groups.activeSenders = accounts.map(el => el.publicKey).filter(distinct);
-
-                    for (let i = 0; i < groups.list.length; i += 1) {
-                        groups.list[i].isOnline = groups.activeGroups.indexOf(groups.list[i].groupHash) > -1;
-                    }
-
+                    
+                    if (groups.list) {
+                        for (let i = 0; i < groups.list.length; i += 1) {
+                            groups.list[i].isOnline = groups.activeGroups.indexOf(groups.list[i].groupHash) > -1;
+                        }
+                    }   
+                })
+                .then(_ => {
                     this.updateHeartbeatStatus = 'success';
                 })
                 .catch(e => {

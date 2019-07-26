@@ -52,18 +52,20 @@ class GroupInfoModal extends React.Component {
                     
                     <Divider />
                     <h3>{'Group members'}</h3>
-                    {groups.current && groups.current.members.slice().sort().map((el, index) => (
-                        <p key={`member_${el.publicKey}`}>
+                    {groups.current && groups.current.members.slice().sort().map((member, index) => (
+                        <p key={`member_${member}`}>
                             {`${index + 1}. `}
                             <button
                                 className="publicKeyBtn"
                                 onClick={_ => {
-                                    contacts.currentPublicKey = el.publicKey;
+                                    contacts.currentPublicKey = member;
                                 }}
                             >
-                                {contacts.list.filter(item => item.publicKey === el.publicKey).length > 0 ? contacts.list.filter(item => item.publicKey === el.publicKey)[0].fullName : el.publicKey}
+                                {contacts.list.filter(item => item.publicKey === member).length > 0 
+                                    ? contacts.list.filter(item => item.publicKey === member)[0].fullName
+                                    : member}
                             </button> 
-                            {el.publicKey === alice.publicKey && <span className="you">You</span>}
+                            {member === alice.publicKey && <span className="you">You</span>}
                         </p>
                     ))}
                 </Modal>

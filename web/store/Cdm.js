@@ -39,27 +39,6 @@ class CdmStore {
     }
 
     @action
-    getLastCdm() {
-        const formConfig = {}
-        const { utils, alice } = this.stores;
-
-        this.getLastCdmStatus = 'fetching'
-        utils.sleep(1000).then(() => {
-            axios
-                .get(`${process.env.API_HOST}/api/v1/last_cdm/${alice.publicKey}`, formConfig)
-                .then(res => {
-                    const lastCdm = toJS(res.data.lastCdm);
-                    this.lastCdmHash = lastCdm ? lastCdm[0] : null;
-                    this.getLastCdmStatus = 'success';
-                })
-                .catch(e => {
-                    console.log(e);
-                    this.getLastCdmStatus = 'error';
-                })
-        });
-    }
-
-    @action
     getList() {
         const { alice, groups, contacts } = this.stores;
         const formConfig = {}
@@ -183,7 +162,7 @@ class CdmStore {
                 return;
             }
         }
-        const recipients = groups.current.members.map(el => el.publicKey);
+        const recipients = groups.current.members;
         crypto.generateCdm(recipients, this.message)
             .then(encMessage => {
                 const now = moment().unix();
@@ -197,13 +176,13 @@ class CdmStore {
                 return encMessage;
             })
             .then(encMessage => {
-                this.message = '';
                 const readCdms = this.list ? this.list.length : 0;
                 this.pendnigDB.put(this.messageHash, this.message);
                 this.readCdmDB.put(groups.current.groupHash, readCdms);
 
                 const groupIndex = groups.list.filter(el => el.groupHash === groups.current.groupHash)[0].index;
                 groups.list[groupIndex].readCdms = readCdms;
+                this.message = '';
                 return encMessage;
             })
             .then(encMessage => {
@@ -291,7 +270,7 @@ class CdmStore {
             })
             .then(list => {
                 this.forwardedList = list;
-                const recipients = toJS(groups.current.members.map(el => el.publicKey)).concat(index.newGroupMembers);
+                const recipients = toJS(groups.current.members).concat(index.newGroupMembers);
                 return crypto.generateForwardCdm(recipients, list)
                     .then(cdm => {
                         return cdm;

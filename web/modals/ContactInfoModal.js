@@ -53,15 +53,13 @@ class ContactInfoModal extends React.Component {
                                             if (groups.searchedList) {
                                                 for (let i = 0; i < groups.searchedList.length; i += 1) {
                                                     const members = groups.searchedList[i].members;
-                                                    members.map((member, m_index) => {
-                                                        if (contacts.currentPublicKey === member.publicKey) {
+                                                    members.map(member => {
+                                                        if (contacts.currentPublicKey === member) {
                                                             groups.searchedList[i].fullName = fullName;
                                                         }
                                                     })
                                                 }
                                             }
-                                            
-                                            
                                         }
                                     }
                                 }
@@ -75,9 +73,9 @@ class ContactInfoModal extends React.Component {
                         groups.current && 
                         contacts.currentPublicKey && 
                         groups.current.members
-                            .filter(el => el.publicKey === contacts.currentPublicKey).length > 0 &&
+                            .filter(el => el === contacts.currentPublicKey).length > 0 &&
                         groups.current.members
-                            .filter(el => el.publicKey === contacts.currentPublicKey)[0].isOnline
+                            .filter(el => el === contacts.currentPublicKey)[0].isOnline
                         ) ? <div>Status: <span className="online">Online</span></div> :<div>Status: <span>Offline</span></div>}
                     <Divider />
                     <Button
@@ -92,14 +90,7 @@ class ContactInfoModal extends React.Component {
                                 groups.setGroup(group);
                             } else {
                                 const newGroup = {
-                                    members: [{
-                                        publicKey: contacts.currentPublicKey,
-                                        lastActive: null,
-                                    },
-                                    {
-                                        publicKey: alice.publicKey,
-                                        lastActive: null,
-                                    }],
+                                    members: [contacts.currentPublicKey, alice.publicKey],
                                     index: groups.list.length,
                                     groupHash: groupHash,
                                     fullName: `NEW:${groupHash}`,

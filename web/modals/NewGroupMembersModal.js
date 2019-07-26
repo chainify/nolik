@@ -53,13 +53,10 @@ class NewGroupMembersModal extends React.Component {
                             loading={cdm.forwardCdmStatus === 'pending'}
                             onClick={_ => {
                                 if (index.currentStep === 1) {
-                                    const recipients = toJS(groups.current.members.map(el => el.publicKey)).concat(index.newGroupMembers);
+                                    const recipients = toJS(groups.current.members.concat(index.newGroupMembers));
                                     const groupHash = groups.createGroupHash(recipients);
                                     const newGroup = {
-                                        members: recipients.map(el => ({
-                                            publicKey: el,
-                                            lastActive: null
-                                        })),
+                                        members: recipients,
                                         index: groups.list.length + groups.newGroups.length,
                                         groupHash: groupHash,
                                         fullName: index.newGroupName === '' ? 'NEW:' + groupHash : index.newGroupName,
@@ -125,7 +122,7 @@ class NewGroupMembersModal extends React.Component {
                                     index.searchValue = e.target.value;
                                     if (e.target.value.length === 44) {
                                         if (
-                                            groups.current.members.filter(el => el.publicKey === e.target.value).length === 0 &&
+                                            groups.current.members.filter(member => member === e.target.value).length === 0 &&
                                             contacts.list.filter(el => el.publicKey === e.target.value).length === 0
                                         ) {
                                             contacts.list.push({
@@ -138,19 +135,19 @@ class NewGroupMembersModal extends React.Component {
                                 }}
                             />
                             <div className="contacts">
-                                {groups.current && groups.current.members.slice().sort().map((el, index) => (
-                                    <div key={`member_${el.publicKey}`} className="newMember">
+                                {groups.current && groups.current.members.slice().sort().map((member, index) => (
+                                    <div key={`member_${member}`} className="newMember">
                                         <div className="fullName">
                                             {`${index + 1}. `}
                                             <button
                                                 className="publicKeyBtn"
                                                 onClick={_ => {
-                                                    contacts.currentPublicKey = el.publicKey;
+                                                    contacts.currentPublicKey = member;
                                                 }}
                                             >
-                                                {contacts.list.filter(cl => cl.publicKey === el.publicKey).length > 0
-                                                    ? contacts.list.filter(cl => cl.publicKey === el.publicKey)[0].fullName
-                                                    : el.publicKey}
+                                                {contacts.list.filter(cl => cl.publicKey === member).length > 0
+                                                    ? contacts.list.filter(cl => cl.publicKey === member)[0].fullName
+                                                    : member}
                                             </button>
                                         </div>
                                         <div className="button">
@@ -169,7 +166,7 @@ class NewGroupMembersModal extends React.Component {
                                         .filter(el => el.fullName.toLowerCase().search(index.searchValue.toLowerCase()) > -1)
                                         .filter(el => el.publicKey !== null)
                                         .filter(el => el.publicKey.length === 44)
-                                        .filter(el => groups.current.members.map(m => m.publicKey).indexOf(el.publicKey) ===  -1)
+                                        .filter(el => groups.current.members.indexOf(el.publicKey) ===  -1)
                                         .map((el, el_index) => (
                                             <div key={`el_${el.publicKey}`} className="newMember">
                                                 <div className="fullName">
@@ -228,19 +225,19 @@ class NewGroupMembersModal extends React.Component {
                                     Forward previous messages
                                 </Checkbox>
                                 <Divider />
-                                {groups.current && groups.current.members.slice().sort().map((el, index) => (
-                                    <div key={`member_${el.publicKey}`} className="newMember">
+                                {groups.current && groups.current.members.slice().sort().map((member, index) => (
+                                    <div key={`member_${member}`} className="newMember">
                                         <div className="fullName">
                                             {`${index + 1}. `}
                                             <button
                                                 className="publicKeyBtn"
                                                 onClick={_ => {
-                                                    contacts.currentPublicKey = el.publicKey;
+                                                    contacts.currentPublicKey = member;
                                                 }}
                                             >
-                                                {contacts.list.filter(cl => cl.publicKey === el.publicKey).length > 0
-                                                    ? contacts.list.filter(cl => cl.publicKey === el.publicKey)[0].fullName
-                                                    : el.publicKey}
+                                                {contacts.list.filter(cl => cl.publicKey === member).length > 0
+                                                    ? contacts.list.filter(cl => cl.publicKey === member)[0].fullName
+                                                    : member}
                                             </button>
                                         </div>
                                         <div className="button">
