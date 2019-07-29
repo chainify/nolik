@@ -15,28 +15,30 @@ class CryptoStore {
     }
 
     @action
-    wrapCdm(msg) {          
-        let cdm = '-----BEGIN_CDM_VERSION 4-----';
-        cdm += '\r\n-----BEGIN_BLOCKCHAIN WAVES-----';
-        cdm += msg;
-        cdm += '\r\n-----END_BLOCKCHAIN WAVES-----';
-        cdm += '\r\n-----END_CDM_VERSION 4-----';
+    wrapCdm(messages) {          
+        let cdm = '<?xml version="1.0"?>';
+        cdm += '\r\n<cdm>';
+        cdm += '\r\n<version>5</version>';
+        cdm += '\r\n<blockchain>Waves</blockchain>';
+        cdm += '\r\n<network>Mainnet</network>';
+        cdm += '\r\n<messages>';
+        cdm += messages;
+        cdm += '\r\n</messages>';
+        cdm += '\r\n</cdm>';
         return cdm;
         // cdm += `\r\n-----BEGIN_SIGNATURE ${alice.publicKey}-----\r\n${signature}\r\n-----END_SIGNATURE ${alice.publicKey}-----`;     
     }
 
     @action
-    encryptCdm(recipients, message, msgHash = false) {
+    encryptCdm(recipients, message, messageHash = false) {
         const { utils } = this.stores;     
         if (typeof window !== 'undefined') {
             
-            let randMessage= message;
-            let messageHash = msgHash;
-            const rawMessage = message.trim();
-            if (msgHash === false) {
-                const rand = sha256(utils.generateRandom(64));
-                randMessage = rawMessage + '@' + rand;
-                messageHash = sha256(randMessage);
+            let randMessage = message;
+            let hash = messageHash;
+            if (messageHash === false) {
+                randMessage = message + '@' + sha256(utils.generateRandom(64));
+                hash = sha256(randMessage);
             }
             
             let msg = '';
@@ -46,10 +48,11 @@ class CryptoStore {
                 const p = window.Waves
                     .encryptMessage(randMessage, recipientPublicKey, 'chainify')
                     .then(cypherText => {
-                        msg += `\r\n-----BEGIN_RECIPIENT ${recipientPublicKey}-----`;
-                        msg += `\r\n-----BEGIN_MESSAGE-----\r\n${cypherText}\r\n-----END_MESSAGE-----`;
-                        msg += `\r\n-----BEGIN_SHA256-----\r\n${messageHash}\r\n-----END_SHA256-----`;
-                        msg += `\r\n-----END_RECIPIENT ${recipientPublicKey}-----`;
+                        msg += `\r\n<message>`
+                        msg += `\r\n<recipient>\r\n<publickey>${recipientPublicKey}</publickey>\r\n</recipient>`;
+                        msg += `\r\n<ciphertext>${cypherText}</ciphertext>`;
+                        msg += `\r\n<sha256>${hash}</sha256>`;
+                        msg += `\r\n</message>`
                     });
                 promises.push(p);
             }

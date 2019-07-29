@@ -59,6 +59,7 @@ class GroupsStore {
         this.current = null;
         this.newGroups = [];
         this.searchedList = null;
+        this.searchValue = '';
         cdm.list = null;
         cdm.message = '';
         sessionStorage.removeItem('groupHash');
@@ -72,7 +73,7 @@ class GroupsStore {
 
     @action
     getList() {
-        const { alice, utils, cdm, contacts } = this.stores;
+        const { alice, cdm, contacts } = this.stores;
         const formConfig = {}
 
         this.getListStatus = 'fetching';
@@ -92,7 +93,8 @@ class GroupsStore {
                     const p = cdm.readCdmDB.get(groupHash)
                         .then(res => {
                             listEl.isOnline = this.activeGroups.indexOf(listEl.groupHash) > -1;
-                            listEl.readCdms = parseInt(stringFromUTF8Array(res)) || 0;
+                            const readCdms = parseInt(stringFromUTF8Array(res)) || 0;
+                            listEl.readCdms = listEl.totalCdms < readCdms ? list.totalCdms : readCdms;
                             return listEl;
                         })
                         .catch(e => {

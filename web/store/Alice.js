@@ -28,7 +28,7 @@ class AliceStore {
         this.updateHeartbeatStatus = 'penging';
         
         utils.sleep(1000).then(() => {
-            axios.post(`${process.env.API_HOST}/api/v1/heartbeat`, formData, formConfig)
+            axios.post(`${process.env.API_HOST}/api/v1/heartbeat/${this.publicKey}`, formData, formConfig)
                 .then(res => {
                     const accounts = res.data.online;
                     const lastCdm = res.data.lastCdm;

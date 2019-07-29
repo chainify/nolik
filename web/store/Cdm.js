@@ -19,7 +19,7 @@ class CdmStore {
     @observable lastCdmHash = null;
     @observable getListStatus = 'init';
     @observable message = '';
-    @observable messageHash = null;
+    @observable attachmentHash = null;
     @observable sendCdmStatus = 'init';
     @observable forwardCdmStatus = 'init';
     @observable getLastCdmStatus = 'init';
@@ -36,6 +36,22 @@ class CdmStore {
 
         this.readCdmDB = levelup(leveljs(`/root/.leveldb/read_cdms_${alicePubKey}`));
         this.pendnigDB = levelup(leveljs(`/root/.leveldb/pending_cdms_${alicePubKey}_${groupHash}`));
+    }
+
+    @action
+    getGroupIndex() {
+        const { groups } = this.stores;
+        const searchedList = groups.searchedList || [];
+        const megaList = searchedList.concat(groups.list);
+        const groupIndex = megaList.map(el => el.groupHash).indexOf(groups.current.groupHash) - searchedList.length;
+        return groupIndex;
+    }
+
+    updateReadCdmDB() {
+        const { groups } = this.stores;
+        this.readCdmDB.put(groups.current.groupHash, this.list.length);
+        const groupIndex = this.getGroupIndex();
+        groups.list[groupIndex].readCdms = this.list.length;
     }
 
     @action
@@ -92,9 +108,7 @@ class CdmStore {
             })
             .then(list => {
                 if (list) { this.list = list }
-                this.readCdmDB.put(groups.current.groupHash, this.list.length);
-                const groupIndex = groups.list.filter(el => el.groupHash === groups.current.groupHash)[0].index;
-                groups.list[groupIndex].readCdms = this.list.length;
+                this.updateReadCdmDB();               
                 this.getListStatus = 'success';
             })
             .then(() => {
@@ -156,19 +170,19 @@ class CdmStore {
         const { groups, crypto } = this.stores;
         this.sendCdmStatus = 'pending';
         if (groups.current === null) {
-            if (groups.searchedList.length > 0) {
+            if (groups.searchedList && groups.searchedList.length > 0) {
                 groups.current = groups.searchedList[0];
             } else {
                 return;
             }
         }
-        const recipients = groups.current.members;
-        crypto.generateCdm(recipients, this.message)
+        const recipients = groups.current.members;        
+        crypto.generateCdm(recipients, this.message.trim())
             .then(encMessage => {
                 const now = moment().unix();
-                this.messageHash = sha256(encMessage);
+                this.attachmentHash = sha256(encMessage);
                 this.list = this.list.concat([{
-                    'hash': this.messageHash,
+                    'hash': this.attachmentHash,
                     'message': this.message,
                     'type': 'pending',
                     'timestamp': now
@@ -176,12 +190,7 @@ class CdmStore {
                 return encMessage;
             })
             .then(encMessage => {
-                const readCdms = this.list ? this.list.length : 0;
-                this.pendnigDB.put(this.messageHash, this.message);
-                this.readCdmDB.put(groups.current.groupHash, readCdms);
-
-                const groupIndex = groups.list.filter(el => el.groupHash === groups.current.groupHash)[0].index;
-                groups.list[groupIndex].readCdms = readCdms;
+                this.pendnigDB.put(this.attachmentHash, this.message);
                 this.message = '';
                 return encMessage;
             })
@@ -238,11 +247,11 @@ class CdmStore {
                     const list = this.list;
                     list.splice(-1, 1);
                     this.list = list;
-                    this.readCdmDB.put(groups.current.groupHash, this.list.length);
-                    this.pendnigDB.del(this.messageHash);
+                    this.updateReadCdmDB();
+                    this.pendnigDB.del(this.attachmentHash);
                     this.forwardedList = '';
                 }
-                this.messageHash = null;
+                this.attachmentHash = null;
                 this.sendCdmStatus = 'success'
             })
             .catch(e => {

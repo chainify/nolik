@@ -98,7 +98,6 @@ class Index extends React.Component {
     componentWillUnmount() {
         const { groups } = this.props;
         groups.list = null;
-        this.contactsPeriodicChecker();
         this.aliceHeartbeatPeriodic();
         clearInterval(this.authPeriodicChecker);
     }
@@ -158,7 +157,6 @@ class Index extends React.Component {
                                                         <Icon type="close-circle" theme="filled" />
                                                     </button>
                                                 )}
-                                                // disabled
                                                 key="groupsSearchInput"
                                                 size="small"
                                                 value={groups.searchValue}
@@ -167,8 +165,10 @@ class Index extends React.Component {
                                                     if (groups.searchValue === '') {
                                                         groups.searchedList = null;
                                                     } else {
-                                                        groups.searchedList = groups.list
-                                                            .filter(el => el.fullName.toLowerCase().search(groups.searchValue.toLowerCase()) > -1);
+                                                        if (groups.list) {
+                                                            groups.searchedList = groups.list
+                                                                .filter(el => el.fullName.toLowerCase().search(groups.searchValue.toLowerCase()) > -1);
+                                                        }
                                                         
                                                         if (groups.searchedList.length === 0 && groups.searchValue.length == 44) {
                                                             const groupHash = groups.createGroupHash([alice.publicKey, groups.searchValue])
