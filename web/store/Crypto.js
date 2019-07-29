@@ -11,7 +11,6 @@ class CryptoStore {
         this.wrapCdm = this.wrapCdm.bind(this);
         this.encryptCdm = this.encryptCdm.bind(this);
         this.decryptMessage = this.decryptMessage.bind(this);
-        this.generateForwardCdm = this.generateForwardCdm.bind(this);
     }
 
     @action
@@ -30,31 +29,35 @@ class CryptoStore {
     }
 
     @action
-    encryptCdm(recipients, message, messageHash = false) {
+    encryptCdm(recipients, messages) {
         const { utils } = this.stores;     
         if (typeof window !== 'undefined') {
             
-            let randMessage = message;
-            let hash = messageHash;
-            if (messageHash === false) {
-                randMessage = message + '@' + sha256(utils.generateRandom(64));
-                hash = sha256(randMessage);
-            }
-            
             let msg = '';
             const promises = [];
-            for( let i = 0; i < recipients.length; i += 1) {
-                const recipientPublicKey = recipients[i];
-                const p = window.Waves
-                    .encryptMessage(randMessage, recipientPublicKey, 'chainify')
-                    .then(cypherText => {
-                        msg += `\r\n<message>`
-                        msg += `\r\n<recipient>\r\n<publickey>${recipientPublicKey}</publickey>\r\n</recipient>`;
-                        msg += `\r\n<ciphertext>${cypherText}</ciphertext>`;
-                        msg += `\r\n<sha256>${hash}</sha256>`;
-                        msg += `\r\n</message>`
-                    });
-                promises.push(p);
+            for (let m = 0; m < messages.length; m += 1) {
+                let randMessage = messages[m].text;
+                let messageHash;
+                if (messages[m].hash) {
+                    messageHash = messages[m].hash;
+                } else {
+                    randMessage = message + '@' + sha256(utils.generateRandom(64));
+                    messageHash = sha256(randMessage);
+                }
+
+                for( let r = 0; r < recipients.length; r += 1) {
+                    const recipientPublicKey = recipients[r];
+                    const p = window.Waves
+                        .encryptMessage(randMessage, recipientPublicKey, 'chainify')
+                        .then(cypherText => {
+                            msg += `\r\n<message>`
+                            msg += `\r\n<recipient>\r\n<publickey>${recipientPublicKey}</publickey>\r\n</recipient>`;
+                            msg += `\r\n<ciphertext>${cypherText}</ciphertext>`;
+                            msg += `\r\n<sha256>${messageHash}</sha256>`;
+                            msg += `\r\n</message>`;
+                        });
+                    promises.push(p);
+                }
             }
 
             return Promise.all(promises).then(_ => {
@@ -64,29 +67,31 @@ class CryptoStore {
     }
 
     @action
-    generateCdm(recipients, message) {
+    generateCdm(recipients, messages) {
         return new Promise((resolve, reject) => {
-            this.encryptCdm(recipients, message).then(res => {
+            this.encryptCdm(recipients, messages).then(res => {
                 resolve(this.wrapCdm(res));
             })
         })
     }
 
-    @action
-    generateForwardCdm(recipients, list) {
-        return new Promise((resolve, reject) => {
-            const promises = [];
-            for (let i = 0; i < list.length; i += 1) {
-                const p = this.encryptCdm(recipients, list[i].message, list[i].hash);
-                promises.push(p);
-            }
+    // @action
+    // generateForwardCdm(recipients, list) {
+    //     return new Promise((resolve, reject) => {
+    //         const promises = [];
+    //         for (let i = 0; i < list.length; i += 1) {
+    //             console.log('i', i, list[i].hash);
+                
+    //             const p = this.encryptCdm(recipients, list[i].message);
+    //             promises.push(p);
+    //         }
 
-            Promise.all(promises).then(res => { 
-                return resolve(this.wrapCdm(res));
-            });
-        })
+    //         Promise.all(promises).then(res => { 
+    //             return resolve(this.wrapCdm(res));
+    //         });
+    //     })
         
-    }
+    // }
 
     @action
     decryptMessage(cypherText, publicKey, clearHash) {

@@ -57,7 +57,6 @@ class NewGroupMembersModal extends React.Component {
                                     const groupHash = groups.createGroupHash(recipients);
                                     const newGroup = {
                                         members: recipients,
-                                        index: groups.list.length + groups.newGroups.length,
                                         groupHash: groupHash,
                                         fullName: index.newGroupName === '' ? 'NEW:' + groupHash : index.newGroupName,
                                         totalCdms: 0,

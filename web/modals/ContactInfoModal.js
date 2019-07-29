@@ -91,7 +91,6 @@ class ContactInfoModal extends React.Component {
                             } else {
                                 const newGroup = {
                                     members: [contacts.currentPublicKey, alice.publicKey],
-                                    index: groups.list.length,
                                     groupHash: groupHash,
                                     fullName: `NEW:${groupHash}`,
                                     totalCdms: 0,

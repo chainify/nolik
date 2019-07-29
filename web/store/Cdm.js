@@ -176,8 +176,12 @@ class CdmStore {
                 return;
             }
         }
-        const recipients = groups.current.members;        
-        crypto.generateCdm(recipients, this.message.trim())
+        const recipients = groups.current.members;
+        const messages = [{
+            text: this.message.trim(),
+            hash: null
+        }]  
+        crypto.generateCdm(recipients, messages)
             .then(encMessage => {
                 const now = moment().unix();
                 this.attachmentHash = sha256(encMessage);
@@ -249,7 +253,7 @@ class CdmStore {
                     this.list = list;
                     this.updateReadCdmDB();
                     this.pendnigDB.del(this.attachmentHash);
-                    this.forwardedList = '';
+                    this.forwardedList = null;
                 }
                 this.attachmentHash = null;
                 this.sendCdmStatus = 'success'
@@ -280,8 +284,16 @@ class CdmStore {
             .then(list => {
                 this.forwardedList = list;
                 const recipients = toJS(groups.current.members).concat(index.newGroupMembers);
-                return crypto.generateForwardCdm(recipients, list)
+                const messages = list.map(el => {
+                    return {
+                        text: el.message,
+                        hash: el.hash
+                    }
+                });
+                
+                return crypto.generateCdm(recipients, messages)
                     .then(cdm => {
+                        this.attachmentHash = sha256(cdm);
                         return cdm;
                     });
             })
@@ -342,12 +354,12 @@ class CdmStore {
                     for (let i = 0; i < this.forwardedList.length; i += 1) {
                         const listEl = this.forwardedList[i];
                         const message = listEl.message.replace(/@[\w]{64}$/gmi, "");
-                        // this.pendnigDB.put(listEl.attachmentHash, message);
+                        this.pendnigDB.put(this.attachmentHash, message);
                         this.readCdmDB.put(groups.current.groupHash, this.forwardedList.length);
 
                         const now = moment().unix();
                         pendingCdms.push({
-                            'hash': listEl.attachmentHash,
+                            'hash': this.attachmentHash,
                             'message': message,
                             'type': 'pending',
                             'timestamp': now
@@ -361,6 +373,7 @@ class CdmStore {
                 } else {
                     groups.newGroups = [];
                 }
+                this.attachmentHash = null;
                 this.forwardCdmStatus = 'success';
             })
             .catch(e => {

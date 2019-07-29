@@ -176,7 +176,6 @@ class Index extends React.Component {
                                                                 .then(fullName => {
                                                                     groups.searchedList = [{
                                                                         members: [groups.searchValue, alice.publicKey],
-                                                                        index: groups.list.length,
                                                                         groupHash: groupHash,
                                                                         fullName: fullName || groups.searchValue,
                                                                         totalCdms: 0,
@@ -201,11 +200,11 @@ class Index extends React.Component {
                                     <Skeleton rows={2} key={`header_${item}`} />
                                 ))}
                                 {groups.searchedList && groups.searchedList.map(item => (
-                                    <Group item={item} key={`header_${item.index}`} />
+                                    <Group item={item} key={`header_${item.groupHash}`} />
                                 ))}
                                 {groups.searchedList && <Divider />}
                                 {groups.searchedList === null && groups.list && groups.list.map(item => (
-                                    <Group item={item} key={`header_${item.index}`} />
+                                    <Group item={item} key={`header_${item.groupHash}`} />
                                 ))}
                             </div>
                         </div>
@@ -219,8 +218,8 @@ class Index extends React.Component {
                                     onBack={() => groups.resetGroup()}
                                     title={groups.fullName}
                                     key="chatHeader"
-                                    subTitle={groups.current.usersOnline === 1 && <span className="isOnline">Online</span>}
-                                    extra={groups.list.filter(el => el.groupHash === groups.current.groupHash && el.index === 0).length === 0 && [
+                                    // subTitle={groups.current.usersOnline === 1 && <span className="isOnline">Online</span>}
+                                    extra={groups.current.members.length > 1 && [
                                         <Dropdown
                                             overlay={chatDropdownMenu}
                                             trigger={['click']}
