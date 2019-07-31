@@ -8,7 +8,7 @@ class WrapperStore {
         this.stores = stores;
     }
 
-    @observable defaultSelectedKeys = 'cdm';
+    @observable defaultSelectedKeys = 'cdms';
 }
 
 export default WrapperStore;

@@ -18,12 +18,12 @@ class AliceStore {
 
     @action
     resetNewGroupMember() {
-        const { cdm } = this.stores;
+        const { cdms } = this.stores;
         this.currentStep = 0;
         this.searchValue = '';
         this.newGroupMembers = [];
         this.forwardPreviousMessages = true;
-        cdm.forwardedList = null;
+        cdms.forwardedList = null;
     }
 }
 

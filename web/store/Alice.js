@@ -9,57 +9,21 @@ class AliceStore {
     stores = null;
     constructor(stores) {
         this.stores = stores;
-        this.updateHeartbeat = this.updateHeartbeat.bind(this);
         this.auth = this.auth.bind(this);
         this.authCheck = this.authCheck.bind(this);
+        this.logOut = this.logOut.bind(this);
     }
 
     @observable publicKey = null;
-    @observable updateHeartbeatStatus = 'init';
 
     @action
-    updateHeartbeat() {
-        const { utils, groups, cdm } = this.stores;
-        if (this.publicKey === null) { return }
-
-        const formConfig = {};
-        const formData = new FormData();
-        formData.append('publicKey', this.publicKey);
-        this.updateHeartbeatStatus = 'penging';
-        
-        utils.sleep(1000).then(() => {
-            axios.post(`${process.env.API_HOST}/api/v1/heartbeat/${this.publicKey}`, formData, formConfig)
-                .then(res => {
-                    const accounts = res.data.online;
-                    const lastCdm = res.data.lastCdm;
-
-                    cdm.lastCdmHash = lastCdm ? lastCdm[0] : null;
-
-                    const distinct = (value, index, self) =>{
-                        return self.indexOf(value) ===index;
-                    }
-                    
-                    groups.activeGroups = accounts.map(el => el.groupHash).filter(distinct);
-                    groups.activeSenders = accounts.map(el => el.publicKey).filter(distinct);
-                    
-                    if (groups.list) {
-                        for (let i = 0; i < groups.list.length; i += 1) {
-                            groups.list[i].isOnline = groups.activeGroups.indexOf(groups.list[i].groupHash) > -1;
-                        }
-                    }   
-                })
-                .then(_ => {
-                    this.updateHeartbeatStatus = 'success';
-                })
-                .catch(e => {
-                    this.updateHeartbeatStatus = 'error';
-                });
-        })
+    logOut() {
+        this.publicKey = null;
     }
 
     @action
     auth() {
-        const { cdm, groups, index, contacts } = this.stores;
+        const { cdms, groups, index, contacts } = this.stores;
         if (typeof window !== 'undefined') {
             try {
                 window.Waves.auth({
@@ -68,16 +32,17 @@ class AliceStore {
                 }).then(() => {
                     window.Waves.publicState().then(data => {
                         this.publicKey = data.account.publicKey; 
-                        cdm.list = null;
-                        groups.list = null;
-                        index.resetNewGroupMember();
-                        index.showGroupInfoModal = false;
-                        index.showNewGroupMembersModal = false;
-                        const groupHash = sessionStorage.getItem('groupHash');
-                        cdm.initLevelDB(data.account.publicKey, groupHash || 'none');
-                        contacts.initLevelDB();
-                        contacts.saveContact(this.publicKey, data.account.name); 
-                        Router.push('/');
+                        groups.resetGroup();
+                        // cdms.list = null;
+                        // groups.list = null;
+                        // index.resetNewGroupMember();
+                        // index.showGroupInfoModal = false;
+                        // index.showNewGroupMembersModal = false;
+                        // const groupHash = sessionStorage.getItem('groupHash');
+                        // cdms.initLevelDB(data.account.publicKey, groupHash || 'none');
+                        // contacts.initLevelDB();
+                        // contacts.saveContact(this.publicKey, data.account.name); 
+                        // 
                     })
                     .catch(e => {
                         console.error(e);

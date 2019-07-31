@@ -7,6 +7,8 @@ services:
     ports:
       - 80:80
       - 443:443
+      - 4001:4001
+      - 5001:5001
     depends_on:
       - web
       - api
@@ -46,7 +48,8 @@ services:
     image: chainify/engine-ipfs
     container_name: engine-ipfs
     volumes:
-      - ~/.data/ipfs/chainify:/data/ipfs
+      - ~/.data/ipfs/chainify/data:/data/ipfs
+      - ~/.data/ipfs/chainify/staging:/export
     tty: true
     stdin_open: true
     restart: always

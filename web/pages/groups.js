@@ -1,0 +1,122 @@
+import React from 'react';
+import PropTypes from 'prop-types';
+import { observer, inject } from 'mobx-react';
+import { autorun, toJS } from 'mobx';
+// import { i18n, Link as Tlink, withNamespaces } from '../i18n';
+import { Input, Button, Icon } from 'antd';
+
+import PageHeader from '../components/PageHeader';
+import Skeleton from '../components/Skeleton';
+
+@inject('groups', 'heartbeat', 'cdms')
+@observer
+class Groups extends React.Component {
+    constructor(props) {
+        super(props);
+        const { groups, heartbeat } = props;
+
+        this.heartbeatPeriodic = autorun(() => {
+            if (heartbeat.pushStatus === 'success') {
+                console.log('Heartbeat');
+                heartbeat.push();
+            }
+        })
+
+        this.initialHeartbeat = autorun(() => {
+            if (
+                groups.list === null &&
+                heartbeat.pushStatus === 'init'
+            ) {
+                heartbeat.push();
+            }
+        });
+
+        this.groupsRead = autorun(() => {
+            if (
+                groups.list === null &&
+                heartbeat.pushStatus === 'success'
+            ) {
+                groups.readGroups();
+            }
+        });
+    }
+
+    componentDidMount() {
+        const { groups } = this.props;
+        groups.initLevelDB();
+    }
+
+    componentWillUnmount() {
+        this.heartbeatPeriodic();
+        this.initialHeartbeat();
+        this.groupsRead();
+    }
+
+
+    render() {
+        const { groups, cdms } = this.props;
+        return (
+            <div>
+                <div className="container">
+                    <PageHeader
+                        extra={[
+                            <Input
+                                key="header_search_field"
+                                placeholder="search"
+                                style={{ width: '100%' }}
+                                value={groups.search}
+                                onChange={e => {
+                                    groups.search = e.target.value;
+                                }}
+                            />,
+                            <Button
+                                key="header_compose_button"
+                                type="primary"
+                                shape="circle"
+                                onClick={cdms.toggleCompose}
+                                disabled={cdms.composeMode}
+                            >
+                                <Icon type="form" />
+                            </Button>
+                        ]}
+                    />
+                    <div className="list">
+                        {groups.list === null && groups.fakeGroups.map(el => (
+                            <Skeleton key={`skeleton_${el}`} />
+                        ))}
+                        {groups.list && groups.list.length === 0 && (
+                            <div className="noMessages">No messages yet</div>
+                        )}
+                    </div>
+                </div>
+                <style jsx>{`
+                    .container {
+                        heightL 100vh;
+                        border-right: 1px solid #e0e0e0;
+                    }
+
+                    .list {
+                        height: calc(100vh - 52px);
+                        background: #999;
+                    }
+
+                    .noMessages {
+                        text-align: center;
+                        line-height: 24px;
+                        font-size: 18px;
+                        color: #fafafa;
+                        font-weight: 100;
+                        font-family: 'Roboto', sans-serif;
+                        padding: 2em 0;
+                    }
+                `}</style>
+            </div>
+        );
+    }
+}
+
+Groups.propTypes = {
+    index: PropTypes.object,
+};
+
+export default Groups;

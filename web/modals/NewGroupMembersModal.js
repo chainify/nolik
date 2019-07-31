@@ -8,7 +8,7 @@ import { toJS } from 'mobx';
 const { Paragraph } = Typography;
 const { Step } = Steps;
 
-@inject('index', 'groups', 'contacts', 'alice', 'cdm')
+@inject('index', 'groups', 'contacts', 'alice', 'cdms')
 @observer
 class NewGroupMembersModal extends React.Component {
 
@@ -17,7 +17,7 @@ class NewGroupMembersModal extends React.Component {
     }
 
     render() {
-        const { index, groups, contacts, alice, cdm } = this.props;
+        const { index, groups, contacts, alice, cdms } = this.props;
         return (
             <div>
                 <Modal
@@ -50,7 +50,7 @@ class NewGroupMembersModal extends React.Component {
                             type="primary"
                             loading={false}
                             disabled={index.newGroupMembers.length === 0}
-                            loading={cdm.forwardCdmStatus === 'pending'}
+                            loading={cdms.forwardCdmStatus === 'pending'}
                             onClick={_ => {
                                 if (index.currentStep === 1) {
                                     const recipients = toJS(groups.current.members.concat(index.newGroupMembers));
@@ -67,7 +67,7 @@ class NewGroupMembersModal extends React.Component {
                                     contacts.saveContact(groupHash, index.newGroupName);
                                     
                                     if (index.forwardPreviousMessages) {
-                                        cdm.forwardCdms();
+                                        cdms.forwardCdms();
                                     } else {
                                         groups.setGroup(newGroup); 
                                         index.currentStep = 0;

@@ -4,7 +4,7 @@ import * as moment from 'moment';
 import { message, notification } from 'antd';
 import { sha256 } from 'js-sha256';
 import { toJS } from 'mobx';
-import stringFromUTF8Array from './../utils/batostr';
+import stringFromUTF8Array from '../utils/batostr';
 
 class CdmStore {
     stores = null;
@@ -13,46 +13,41 @@ class CdmStore {
         this.getList = this.getList.bind(this);
         this.decryptList = this.decryptList.bind(this);
         this.sendCdm = this.sendCdm.bind(this);
+        this.toggleCompose = this.toggleCompose.bind(this);
     }
 
     @observable list = null;
-    @observable lastCdmHash = null;
-    @observable getListStatus = 'init';
     @observable message = '';
-    @observable attachmentHash = null;
+    @observable composeMode = false;
+    @observable composeCcOn = false;
+
+    @observable getListStatus = 'init';
     @observable sendCdmStatus = 'init';
     @observable forwardCdmStatus = 'init';
-    @observable getLastCdmStatus = 'init';
-    @observable readCdmDB = null;
-    @observable pendingTimestampsDB = null;
-    @observable pendingMessagesDB = null;
-    @observable textareaFocused = false;
-    @observable forwardedList = null;
+    
+    // @observable readCdmDB = null;
+    @observable listDB = null;
+    @observable pendnigDB = null;
     
     @action
-    initLevelDB(alicePubKey, groupHash) {
+    initLevelDB() {
+        const { alice, groups } = this.stores;
         const levelup = require('levelup');
         const leveljs = require('level-js');
 
-        this.readCdmDB = levelup(leveljs(`/root/.leveldb/read_cdms_${alicePubKey}`));
-        this.pendnigDB = levelup(leveljs(`/root/.leveldb/pending_cdms_${alicePubKey}_${groupHash}`));
+        // this.readCdmDB = levelup(leveljs(`/root/.leveldb/read_cdms_${alice.publicKey}`));
+        this.listDB = levelup(leveljs(`/root/.leveldb/list_cdms_${alice.publicKey}_${groups.current.groupHash}`));
+        this.pendnigDB = levelup(leveljs(`/root/.leveldb/pending_cdms_${alicePubKey}_${groups.current.groupHash}`));
     }
 
     @action
-    getGroupIndex() {
-        const { groups } = this.stores;
-        const searchedList = groups.searchedList || [];
-        const megaList = searchedList.concat(groups.list);
-        const groupIndex = megaList.map(el => el.groupHash).indexOf(groups.current.groupHash) - searchedList.length;
-        return groupIndex;
+    toggleCompose() {
+        this.composeMode = !this.composeMode;
+        if (this.composeMode === false) {
+            this.composeCcOn = false;
+        }
     }
 
-    updateReadCdmDB() {
-        const { groups } = this.stores;
-        this.readCdmDB.put(groups.current.groupHash, this.list.length);
-        const groupIndex = this.getGroupIndex();
-        groups.list[groupIndex].readCdms = this.list.length;
-    }
 
     @action
     getList() {
@@ -65,73 +60,13 @@ class CdmStore {
         axios
             .get(`${process.env.API_HOST}/api/v1/cdms/${alice.publicKey}/${groups.current.groupHash}`, formConfig)
             .then(res => {
-                const list = res.data.cdms;
-                for (let i = 0; i < list.length; i += 1) {
-                    this.pendnigDB.del(list[i].attachmentHash);
-                }
-                return list;
+                return res.data.cdms;
             })
             .then(list => {
                 return this.decryptList(list);
             })
             .then(list => {
-                const  promices = [];
-                for (let i = 0; i < list.length; i += 1) {
-                    const listEl = list[i];
-                    const p = contacts.getContact(listEl.logicalSender)
-                        .then(fullName => {
-                            listEl.senderName = fullName || listEl.logicalSender;
-                            return listEl;
-                        })
-                    promices.push(p);
-                }
-
-                return Promise.all(promices)
-                    .then(res => {
-                        return res;
-                    })
-            })
-            .then(list => {
-                if (this.list && this.list.length === list.length) {
-                    for (let i = 0; i < list.length; i += 1) {
-                        if (this.list[i].type === 'pending') {
-                            const listEl = list.filter(el => el.attachmentHash === this.list[i].hash);
-                            if (listEl.length > 0) {
-                                this.list[i].type = 'outgoing';
-                            }
-                        }
-                    }
-                    return null;
-                } else {
-                    return list;
-                }
-            })
-            .then(list => {
-                if (list) { this.list = list }
-                this.updateReadCdmDB();               
-                this.getListStatus = 'success';
-            })
-            .then(() => {
-                this.pendnigDB.createReadStream()
-                    .on('data', data => {
-                        const attachmentHash = stringFromUTF8Array(data.key);
-                        const message = stringFromUTF8Array(data.value);
-                        const now = moment().unix();
-
-                        const count = this.list.filter(el => el.attachmentHash  === attachmentHash);
-                        if (count.length === 0) {
-                            this.list = this.list.concat([{
-                                'hash': attachmentHash,
-                                'message': message,
-                                'type': 'pending',
-                                'timestamp': now
-                            }]);
-                        }
-                        // this.pendnigDB.del(attachmentHash);
-                    })
-                    .on('end', _ => {
-                        this.list = this.list;
-                    })
+                
             })
             .catch(e => {
                 console.log(e);
@@ -148,11 +83,11 @@ class CdmStore {
         const decList = [];
         const promices = [];
         for (let i = 0; i < list.length; i += 1) {
-            const cdm = list[i];
-            const p = crypto.decryptMessage(cdm.message, cdm.logicalSender, clearHash)
+            const listEl = list[i];
+            const p = crypto.decryptMessage(listEl.message, listEl.logicalSender, clearHash)
                 .then(msg => {
-                    cdm.message = msg;
-                    decList.push(cdm);
+                    listEl.message = msg;
+                    decList.push(listEl);
                 })
             promices.push(p);
         }
@@ -169,13 +104,8 @@ class CdmStore {
     sendCdm() {
         const { groups, crypto } = this.stores;
         this.sendCdmStatus = 'pending';
-        if (groups.current === null) {
-            if (groups.searchedList && groups.searchedList.length > 0) {
-                groups.current = groups.searchedList[0];
-            } else {
-                return;
-            }
-        }
+        
+        return;
         const recipients = groups.current.members;
         const messages = [{
             text: this.message.trim(),
@@ -269,6 +199,8 @@ class CdmStore {
     forwardCdms() {
         const { alice, groups, index, crypto } = this.stores;
         const formConfig = {}
+
+        return;
 
         if (groups.current === null)  { return }
 

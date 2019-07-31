@@ -8,7 +8,7 @@ const { Paragraph } = Typography;
 // const MarkdownIt = require('markdown-it');
 // const md = new MarkdownIt();
 
-@inject('cdm')
+@inject('cdms')
 @observer
 class Message extends React.Component {
     render() {

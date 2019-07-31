@@ -5,11 +5,11 @@ import { observer, inject } from 'mobx-react';
 import { Input, Button, Modal, Divider, Typography, Icon } from 'antd';
 import mouseTrap from 'react-mousetrap';
 import { toJS, autorun } from 'mobx';
-import Cdm from '../components/Cdm';
+import Cdms from '../components/Cdms/Cdms';
 
 const { Paragraph } = Typography;
 
-@inject('index', 'groups', 'contacts', 'alice', 'cdm')
+@inject('index', 'groups', 'contacts', 'alice', 'cdms')
 @observer
 class ContactInfoModal extends React.Component {
 
@@ -18,7 +18,7 @@ class ContactInfoModal extends React.Component {
     }
 
     render() {
-        const { index, groups, contacts, alice, cdm } = this.props;
+        const { index, groups, contacts, alice, cdms } = this.props;
         return (
             <div>
                 <Modal

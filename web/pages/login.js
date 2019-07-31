@@ -48,7 +48,7 @@ class Index extends React.Component {
                             <div>
                                 <h3>
                                     Unlock Nolik with Waves Keeper.
-                                    Please make sure that version 1.1.5 or above is used.
+                                    Please make sure that version 1.1.9 or above is used.
                                 </h3>
                             </div>
                         )}

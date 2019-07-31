@@ -94,20 +94,15 @@ class CryptoStore {
     // }
 
     @action
-    decryptMessage(cypherText, publicKey, clearHash) {
+    decryptMessage(cypherText, publicKey) {
         return new Promise((resolve, reject) => {
             if (typeof window !== 'undefined') {
                 window.Waves
                     .decryptMessage(cypherText, publicKey, 'chainify')
                     .then(res => {
-                        if (clearHash === true) {
-                            resolve(res.replace(/@[\w]{64}$/gmi, ""));
-                        } else {
-                            resolve(res);
-                        }
+                        resolve(res.replace(/@[\w]{64}$/gmi, ""));
                     })
                     .catch(e => {
-                        // console.log(e);
                         resolve('⚠️ Decoding error');
                     });
             }

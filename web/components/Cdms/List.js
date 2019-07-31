@@ -1,13 +1,13 @@
 import React from 'react';
 import { observer, inject } from 'mobx-react';
-import Message from './Message';
+import Message from '../Message';
 import * as moment from 'moment';
 import { Divider } from 'antd';
 import NoSSR from 'react-no-ssr';
 
-@inject('cdm')
+@inject('cdms')
 @observer
-class Cdm extends React.Component {
+class Cdms extends React.Component {
 
     componentDidUpdate() {
         this.contentDiv.scrollTop = this.contentDiv.scrollHeight - this.contentDiv.clientHeight;
@@ -18,24 +18,24 @@ class Cdm extends React.Component {
     }
 
     render() {
-        const { cdm } = this.props;
+        const { cdms } = this.props;
         return (
             <div className="content" ref={el => { this.contentDiv = el; }}>
                 <NoSSR>
                     <div className="list">
-                        {cdm.list && cdm.list.length > 0 && cdm.list.map((item, index) => {
+                        {cdms.list && cdms.list.length > 0 && cdms.list.map((item, index) => {
                             let showDivider = false;
                             if (index === 0) { showDivider = true }
                             if (
                                 index > 0 && 
-                                moment.unix(cdm.list[index-1].timestamp).format('MMM DD') !== 
-                                    moment.unix(cdm.list[index].timestamp).format('MMM DD')
+                                moment.unix(cdms.list[index-1].timestamp).format('MMM DD') !== 
+                                    moment.unix(cdms.list[index].timestamp).format('MMM DD')
                             ) {
                                 showDivider = true;
                             }
                             return (
                                 <div key={`message_${item.hash}_${item.timestamp}`}>
-                                    {cdm.getListStatus === 'success' && showDivider && (
+                                    {cdms.getListStatus === 'success' && showDivider && (
                                         <Divider dashed style={{ background: '#fff', opacity: 0.5 }}>
                                             <div className="divider">{moment.unix(item.timestamp).format('MMM DD')}</div>
                                         </Divider>
@@ -72,8 +72,8 @@ class Cdm extends React.Component {
     }
 }
 
-Cdm.propTypes = {
+Cdms.propTypes = {
     // index: PropTypes.object,
 };
 
-export default Cdm
+export default Cdms
