@@ -62,7 +62,7 @@ class AliceStore {
 
     @action
     authCheck() {
-        const { login, groups } = this.stores;
+        const { compose, groups } = this.stores;
         if (typeof window !== 'undefined') {
             try {
                 window.Waves.publicState().then(res => {   
@@ -89,6 +89,7 @@ class AliceStore {
             } finally {
                 if (this.publicKey === null) {
                     groups.resetGroup();
+                    compose.resetCompose();
                     Router.push('/login');
                 }
             }

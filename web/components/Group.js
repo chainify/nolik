@@ -25,20 +25,15 @@ class Header extends React.Component {
                             groups.current === null ||
                             (groups.current && groups.current.groupHash !== item.groupHash)
                         ) {
-                            cdms.list = [];
                             groups.setGroup(item);
                         }
                     }}
                 >
                     <div className={`header ${groups.current && groups.current.groupHash === item.groupHash && 'active'}`}>
                         <div className="headerBody">
-                            {/* {item.usersOnline > 0 && (
-                                <div className="usersOnline">{`${item.usersOnline * 100}%`}</div>
-                            )} */}
-                            {/* <Progress percent={item.usersOnline * 100} showInfo={false} /> */}
                             <Paragraph ellipsis style={paragrapStyle}>
                                 <span className={`headerTitle ${item.isOnline === true && 'oline'}`}>
-                                    {item.fullName}
+                                    {item.groupHash}
                                 </span>
                             </Paragraph>
                             <Paragraph ellipsis style={paragrapStyle}>
@@ -60,7 +55,7 @@ class Header extends React.Component {
                 <style jsx>{`
                     .button {
                         border: none;
-                        background: transparent;
+                        background: #fff;
                         padding: 0;
                         margin: 0;
                         width: 100%;
@@ -69,6 +64,7 @@ class Header extends React.Component {
                         outline:0;
                         cursor: pointer;
                         color: #999;
+                        overflow-x: hidden;
                     }
 
                     .button:hover {
@@ -111,14 +107,6 @@ class Header extends React.Component {
                     .oline {
                         color: #4caf50;
                     }
-                    // div.usersOnline {
-                    //     display: block;
-                    //     width: 40px;
-                    //     height: 20px;
-                    //     position: absolute;
-                    //     top: 0px;
-                    //     left: 10px;
-                    // }
                 `}</style>
             </div>
         );

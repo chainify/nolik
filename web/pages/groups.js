@@ -7,8 +7,9 @@ import { Input, Button, Icon } from 'antd';
 
 import PageHeader from '../components/PageHeader';
 import Skeleton from '../components/Skeleton';
+import Group from '../components/Group';
 
-@inject('groups', 'heartbeat', 'cdms')
+@inject('groups', 'heartbeat', 'compose')
 @observer
 class Groups extends React.Component {
     constructor(props) {
@@ -17,44 +18,41 @@ class Groups extends React.Component {
 
         this.heartbeatPeriodic = autorun(() => {
             if (heartbeat.pushStatus === 'success') {
-                console.log('Heartbeat');
                 heartbeat.push();
             }
         })
 
         this.initialHeartbeat = autorun(() => {
             if (
-                groups.list === null &&
+                groups.list !== null &&
                 heartbeat.pushStatus === 'init'
             ) {
                 heartbeat.push();
             }
         });
 
-        this.groupsRead = autorun(() => {
-            if (
-                groups.list === null &&
-                heartbeat.pushStatus === 'success'
-            ) {
-                groups.readGroups();
-            }
-        });
+        // this.groupsRead = autorun(() => {
+        //     if (groups.lastTxId !== null) {
+        //         groups.readList();
+        //     }
+        // });
     }
 
     componentDidMount() {
         const { groups } = this.props;
         groups.initLevelDB();
+        groups.readList();
     }
 
     componentWillUnmount() {
         this.heartbeatPeriodic();
         this.initialHeartbeat();
-        this.groupsRead();
+        // this.groupsRead();
     }
 
 
     render() {
-        const { groups, cdms } = this.props;
+        const { groups, compose } = this.props;
         return (
             <div>
                 <div className="container">
@@ -73,8 +71,8 @@ class Groups extends React.Component {
                                 key="header_compose_button"
                                 type="primary"
                                 shape="circle"
-                                onClick={cdms.toggleCompose}
-                                disabled={cdms.composeMode}
+                                onClick={compose.toggleCompose}
+                                disabled={compose.composeMode}
                             >
                                 <Icon type="form" />
                             </Button>
@@ -87,6 +85,9 @@ class Groups extends React.Component {
                         {groups.list && groups.list.length === 0 && (
                             <div className="noMessages">No messages yet</div>
                         )}
+                        {groups.list && groups.list.length > 0 && groups.list.map(el => (
+                            <Group item={el} key={`group_${el.groupHash}`} />
+                        ))}
                     </div>
                 </div>
                 <style jsx>{`

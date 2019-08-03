@@ -13,43 +13,33 @@ class HeartbeatStore {
     }
 
     @observable pushStatus = 'init';
+    @observable lastCdmHash = null;
 
     @action
     push() {
-        const { utils, groups, cdms } = this.stores;
+        const { utils, groups, cdms, alice } = this.stores;
         if (this.publicKey === null) { return }
         
         const formConfig = {};
         const formData = new FormData();
-        formData.append('publicKey', this.publicKey);
-        formData.append('lastTimestamp', groups.lastTimestamp);
+        formData.append('publicKey', alice.publicKey);
+        if (groups.lastTxId) {
+            formData.append('lastTxId', groups.lastTxId);
+        }
         
         utils.sleep(this.pushStatus === 'init' ? 0 : 1000).then(() => {
             this.pushStatus = 'pending';
             axios.post(`${process.env.API_HOST}/api/v1/heartbeat`, formData, formConfig)
                 .then(res => {
-                    const list = res.data.groups;
-                    if (list.length > 0) {
-                        groups.saveGroups(res.data.groups);
+                    const listGroups = res.data.groups;
+                    const listCdms = res.data.cdms;
+                    if (
+                        listGroups.length > 0 &&
+                        listGroups[listGroups.length - 1].lastCdm.txId !== groups.lastTxId
+                    ) {
+                        groups.saveList(listGroups);
+                        cdms.saveList(listCdms);
                     }
-                    
-                    // const accounts = res.data.online;
-                    // const lastCdm = res.data.lastCdm;
-
-                    // cdms.lastCdmHash = lastCdm ? lastCdm[0] : null;
-
-                    // const distinct = (value, index, self) =>{
-                    //     return self.indexOf(value) ===index;
-                    // }
-                    
-                    // groups.activeGroups = accounts.map(el => el.groupHash).filter(distinct);
-                    // groups.activeSenders = accounts.map(el => el.publicKey).filter(distinct);
-                    
-                    // if (groups.list) {
-                    //     for (let i = 0; i < groups.list.length; i += 1) {
-                    //         groups.list[i].isOnline = groups.activeGroups.indexOf(groups.list[i].groupHash) > -1;
-                    //     }
-                    // }   
                 })
                 .then(_ => {
                     this.pushStatus = 'success';

@@ -9,7 +9,7 @@ import { Input, Button, Icon } from 'antd';
 import Cdms from './cmds';
 import Compose from './compose';
 
-@inject('cdms')
+@inject('compose', 'groups')
 @observer
 class Main extends React.Component {
     constructor(props) {
@@ -17,16 +17,24 @@ class Main extends React.Component {
     }
 
     render() {
-        const { cdms } = this.props;
+        const { compose, groups } = this.props;
         return (
             <div>
                 <div className="container">
-                    {cdms.composeMode ? <Compose /> : <Cdms />}
+                    {compose.composeMode && <Compose />}
+                    {!compose.composeMode && <Cdms />}
+                    {/* {!groups.current && !compose.composeMode && <div className="empty" />} */}
                 </div>
                 <style jsx>{`
                     .container {
                         height: 100vh;
                         background: #fafafa;
+                    }
+
+                    .empty {
+                        height: 100vh;
+                        width: 100%;
+                        background: url(/static/empty.svg) no-repeat center center;
                     }
                 `}</style>
             </div>

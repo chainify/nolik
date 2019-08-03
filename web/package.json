@@ -6,6 +6,7 @@
     "start": "NODE_ENV=production node server.js"
   },
   "dependencies": {
+    "@waves/ts-lib-crypto": "^1.0.2",
     "@waves/waves-crypto": "2.1.2",
     "@waves/waves-transactions": "^3.3.11",
     "@zeit/next-css": "^1.0.1",

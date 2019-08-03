@@ -1,11 +1,11 @@
 import React from 'react';
 import { observer, inject } from 'mobx-react';
-import Message from '../Message';
+import Message from './Message';
 import * as moment from 'moment';
 import { Divider } from 'antd';
 import NoSSR from 'react-no-ssr';
 
-@inject('cdms')
+@inject('cdms', 'groups')
 @observer
 class Cdms extends React.Component {
 
@@ -18,10 +18,20 @@ class Cdms extends React.Component {
     }
 
     render() {
-        const { cdms } = this.props;
+        const { cdms, groups } = this.props;
         return (
             <div className="content" ref={el => { this.contentDiv = el; }}>
                 <NoSSR>
+                    <div className="list">
+                        {cdms.list && cdms.list.map(item => {
+                            if (groups.current && item.groupHash !== groups.current.groupHash) {
+                                return null;
+                            }
+                            return <Message item={item}  key={`message_${item.hash}_${item.timestamp}`} />
+                        })}
+                    </div>
+                </NoSSR>
+                {/* <NoSSR>
                     <div className="list">
                         {cdms.list && cdms.list.length > 0 && cdms.list.map((item, index) => {
                             let showDivider = false;
@@ -45,21 +55,19 @@ class Cdms extends React.Component {
                             )
                         })}
                     </div>
-                </NoSSR>
+                </NoSSR> */}
                 <style jsx>{`
                     .content {
-                        flex-grow: 1;
+                        height: 100%;
                         overflow-y: auto;
-                        background: #efebe9;
-                        padding: 0 4em;
+                        padding: 0 1em;
                     }
 
                     .list {
-                        min-height: calc(100vh - 110px);
                         display: flex;
                         justify-content: flex-end;
                         flex-direction: column;
-                        padding: 2em 1em;
+                        padding: 1em 0em;
                     }
 
                     .divider {

@@ -1,7 +1,7 @@
 import React from 'react';
 import { observer, inject } from 'mobx-react';
 import * as moment from 'moment';
-import { Icon, Typography } from 'antd';
+import { Icon, Typography, Button } from 'antd';
 const ReactMarkdown = require('react-markdown');
 const { Paragraph } = Typography;
 
@@ -18,110 +18,82 @@ class Message extends React.Component {
             linkTarget="_blank"
             className="messageDM"
         />;
+
+        const pstyle = {
+            margin: 0,
+            padding: 0,
+        };
         return (
             <div>
-                <div className={`msgRow ${item.type}`}>
-                    <div className={`message ${item.type}`}>
-                        {item.type === 'incoming' && (
-                            <div className="header">
-                                <Paragraph
-                                    ellipsis
-                                    style={{
-                                        margin: 0,
-                                        padding: 0,
-                                    }}
+                <div className="message">
+                    <div className="header">
+                        <div className="members">
+                            <div className="sender"><Paragraph ellipsis style={pstyle}>{item.logicalSender}</Paragraph></div>
+                            <div className="recipient"><Paragraph ellipsis style={pstyle}>To: {item.recipient}</Paragraph></div>
+                        </div>
+                        <div className="info">
+                            <div className="time">
+                                {moment.unix(item.timestamp).format('LLLL')}
+                            </div>
+                            <div className="menu">
+                                <Button
+                                    type="ghost"
+                                    shape="circle"
                                 >
-                                    {item.senderName}
-                                </Paragraph>
+                                    <Icon type="ellipsis" rotate={0} />
+                                </Button>
                             </div>
-                        )}
-                        <div className="body">{message}</div>
-                        {item.type === 'incoming' && (
-                            <div className="footer">
-                                <div className="time">
-                                    {moment.unix(item.timestamp).format('HH:mm')}
-                                </div>
-                            </div>
-                        )}
-                        {item.type === 'outgoing' && (
-                            <div className="footer">
-                                <div className="time">
-                                    {moment.unix(item.timestamp).format('HH:mm')}
-                                </div>
-                            </div>
-                        )}
-                        {item.type === 'pending' && (
-                            <div className="footer">
-                                <div className="time">
-                                    {moment.unix(item.timestamp).format('HH:mm')}
-                                    <Icon type="clock-circle" style={{ fontSize: 12, marginLeft: 7 }} />
-                                </div>
-                            </div>
-                        )}
+                        </div>
                     </div>
+                    <div className="body">{message}</div>
+                    <div className="footer"></div>
                 </div>
                 <style jsx>{`
-                    .msgRow {
+                    .message {
                         width: 100%;
+                        background: #fff;
+                        -webkit-box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.1);
+                        -moz-box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.1);
+                        box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.1);
+                        margin-bottom: 2em;
+                        border-radius: 4px;
+
+                        padding: 1em 1em 1em 2em;
+                        font-size: 14px;
+                    }
+
+                    .header {
                         display: flex;
                     }
 
-                    .msgRow.outgoing {
-                        justify-content: flex-end;
+                    .members {
+                        flex-grow: 1;
+                        overflow-x: hidden;
+                        padding-right: 1em;
                     }
 
-                    .msgRow.pending {
-                        justify-content: flex-end;
-                    }
-
-                    .messageDM p {
-                        margin-bottom: 0px!important;
-                    }
-
-                    .message {
-                        white-space: pre-wrap;
-                        border-radius: 4px;
-                        padding: 6px 10px;
-                        margin-bottom: 4px;
-                        color: #666;
-                        text-align: left;
-                        font-size: 1.1em;
-                        font-weight: 100;
-                        font-family: 'Roboto', sans-serif;
-                        max-width: 60%;
-                    }
-
-                    .message.outgoing {
-                        background-color: #fff;
-                    }
-
-                    .message.pending {
-                        background-color: #fff;
-                        opacity: 0.5;
-                    }
-
-                    .message.incoming {
-                        background-color: #fff;
-                    }
-
-                    .message .header {
-                        font-weight: bold;
-                        font-size: 0.8em;
-                    }
-
-                    .footer {
-                        font-size: 12px;
-                        padding-top: 0px;
-                        text-align: right;
+                    .info {
+                        min-width: 140px;
+                        display: flex;
                     }
 
                     .time {
-                        color: #999;
-                        display: inline-block;
+                        flex-grow: 1;
+                        font-size: 11px;
+                        padding-right: 1em;
                     }
 
-                    .footer.pending {
+                    .menu {
+                        width: 40px;
                         text-align: right;
+                    }
+
+                    .body {
+                        padding-top: 2em;
+                    }
+
+                    .footer {
+                        position: relative;
                     }
                 `}</style>
             </div>

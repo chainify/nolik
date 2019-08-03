@@ -1,8 +1,5 @@
 import { action } from 'mobx';
-import { signBytes, verifySignature } from '@waves/waves-crypto';
 import { sha256 } from 'js-sha256';
-import base58 from '../utils/base58';
-
 
 class CryptoStore {
     stores = null;
@@ -29,35 +26,45 @@ class CryptoStore {
     }
 
     @action
-    encryptCdm(recipients, messages) {
+    randomize(message) {
         const { utils } = this.stores;     
+        return message + '@' + sha256(utils.generateRandom(64));
+    }
+
+    @action
+    encryptCdm(data) {
         if (typeof window !== 'undefined') {
-            
             let msg = '';
             const promises = [];
-            for (let m = 0; m < messages.length; m += 1) {
-                let randMessage = messages[m].text;
-                let messageHash;
-                if (messages[m].hash) {
-                    messageHash = messages[m].hash;
-                } else {
-                    randMessage = message + '@' + sha256(utils.generateRandom(64));
+            for (let i = 0; i < data.length; i += 1) {
+                let randMessage = data[i].text;
+                let messageHash = data[i].hash;
+                
+                if (!messageHash) {
+                    randMessage = this.randomize(data[i].text);
                     messageHash = sha256(randMessage);
                 }
 
-                for( let r = 0; r < recipients.length; r += 1) {
-                    const recipientPublicKey = recipients[r];
-                    const p = window.Waves
-                        .encryptMessage(randMessage, recipientPublicKey, 'chainify')
-                        .then(cypherText => {
-                            msg += `\r\n<message>`
-                            msg += `\r\n<recipient>\r\n<publickey>${recipientPublicKey}</publickey>\r\n</recipient>`;
-                            msg += `\r\n<ciphertext>${cypherText}</ciphertext>`;
-                            msg += `\r\n<sha256>${messageHash}</sha256>`;
-                            msg += `\r\n</message>`;
-                        });
-                    promises.push(p);
-                }
+                const p = window.Waves
+                    .encryptMessage(randMessage, data[i].recipient, 'chainify')
+                    .then(cypherText => {
+                        msg += `\r\n<message>`
+                        msg += `\r\n<recipient>`;
+                        msg += `\r\n<publickey>${data[i].recipient}</publickey>`;
+                        msg += `\r\n<type>${data[i].type}</type>`;
+                        msg += `\r\n</recipient>`;
+                        msg += `\r\n<subject>`;
+                        msg += `\r\n<ciphertext></ciphertext>`;
+                        msg += `\r\n<sha256></sha256>`;
+                        msg += `\r\n</subject>`;
+                        msg += `\r\n<body>`;
+                        msg += `\r\n<ciphertext>${cypherText}</ciphertext>`;
+                        msg += `\r\n<sha256>${messageHash}</sha256>`;
+                        msg += `\r\n</body>`;
+                        // msg += `\r\n<inreplyto>${cypherText}</inreplyto>`;
+                        msg += `\r\n</message>`;
+                    });
+                promises.push(p);
             }
 
             return Promise.all(promises).then(_ => {
@@ -67,9 +74,66 @@ class CryptoStore {
     }
 
     @action
-    generateCdm(recipients, messages) {
+    encrypt(text, recipient) {
         return new Promise((resolve, reject) => {
-            this.encryptCdm(recipients, messages).then(res => {
+            let msg = '';
+            const randMessage = this.randomize(text);
+            const messageHash = sha256(randMessage);
+            window.Waves
+                .encryptMessage(randMessage,recipient, 'chainify')
+                .then(cypherText => {
+                    msg += `\r\n<ciphertext>${cypherText}</ciphertext>`;
+                    msg += `\r\n<sha256>${messageHash}</sha256>`;
+
+                    resolve(msg);
+                })
+                .catch(e => {
+                    reject(e);
+                })
+        })
+    }
+
+    @action
+    compose(data) {
+        return new Promise((resolve, reject) => {
+            if (typeof window !== 'undefined') {
+                let msg = '';
+                const promises = [];
+                for (let i = 0; i < data.recipients.length; i += 1) {
+                    if (data.subject) {
+                        const subject = this.encrypt(data.subject, data.recipients[i].recipient)
+                            .then(res => {                                
+                                msg += `\r\n<subject>`;
+                                msg += res;
+                                msg += `\r\n</subject>`;
+                            });
+                        promises.push(subject);
+                    }
+                    
+                    if (data.message) {
+                        const message = this.encrypt(data.message, data.recipients[i].recipient)
+                            .then(res => {
+                                msg += `\r\n<body>`;
+                                msg += res;
+                                msg += `\r\n</body>`;
+                            });
+                        promises.push(message);
+                    }
+                }
+    
+                Promise.all(promises).then(_ => {
+                    resolve(msg);
+                });
+            } else {
+                reject('WINDOW is undefined');
+            }
+        })
+    }
+
+    @action
+    generateCdm(data) {
+        return new Promise((resolve, reject) => {
+            this.encryptCdm(data).then(res => {
                 resolve(this.wrapCdm(res));
             })
         })

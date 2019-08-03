@@ -8,6 +8,8 @@ import Wrapper from './Wrapper';
 import Contacts from './Contacts';
 import Login from './Login';
 import Heartbeat from './Heartbeat';
+import Compose from './Compose';
+import Notifiers from './Notifiers';
 
 const stores = {};
 
@@ -21,5 +23,7 @@ stores.cdms = new Cdms(stores);
 stores.contacts = new Contacts(stores);
 stores.login = new Login(stores);
 stores.heartbeat = new Heartbeat(stores);
+stores.compose = new Compose(stores);
+stores.notifiers = new Notifiers(stores);
 
 export default stores;

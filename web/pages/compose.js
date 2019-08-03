@@ -3,21 +3,36 @@ import PropTypes from 'prop-types';
 import { withRouter } from 'next/router';
 import { observer, inject } from 'mobx-react';
 import { autorun, toJS } from 'mobx';
+import mouseTrap from 'react-mousetrap';
+
 // import { i18n, Link as Tlink, withNamespaces } from '../i18n';
-import { AutoComplete, Input, Button, Icon } from 'antd';
+import { AutoComplete, Input, Button, Icon, Tag } from 'antd';
 const { TextArea } = Input;
 
 import PageHeader from '../components/PageHeader';
 
-@inject('cdms')
+@inject('compose', 'cdms')
 @observer
 class Compose extends React.Component {
     constructor(props) {
         super(props);
     }
 
+    componentDidMount() {
+        const { compose, cdms } = this.props;        
+        this.props.bindShortcut('meta+enter', () => {   
+            if (
+                compose.composeMode &&
+                compose.message.trim() !== "" &&
+                compose.toRecipients.concat(compose.ccRecipients).length > 0
+            ) {
+                cdms.sendCdm();
+            }
+        });
+    }
+
     render() {
-        const { cdms } = this.props;
+        const { compose, cdms } = this.props;
         const inputStyle = {
             border: 'none',
             background: 'transparent',
@@ -27,7 +42,7 @@ class Compose extends React.Component {
             boxShadow: 'none',
             fontSize: '18px',
             fontWeight: 400,
-            lineHeight: '22px',
+            lineHeight: '40px',
             height: '40px',
             resize: 'none',
             caretColor: '#2196f3',
@@ -40,6 +55,16 @@ class Compose extends React.Component {
             lineHeight: '24px',
         };
 
+        const toTagStyle = {
+            marginBottom: '4px',
+            background: '#c8e6c9',
+        }
+
+        const ccTagStyle = {
+            ...toTagStyle,
+            background: '#bbdefb',
+        };
+
         return (
             <div>
                 <div className="container">
@@ -49,7 +74,7 @@ class Compose extends React.Component {
                             <Button
                                 type="ghost"
                                 shape="circle"
-                                onClick={cdms.toggleCompose}
+                                onClick={compose.toggleCompose}
                             >
                                 <Icon type="close" />
                             </Button>
@@ -57,11 +82,14 @@ class Compose extends React.Component {
                         extra={[
                             <Button
                                 type="primary"
-                                shape="circle"
-                                onClick={cdms.toggleCompose}
-                                loading={false}
+                                onClick={cdms.sendCdm}
+                                loading={cdms.sendCdmStatus === 'pending'}
+                                disabled={
+                                    compose.message === '' ||
+                                    compose.toRecipients.concat(compose.ccRecipients).length === 0
+                                }
                             >
-                                <Icon type="mail" />
+                                Send
                             </Button>
                         ]}
                     />
@@ -69,18 +97,43 @@ class Compose extends React.Component {
                         <div className="formField">
                             <div className="formLabel">To:</div>
                             <div className="formInput">
-                                <TextArea
+                                {compose.toRecipients.length > 0 && (
+                                    <div className="inputTags">
+                                        {compose.toRecipients.map((el, index) => (
+                                            <Tag
+                                                key={`tag_${el}`}
+                                                closable
+                                                style={toTagStyle}
+                                                onClose={e => {
+                                                    e.preventDefault();
+                                                    compose.removeTag('toRecipients', index);
+                                                }}
+                                            >
+                                                {el}
+                                            </Tag>
+                                        ))}
+                                    </div>
+                                )}
+                                <Input
                                     style={inputStyle}
+                                    placeholder="Public key"
                                     autoFocus
-                                    autosize
+                                    value={compose.inputTo}
+                                    onChange={e => {
+                                        compose.inputTo = e.target.value;
+                                    }}
+                                    onPressEnter={e => {
+                                        e.preventDefault();
+                                        compose.addTag('toRecipients', compose.inputTo);
+                                    }}
                                 />
                             </div>
                             <div className="formCc">
-                                {!cdms.composeCcOn && (
+                                {!compose.composeCcOn && (
                                     <button
                                         className="ccButton"
                                         onClick={_ => {
-                                            cdms.composeCcOn = true;
+                                            compose.composeCcOn = true;
                                         }}
                                     >
                                         Cc:
@@ -88,13 +141,38 @@ class Compose extends React.Component {
                                 )}
                             </div>
                         </div>
-                        {cdms.composeCcOn && (
+                        {compose.composeCcOn && (
                             <div className="formField">
                                 <div className="formLabel">Cc:</div>
                                 <div className="formInput">
-                                    <TextArea
+                                    {compose.ccRecipients.length > 0 && (
+                                        <div className="inputTags">
+                                            {compose.ccRecipients.map((el, index) => (
+                                                <Tag
+                                                    key={`tag_${el}`}
+                                                    closable
+                                                    style={ccTagStyle}
+                                                    onClose={e => {
+                                                        e.preventDefault();
+                                                        compose.removeTag('ccRecipients', index);
+                                                    }}
+                                                >
+                                                    {el}
+                                                </Tag>
+                                            ))}
+                                        </div>
+                                    )}
+                                    <Input
                                         style={inputStyle}
-                                        autosize
+                                        placeholder="Public key"
+                                        value={compose.inputCc}
+                                        onChange={e => {
+                                            compose.inputCc = e.target.value;
+                                        }}
+                                        onPressEnter={e => {
+                                            e.preventDefault();
+                                            compose.addTag('ccRecipients', compose.inputCc);
+                                        }}
                                     />
                                 </div>
                             </div>
@@ -105,6 +183,10 @@ class Compose extends React.Component {
                                 <TextArea
                                     style={inputStyle}
                                     autosize
+                                    value={compose.subject}
+                                    onChange={e => {
+                                        compose.subject = e.target.value;
+                                    }}
                                 />
                             </div>
                         </div>
@@ -113,16 +195,22 @@ class Compose extends React.Component {
                             placeholder="Message"
                             style={messageStyle}
                             autosize
+                            value={compose.message}
+                            className="mousetrap"
+                            onChange={e => {
+                                compose.message = e.target.value;
+                            }}
                         />
                     </div>
                 </div>
                 <style jsx>{`
                     .container {
                         height: 100vh;
+                        overflow-y: auto;
                     }
                     
                     .body {
-                        height: calc(100vh - 52px);
+                        min-height: calc(100vh - 52px);
                         padding: 4em;
                     }
 
@@ -135,9 +223,13 @@ class Compose extends React.Component {
                     .formLabel {
                         padding-right: 20px;
                         font-size: 18px;
-                        line-height: 18px;
+                        line-height: 36px;
                         font-weight: 400;
                         color: #9e9e9e;                      
+                    }
+
+                    .inputTags {
+                        padding: 8px 0 0px 0;
                     }
 
                     .formInput {
@@ -173,4 +265,4 @@ Compose.propTypes = {
     index: PropTypes.object,
 };
 
-export default Compose;
+export default mouseTrap(Compose);

@@ -5,22 +5,19 @@ import { message, notification } from 'antd';
 import { sha256 } from 'js-sha256';
 import { toJS } from 'mobx';
 import stringFromUTF8Array from '../utils/batostr';
+import { crypto } from '@waves/ts-lib-crypto';
+const { address } = crypto({output: 'Base58'});
+ 
 
 class CdmStore {
     stores = null;
     constructor(stores) {
         this.stores = stores;
-        this.getList = this.getList.bind(this);
         this.decryptList = this.decryptList.bind(this);
         this.sendCdm = this.sendCdm.bind(this);
-        this.toggleCompose = this.toggleCompose.bind(this);
     }
 
     @observable list = null;
-    @observable message = '';
-    @observable composeMode = false;
-    @observable composeCcOn = false;
-
     @observable getListStatus = 'init';
     @observable sendCdmStatus = 'init';
     @observable forwardCdmStatus = 'init';
@@ -31,69 +28,113 @@ class CdmStore {
     
     @action
     initLevelDB() {
-        const { alice, groups } = this.stores;
+        const { alice } = this.stores;
         const levelup = require('levelup');
         const leveljs = require('level-js');
 
         // this.readCdmDB = levelup(leveljs(`/root/.leveldb/read_cdms_${alice.publicKey}`));
-        this.listDB = levelup(leveljs(`/root/.leveldb/list_cdms_${alice.publicKey}_${groups.current.groupHash}`));
-        this.pendnigDB = levelup(leveljs(`/root/.leveldb/pending_cdms_${alicePubKey}_${groups.current.groupHash}`));
-    }
-
-    @action
-    toggleCompose() {
-        this.composeMode = !this.composeMode;
-        if (this.composeMode === false) {
-            this.composeCcOn = false;
+        if (alice.publicKey) {
+            this.listDB = levelup(leveljs(`/root/.leveldb/list_cdms_${alice.publicKey}`));
+            this.pendnigDB = levelup(leveljs(`/root/.leveldb/pending_cdms_${alice.publicKey}`));
         }
     }
 
 
-    @action
-    getList() {
-        const { alice, groups, contacts } = this.stores;
-        const formConfig = {}
+    // @action
+    // getList() {
+    //     const { alice, groups, contacts } = this.stores;
+    //     const formConfig = {}
 
-        if (groups.current === null)  { return }
+    //     if (groups.current === null)  { return }
 
-        this.getListStatus = 'fetching';
-        axios
-            .get(`${process.env.API_HOST}/api/v1/cdms/${alice.publicKey}/${groups.current.groupHash}`, formConfig)
-            .then(res => {
-                return res.data.cdms;
-            })
-            .then(list => {
-                return this.decryptList(list);
-            })
-            .then(list => {
+    //     this.getListStatus = 'fetching';
+    //     axios
+    //         .get(`${process.env.API_HOST}/api/v1/cdms/${alice.publicKey}/${groups.current.groupHash}`, formConfig)
+    //         .then(res => {
+    //             return res.data.cdms;
+    //         })
+    //         .then(list => {
+    //             return this.decryptList(list);
+    //         })
+    //         .then(list => {
                 
+    //         })
+    //         .catch(e => {
+    //             console.log(e);
+    //             this.getListStatus = 'error';
+    //         })
+    // }
+
+    @action
+    readList() {
+        const list = [];
+        this.listDB.createReadStream()
+            .on('data', data => {
+                const k = parseInt(stringFromUTF8Array(data.key));
+                const v = stringFromUTF8Array(data.value);
+                list.push({
+                    key: k,
+                    value: JSON.parse(v)
+                });
+                // this.listDB.del(k);
             })
-            .catch(e => {
-                console.log(e);
-                this.getListStatus = 'error';
+            .on('end', _ => {
+                this.decryptList(list.map(el => el.value));
+            });
+    }
+
+    @action
+    saveList(list) {
+        const records = [];
+        this.listDB.createReadStream()
+            .on('data', data => {
+                const k = parseInt(stringFromUTF8Array(data.key));
+                const v = stringFromUTF8Array(data.value);
+                records.push({
+                    key: k,
+                    value: JSON.parse(v)
+                });
             })
+            .on('end', _ => {
+                const txIds = records.map(el => el.value.txId);
+                const operations = list.map((el, index) => {
+                    if (txIds.indexOf(el.txId) < 0) {
+                        return {
+                            type: 'put',
+                            key: records.length + index + 1,
+                            value: JSON.stringify(el)
+                        }
+                    }
+                });
+                
+                this.listDB.batch(operations, err => {
+                    if (err) return console.log('Batch insert error', err);
+                    this.readList();
+                });
+            });
     }
 
 
     @action
-    decryptList(list, clearHash = true) {
-        const { crypto, groups, alice } = this.stores;
-
-        if (list.length === 0) { return list }
+    decryptList(list) {
+        const { crypto } = this.stores;
         const decList = [];
         const promices = [];
         for (let i = 0; i < list.length; i += 1) {
             const listEl = list[i];
-            const p = crypto.decryptMessage(listEl.message, listEl.logicalSender, clearHash)
-                .then(msg => {
-                    listEl.message = msg;
-                    decList.push(listEl);
-                })
+            const p = crypto.decryptMessage(
+                listEl.message, 
+                listEl.type === 'outgoing' ? listEl.recipient : listEl.logicalSender
+            )
+            .then(msg => {
+                listEl.message = msg;
+                decList.push(listEl);
+            })
             promices.push(p);
         }
-        return Promise.all(promices)
+        Promise.all(promices)
             .then(_ => {
-                return decList;
+                this.list = decList;
             })
             .catch(e => {
                 message.error(e.message || e);
@@ -101,7 +142,96 @@ class CdmStore {
     }
 
     @action
+    cdmData() {
+        const { compose, groups } = this.stores;
+        this.sendCdmStatus = 'pending';
+        
+        const grRecipients = groups.current ? groups.current.members : [];
+        const toRecipients = compose.toRecipients;
+        const ccRecipients = compose.ccRecipients;
+
+        const recipients = compose.composeMode ? toRecipients.concat(ccRecipients) : grRecipients;
+        const data = {
+            message: compose.message.trim(),
+            subject: 'subject',
+            recipients: recipients.map(el => ({
+                recipient: el,
+                type: toRecipients.indexOf(el) > -1 ? 'to' : 'cc',
+            }))
+        };
+        return data;
+    }
+
+    @action
+    generateTxData(attachment) {
+        const { alice } = this.stores;
+        const recipient = address(alice.publicKey, process.env.NETWORK === 'testnet' && 'T');
+        const txData = {
+            type: 4,
+            data: {
+                amount: {
+                assetId: process.env.ASSET_ID,
+                tokens: "0.00000001"
+                },
+                fee: {
+                    assetId: process.env.ASSET_ID,
+                    tokens: "0.001"
+                },
+                recipient: recipient,
+                attachment: attachment
+            }
+        };
+        return txData;
+    }
+
+    @action
     sendCdm() {
+        const { notifiers, crypto } = this.stores;
+        this.sendCdmStatus = 'pending';
+        const cdmData = this.cdmData();
+        crypto.compose(cdmData).then(cdm => {
+            console.log('cdm', cdm);
+        })
+        return;
+        this.generateCdm().then(cdm => {
+            const formConfig = {};
+            const formData = new FormData();
+            formData.append('data', cdm);
+            return axios.post(`${process.env.API_HOST}/api/v1/ipfs`, formData, formConfig)
+                .then(ipfsData => {
+                    return ipfsData;
+                });
+        })
+        .then(ipfsData => {
+            if (typeof window !== 'undefined') {
+                const txData = this.generateTxData(ipfsData.data['Hash']);
+                return window.WavesKeeper.signAndPublishTransaction(txData)
+                    .then(data => {
+                        return data;
+                    }).catch(e => {
+                        notifiers.keeper(e);
+                    });
+            }
+        })
+        .then(data => {
+            if (data) {
+                notifiers.success('Message has been sent');
+            }
+            this.sendCdmStatus = 'success';
+        })
+        .catch(e => {
+            notifiers.error(e);
+        });
+    }
+
+    @action
+    savePendingCdm() {
+        const { groups } = this.stores;
+    }
+
+
+    @action
+    sendCdm3() {
         const { groups, crypto } = this.stores;
         this.sendCdmStatus = 'pending';
         
@@ -109,7 +239,8 @@ class CdmStore {
         const recipients = groups.current.members;
         const messages = [{
             text: this.message.trim(),
-            hash: null
+            hash: null,
+            type: 'to' // 'to' or 'cc'
         }]  
         crypto.generateCdm(recipients, messages)
             .then(encMessage => {

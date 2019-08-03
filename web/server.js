@@ -25,7 +25,8 @@ app.prepare().then(() => {
   })
 
   server.get('/gr/:groupHash', (req, res) => {
-    return app.render(req, res, '/index', { groupHash: req.params.groupHash })
+    res.redirect('/');
+    // return app.render(req, res, '/index', { groupHash: req.params.groupHash })
   })
   
   server.get('*', (req, res) => {
