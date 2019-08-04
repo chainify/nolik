@@ -20,6 +20,8 @@ class CdmStore {
     @observable getListStatus = 'init';
     @observable sendCdmStatus = 'init';
     @observable forwardCdmStatus = 'init';
+
+    @observable withCrypto = [];
     
     // @observable readCdmDB = null;
     @observable listDB = null;
@@ -38,31 +40,17 @@ class CdmStore {
         }
     }
 
-
-    // @action
-    // getList() {
-    //     const { alice, groups, contacts } = this.stores;
-    //     const formConfig = {}
-
-    //     if (groups.current === null)  { return }
-
-    //     this.getListStatus = 'fetching';
-    //     axios
-    //         .get(`${process.env.API_HOST}/api/v1/cdms/${alice.publicKey}/${groups.current.groupHash}`, formConfig)
-    //         .then(res => {
-    //             return res.data.cdms;
-    //         })
-    //         .then(list => {
-    //             return this.decryptList(list);
-    //         })
-    //         .then(list => {
-                
-    //         })
-    //         .catch(e => {
-    //             console.log(e);
-    //             this.getListStatus = 'error';
-    //         })
-    // }
+    @action
+    toggleWithCrypto(txId) {
+        const withCrypto = this.withCrypto;
+        const index = withCrypto.indexOf(txId);
+        if (index < 0) {
+            withCrypto.push(txId);
+        } else {
+            withCrypto.splice(index, 1);
+        }
+        this.withCrypto = withCrypto;
+    }
 
     @action
     readList() {
@@ -196,7 +184,7 @@ class CdmStore {
 
     @action
     sendCdm() {
-        const { notifiers, crypto } = this.stores;
+        const { notifiers, crypto, compose } = this.stores;
         this.sendCdmStatus = 'pending';
         const cdmData = this.cdmData();
         // crypto.compose(cdmData).then(cdm => {
@@ -227,6 +215,7 @@ class CdmStore {
             if (data) {
                 notifiers.success('Message has been sent');
             }
+            compose.toggleCompose();
             this.sendCdmStatus = 'success';
         })
         .catch(e => {

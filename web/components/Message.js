@@ -1,7 +1,10 @@
 import React from 'react';
 import { observer, inject } from 'mobx-react';
 import * as moment from 'moment';
-import { Icon, Typography, Button } from 'antd';
+import { Menu, Typography, Dropdown } from 'antd';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEllipsisV, faKey, faReply, faShare, faReplyAll, faArchive } from '@fortawesome/free-solid-svg-icons'
+
 const ReactMarkdown = require('react-markdown');
 const { Paragraph } = Typography;
 
@@ -12,7 +15,7 @@ const { Paragraph } = Typography;
 @observer
 class Message extends React.Component {
     render() {
-        const { item } = this.props;
+        const { item, cdms } = this.props;
         const message = <ReactMarkdown
             source={item.message}
             linkTarget="_blank"
@@ -23,6 +26,36 @@ class Message extends React.Component {
             margin: 0,
             padding: 0,
         };
+
+        const menu = (
+            <Menu
+                onClick={e => {
+                    if (e.key === 'crypto') {
+                        cdms.toggleWithCrypto(item.txId);
+                    }
+                }}
+            >
+                <Menu.Item key="forward">
+                    <FontAwesomeIcon icon={faShare} /> Forward
+                </Menu.Item>
+                <Menu.Divider />
+                <Menu.Item key="crypto">
+                    <FontAwesomeIcon icon={faKey} /> Crypto
+                </Menu.Item>
+
+                {/* <Menu.Item key="1">
+                    <FontAwesomeIcon icon={faReply} /> Reply
+                </Menu.Item>
+                <Menu.Item key="2">
+                    <FontAwesomeIcon icon={faReplyAll} /> Reply All
+                </Menu.Item> */}
+                {/* <Menu.Divider />
+                <Menu.Item key="3">
+                    <FontAwesomeIcon icon={faArchive} /> Archive
+                </Menu.Item> */}
+            </Menu>
+        );
+
         return (
             <div>
                 <div className="message">
@@ -36,14 +69,21 @@ class Message extends React.Component {
                                 {moment.unix(item.timestamp).format('LLLL')}
                             </div>
                             <div className="menu">
-                                <Button
-                                    type="ghost"
-                                    shape="circle"
-                                >
-                                    <Icon type="ellipsis" rotate={0} />
-                                </Button>
+                                <Dropdown overlay={menu} trigger={['click']}>
+                                    <button className="menuBtn ellipsis">
+                                        <FontAwesomeIcon icon={faEllipsisV} />
+                                    </button>
+                                </Dropdown>
                             </div>
                         </div>
+                    </div>
+                    <div className={`crypto ${cdms.withCrypto.indexOf(item.txId) > -1 && 'active'}`}>
+                        <p><b>Blockchain transaction ID:</b> <a href={`https://wavesexplorer.com/${process.env.NETWORK === 'testnet' && 'testnet/'}tx/${item.txId}`} target="_blank">{item.txId}</a></p>
+                        <p><b>IPFS Hash:</b> <a href={`${process.env.API_HOST}/ipfs/${item.ipfsHash}`} target="_blank">{item.ipfsHash}</a></p>
+                        <p>--</p>
+                        <p><b>CDM type:</b> {item.logicalSender === item.realSender ? 'Direct (Blockchain proof)' : 'Sponsored (CDM proof)'}</p>
+                        <p><b>Signed by:</b> {item.logicalSender}</p>
+                        <p><b>Signature:</b> {item.signature}</p>
                     </div>
                     {item.subject && <div className="subject">{item.subject}</div>}
                     <div className="body">{message}</div>
@@ -89,6 +129,23 @@ class Message extends React.Component {
                         width: 40px;
                         text-align: right;
                     }
+
+                    .crypto {
+                        margin-bottom: 2em;
+                        padding: 1em;
+                        background: #eee;
+                        border-radius: 4px;
+                        display: none;
+                        word-wrap: break-word;
+                    }
+
+                    .crypto.active {
+                        display: block;
+                    }
+
+                    .crypto p {
+                        margin: 0;
+                    }
                     
                     .subject {
                         font-weight: 700;
@@ -103,6 +160,25 @@ class Message extends React.Component {
 
                     .footer {
                         position: relative;
+                    }
+
+                    .menuBtn {
+                        border: none;
+                        background: transparent;
+                        padding: 0;
+                        margin: 0;
+                        box-shadow: none;
+                        outline:0;
+                        cursor: pointer;
+                    }
+
+                    .ellipsis {
+                        text-align: center;
+                        width: 20px;
+                    }
+
+                    .ellipsis:hover {
+                        color: #ddd;
                     }
                 `}</style>
             </div>

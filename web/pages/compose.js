@@ -5,6 +5,9 @@ import { observer, inject } from 'mobx-react';
 import { autorun, toJS } from 'mobx';
 import mouseTrap from 'react-mousetrap';
 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
+
 // import { i18n, Link as Tlink, withNamespaces } from '../i18n';
 import { AutoComplete, Input, Button, Icon, Tag } from 'antd';
 const { TextArea } = Input;
@@ -89,7 +92,7 @@ class Compose extends React.Component {
                                     compose.toRecipients.concat(compose.ccRecipients).length === 0
                                 }
                             >
-                                Send
+                                <FontAwesomeIcon icon={faPaperPlane} style={{ marginRight: 10 }} />Send
                             </Button>
                         ]}
                     />

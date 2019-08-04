@@ -4,6 +4,8 @@ import { observer, inject } from 'mobx-react';
 import { autorun, toJS } from 'mobx';
 // import { i18n, Link as Tlink, withNamespaces } from '../i18n';
 import { Input, Button, Icon } from 'antd';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPen } from '@fortawesome/free-solid-svg-icons';
 
 import PageHeader from '../components/PageHeader';
 import Skeleton from '../components/Skeleton';
@@ -74,7 +76,7 @@ class Groups extends React.Component {
                                 onClick={compose.toggleCompose}
                                 disabled={compose.composeMode}
                             >
-                                <Icon type="form" />
+                                <FontAwesomeIcon icon={faPen} />
                             </Button>
                         ]}
                     />
