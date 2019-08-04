@@ -6,7 +6,6 @@ class CryptoStore {
     constructor(stores) {
         this.stores = stores;
         this.wrapCdm = this.wrapCdm.bind(this);
-        this.encryptCdm = this.encryptCdm.bind(this);
         this.decryptMessage = this.decryptMessage.bind(this);
     }
 
@@ -32,48 +31,6 @@ class CryptoStore {
     }
 
     @action
-    encryptCdm(data) {
-        if (typeof window !== 'undefined') {
-            let msg = '';
-            const promises = [];
-            for (let i = 0; i < data.length; i += 1) {
-                let randMessage = data[i].text;
-                let messageHash = data[i].hash;
-                
-                if (!messageHash) {
-                    randMessage = this.randomize(data[i].text);
-                    messageHash = sha256(randMessage);
-                }
-
-                const p = window.Waves
-                    .encryptMessage(randMessage, data[i].recipient, 'chainify')
-                    .then(cypherText => {
-                        msg += `\r\n<message>`
-                        msg += `\r\n<recipient>`;
-                        msg += `\r\n<publickey>${data[i].recipient}</publickey>`;
-                        msg += `\r\n<type>${data[i].type}</type>`;
-                        msg += `\r\n</recipient>`;
-                        msg += `\r\n<subject>`;
-                        msg += `\r\n<ciphertext></ciphertext>`;
-                        msg += `\r\n<sha256></sha256>`;
-                        msg += `\r\n</subject>`;
-                        msg += `\r\n<body>`;
-                        msg += `\r\n<ciphertext>${cypherText}</ciphertext>`;
-                        msg += `\r\n<sha256>${messageHash}</sha256>`;
-                        msg += `\r\n</body>`;
-                        // msg += `\r\n<inreplyto>${cypherText}</inreplyto>`;
-                        msg += `\r\n</message>`;
-                    });
-                promises.push(p);
-            }
-
-            return Promise.all(promises).then(_ => {
-                return msg;
-            });
-        }
-    }
-
-    @action
     encrypt(text, recipient) {
         return new Promise((resolve, reject) => {
             let msg = '';
@@ -94,48 +51,64 @@ class CryptoStore {
     }
 
     @action
+    block(subject, message, recipient, type) {
+        return new Promise((resolve, reject) => {
+            let msg = '';
+            const promises = [];
+            if (subject) {
+                const sbj = this.encrypt(subject, recipient)
+                    .then(res => {                                
+                        msg += `\r\n<subject>`;
+                        msg += res;
+                        msg += `\r\n</subject>`;
+                    });
+                promises.push(sbj);
+            }
+
+            const body = this.encrypt(message, recipient)
+                .then(res => {
+                    msg += `\r\n<${type}>`;
+                    msg += `\r\n<publickey>${recipient}</publickey>`;
+                    msg += `\r\n</${type}>`;
+                    msg += `\r\n<body>`;
+                    msg += res;
+                    msg += `\r\n</body>`;
+                });
+            promises.push(body);
+
+            Promise.all(promises).then(_ => {
+                resolve(msg);
+            });
+        })
+    }
+
+    @action
     compose(data) {
         return new Promise((resolve, reject) => {
             if (typeof window !== 'undefined') {
                 let msg = '';
                 const promises = [];
                 for (let i = 0; i < data.recipients.length; i += 1) {
-                    if (data.subject) {
-                        const subject = this.encrypt(data.subject, data.recipients[i].recipient)
-                            .then(res => {                                
-                                msg += `\r\n<subject>`;
-                                msg += res;
-                                msg += `\r\n</subject>`;
-                            });
-                        promises.push(subject);
-                    }
-                    
-                    if (data.message) {
-                        const message = this.encrypt(data.message, data.recipients[i].recipient)
-                            .then(res => {
-                                msg += `\r\n<body>`;
-                                msg += res;
-                                msg += `\r\n</body>`;
-                            });
-                        promises.push(message);
-                    }
+                    const block = this.block(
+                            data.subject,
+                            data.message,
+                            data.recipients[i].recipient, 
+                            data.recipients[i].type
+                        )
+                        .then(res => {
+                            msg += '\r\n<message>';
+                            msg += res;
+                            msg += '\r\n</message>';
+                        })
+                    promises.push(block);
                 }
     
                 Promise.all(promises).then(_ => {
-                    resolve(msg);
+                    resolve(this.wrapCdm(msg));
                 });
             } else {
                 reject('WINDOW is undefined');
             }
-        })
-    }
-
-    @action
-    generateCdm(data) {
-        return new Promise((resolve, reject) => {
-            this.encryptCdm(data).then(res => {
-                resolve(this.wrapCdm(res));
-            })
         })
     }
 
@@ -144,7 +117,7 @@ class CryptoStore {
     //     return new Promise((resolve, reject) => {
     //         const promises = [];
     //         for (let i = 0; i < list.length; i += 1) {
-    //             console.log('i', i, list[i].hash);
+    //             console.log('i', i, list[i].messageHash);
                 
     //             const p = this.encryptCdm(recipients, list[i].message);
     //             promises.push(p);

@@ -16,7 +16,7 @@ class Message extends React.Component {
         const message = <ReactMarkdown
             source={item.message}
             linkTarget="_blank"
-            className="messageDM"
+            className="md"
         />;
 
         const pstyle = {
@@ -45,6 +45,7 @@ class Message extends React.Component {
                             </div>
                         </div>
                     </div>
+                    {item.subject && <div className="subject">{item.subject}</div>}
                     <div className="body">{message}</div>
                     <div className="footer"></div>
                 </div>
@@ -70,6 +71,7 @@ class Message extends React.Component {
                         flex-grow: 1;
                         overflow-x: hidden;
                         padding-right: 1em;
+                        margin-bottom: 2em;
                     }
 
                     .info {
@@ -87,9 +89,16 @@ class Message extends React.Component {
                         width: 40px;
                         text-align: right;
                     }
+                    
+                    .subject {
+                        font-weight: 700;
+                        margin-bottom: 1em;
+                    }
 
                     .body {
-                        padding-top: 2em;
+                        padding-top: 0em;
+                        word-wrap: break-word;
+                        white-space: pre-wrap;
                     }
 
                     .footer {

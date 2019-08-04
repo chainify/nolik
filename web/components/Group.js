@@ -38,7 +38,11 @@ class Header extends React.Component {
                             </Paragraph>
                             <Paragraph ellipsis style={paragrapStyle}>
                                 <span className="headerMessage">
-                                    {item.lastCdm ? item.lastCdm.message : 'No messages yet'}
+                                    {item.lastCdm ? 
+                                        item.lastCdm.subject 
+                                            ? <span><b>{item.lastCdm.subject}</b> {item.lastCdm.message}</span>
+                                            : item.lastCdm.message
+                                        : 'No messages yet'}
                                 </span>
                             </Paragraph>
                         </div>
@@ -78,6 +82,7 @@ class Header extends React.Component {
                     .header {
                         padding: 10px 10px 10px 0px;
                         display: flex;
+                        max-width: 600px;
                     }
 
                     .header.active {

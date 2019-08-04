@@ -3,7 +3,6 @@ import axios from 'axios';
 import Router from 'next/router';
 import { sha256 } from 'js-sha256';
 import stringFromUTF8Array from './../utils/batostr';
-const ReactMarkdown = require('react-markdown');
 
 class GroupsStore {
     stores = null;
@@ -143,18 +142,26 @@ class GroupsStore {
         const promises = [];
         for (let i = 0; i < list.length; i += 1) {
             if (list[i].lastCdm) {
-                const p = crypto.decryptMessage(
+                if (list[i].lastCdm.subject) {
+                    const subject = crypto.decryptMessage(
+                        list[i].lastCdm.subject,
+                        list[i].lastCdm.direction === 'outgoing' ? list[i].lastCdm.recipient : list[i].lastCdm.logicalSender
+                    )
+                    .then(res => {
+                        list[i].lastCdm.subject = res.replace(/[`*]/gm, '');
+                    });
+                    promises.push(subject);
+                }
+                
+                const message = crypto.decryptMessage(
                     list[i].lastCdm.message,
-                    list[i].lastCdm.type === 'outgoing' ? list[i].lastCdm.recipient : list[i].lastCdm.logicalSender
+                    list[i].lastCdm.direction === 'outgoing' ? list[i].lastCdm.recipient : list[i].lastCdm.logicalSender
                 )
                 .then(res => {
-                    list[i].lastCdm.message = <ReactMarkdown source={res} skipHtml={true} />;
-                    let msg = res;
-                    msg = msg.replace(/[`*]/gm, '');
-                    list[i].lastCdm.message = msg;
+                    list[i].lastCdm.message = res.replace(/[`*]/gm, '');
                     decList.push(list[i]);
                 });
-                promises.push(p);
+                promises.push(message);
             } else {
                 decList.push(list[i]);
             }

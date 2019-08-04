@@ -20,9 +20,9 @@ class Message extends React.Component {
         />;
         return (
             <div>
-                <div className={`msgRow ${item.type}`}>
-                    <div className={`message ${item.type}`}>
-                        {item.type === 'incoming' && (
+                <div className={`msgRow ${item.direction}`}>
+                    <div className={`message ${item.direction}`}>
+                        {item.direction === 'incoming' && (
                             <div className="header">
                                 <Paragraph
                                     ellipsis
@@ -36,21 +36,21 @@ class Message extends React.Component {
                             </div>
                         )}
                         <div className="body">{message}</div>
-                        {item.type === 'incoming' && (
+                        {item.direction === 'incoming' && (
                             <div className="footer">
                                 <div className="time">
                                     {moment.unix(item.timestamp).format('HH:mm')}
                                 </div>
                             </div>
                         )}
-                        {item.type === 'outgoing' && (
+                        {item.direction === 'outgoing' && (
                             <div className="footer">
                                 <div className="time">
                                     {moment.unix(item.timestamp).format('HH:mm')}
                                 </div>
                             </div>
                         )}
-                        {item.type === 'pending' && (
+                        {item.direction === 'pending' && (
                             <div className="footer">
                                 <div className="time">
                                     {moment.unix(item.timestamp).format('HH:mm')}

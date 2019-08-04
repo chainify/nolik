@@ -13,9 +13,9 @@ class ComposeStore {
 
     @observable inputTo = '';
     @observable inputCc = '';
-    @observable subject = '';
+    @observable subject = 'Some Subject';
     @observable message = 'Sample Message';
-    @observable toRecipients = ['8zgjXsMegYdVHD8LJAvs6ix4jkbp9qxAa5p3CYkcMod3'];
+    @observable toRecipients = ['9u8vhaDsoSy6esLEL1TyL9yroz79GWB2kkUF132bASyq'];
     @observable ccRecipients = [];
 
     @observable composeMode = false;

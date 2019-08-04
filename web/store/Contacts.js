@@ -78,7 +78,7 @@ class WrapperStore {
                     resolve(stringFromUTF8Array(res));
                 })
                 .catch(e => {
-                    if (e.type === 'NotFoundError') {
+                    if (e.direction === 'NotFoundError') {
                         resolve(null);
                     } else {
                         reject(e);

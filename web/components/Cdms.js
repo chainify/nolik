@@ -27,7 +27,7 @@ class Cdms extends React.Component {
                             if (groups.current && item.groupHash !== groups.current.groupHash) {
                                 return null;
                             }
-                            return <Message item={item}  key={`message_${item.hash}_${item.timestamp}`} />
+                            return <Message item={item}  key={`message_${item.messageHash}_${item.timestamp}`} />
                         })}
                     </div>
                 </NoSSR>
@@ -44,7 +44,7 @@ class Cdms extends React.Component {
                                 showDivider = true;
                             }
                             return (
-                                <div key={`message_${item.hash}_${item.timestamp}`}>
+                                <div key={`message_${item.messageHash}_${item.timestamp}`}>
                                     {cdms.getListStatus === 'success' && showDivider && (
                                         <Divider dashed style={{ background: '#fff', opacity: 0.5 }}>
                                             <div className="divider">{moment.unix(item.timestamp).format('MMM DD')}</div>

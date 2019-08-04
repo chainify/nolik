@@ -7,7 +7,6 @@ import { toJS } from 'mobx';
 import stringFromUTF8Array from '../utils/batostr';
 import { crypto } from '@waves/ts-lib-crypto';
 const { address } = crypto({output: 'Base58'});
- 
 
 class CdmStore {
     stores = null;
@@ -119,20 +118,31 @@ class CdmStore {
     decryptList(list) {
         const { crypto } = this.stores;
         const decList = [];
-        const promices = [];
+        const promises = [];
         for (let i = 0; i < list.length; i += 1) {
             const listEl = list[i];
-            const p = crypto.decryptMessage(
+            if (listEl.subject) {
+                const subject = crypto.decryptMessage(
+                    listEl.subject,
+                    listEl.direction === 'outgoing' ? listEl.recipient : listEl.logicalSender
+                )
+                .then(res => {
+                    listEl.subject = res;
+                });
+                promises.push(subject);
+            }
+
+            const message = crypto.decryptMessage(
                 listEl.message, 
-                listEl.type === 'outgoing' ? listEl.recipient : listEl.logicalSender
+                listEl.direction === 'outgoing' ? listEl.recipient : listEl.logicalSender
             )
             .then(msg => {
                 listEl.message = msg;
                 decList.push(listEl);
             })
-            promices.push(p);
+            promises.push(message);
         }
-        Promise.all(promices)
+        Promise.all(promises)
             .then(_ => {
                 this.list = decList;
             })
@@ -153,7 +163,7 @@ class CdmStore {
         const recipients = compose.composeMode ? toRecipients.concat(ccRecipients) : grRecipients;
         const data = {
             message: compose.message.trim(),
-            subject: 'subject',
+            subject: compose.subject.trim(),
             recipients: recipients.map(el => ({
                 recipient: el,
                 type: toRecipients.indexOf(el) > -1 ? 'to' : 'cc',
@@ -189,11 +199,11 @@ class CdmStore {
         const { notifiers, crypto } = this.stores;
         this.sendCdmStatus = 'pending';
         const cdmData = this.cdmData();
+        // crypto.compose(cdmData).then(cdm => {
+        //     console.log(cdm);
+        // })
+        // return;
         crypto.compose(cdmData).then(cdm => {
-            console.log('cdm', cdm);
-        })
-        return;
-        this.generateCdm().then(cdm => {
             const formConfig = {};
             const formData = new FormData();
             formData.append('data', cdm);
@@ -350,7 +360,7 @@ class CdmStore {
                 const messages = list.map(el => {
                     return {
                         text: el.message,
-                        hash: el.hash
+                        hash: el.messageHash
                     }
                 });
                 
