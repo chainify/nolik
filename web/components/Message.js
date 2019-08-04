@@ -126,7 +126,7 @@ class Message extends React.Component {
                     }
 
                     .menu {
-                        width: 40px;
+                        width: 20px;
                         text-align: right;
                     }
 

@@ -2,6 +2,9 @@ import React from 'react';
 import { observer, inject } from 'mobx-react';
 import { Badge, Icon, Typography, Progress } from 'antd';
 import { toJS } from 'mobx';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faLevelDownAlt, faLevelUpAlt } from '@fortawesome/free-solid-svg-icons';
+
 const { Paragraph } = Typography;
 
 @inject('groups', 'cdms')
@@ -31,8 +34,19 @@ class Header extends React.Component {
                 >
                     <div className={`header ${groups.current && groups.current.groupHash === item.groupHash && 'active'}`}>
                         <div className="headerBody">
+                            {item.lastCdm && (
+                                <div className={`arrow ${item.lastCdm && item.lastCdm.direction}`}>
+                                    <FontAwesomeIcon
+                                        icon={
+                                            item.lastCdm && item.lastCdm.direction === 'incoming'
+                                            ? faLevelDownAlt
+                                            : faLevelUpAlt
+                                        }
+                                    />
+                                </div>
+                            )}
                             <Paragraph ellipsis style={paragrapStyle}>
-                                <span className={`headerTitle ${item.isOnline === true && 'oline'}`}>
+                                <span className={`headerTitle`}>
                                     {item.groupHash}
                                 </span>
                             </Paragraph>
@@ -40,7 +54,7 @@ class Header extends React.Component {
                                 <span className="headerMessage">
                                     {item.lastCdm ? 
                                         item.lastCdm.subject 
-                                            ? <span><b>{item.lastCdm.subject}</b> {item.lastCdm.message}</span>
+                                            ? <span> <b>{item.lastCdm.subject}</b> {item.lastCdm.message}</span>
                                             : item.lastCdm.message
                                         : 'No messages yet'}
                                 </span>
@@ -72,7 +86,7 @@ class Header extends React.Component {
                     }
 
                     .button:hover {
-                        background: #eee;
+                        background: #fafafa;
                     }
 
                     .button * {
@@ -86,7 +100,7 @@ class Header extends React.Component {
                     }
 
                     .header.active {
-                        background: #ddd; 
+                        background: #eee; 
                     }
 
                     .headerBody {
@@ -96,6 +110,20 @@ class Header extends React.Component {
                         position: relative;
                     }
 
+                    .arrow {
+                        position: absolute;
+                        top: 0px;
+                        left: 24px;
+                    }
+
+                    .arrow.incoming {
+                        color: #66bb6a;
+                    }
+
+                    .arrow.outgoing {
+                        color: #e57373;
+                    }
+                    
                     .headerTitle {
                         color: #333;
                     }
@@ -107,10 +135,6 @@ class Header extends React.Component {
                         min-width: 40px;
                         height: 40px;
                         text-align: right;
-                    }
-
-                    .oline {
-                        color: #4caf50;
                     }
                 `}</style>
             </div>

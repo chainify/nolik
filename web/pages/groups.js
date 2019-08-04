@@ -100,14 +100,14 @@ class Groups extends React.Component {
 
                     .list {
                         height: calc(100vh - 52px);
-                        background: #999;
+                        background: #ddd;
                     }
 
                     .noMessages {
                         text-align: center;
                         line-height: 24px;
                         font-size: 18px;
-                        color: #fafafa;
+                        color: #999;
                         font-weight: 100;
                         font-family: 'Roboto', sans-serif;
                         padding: 2em 0;

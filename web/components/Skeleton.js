@@ -18,7 +18,7 @@ class Skeleton extends React.Component {
                   repeating-linear-gradient(
                     90deg,
                     #eee,
-                    #ddd
+                    #fafafa
                   );
                 background-position: 0px 0px;
                 animation: move 2s infinite;

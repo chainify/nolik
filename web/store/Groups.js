@@ -9,14 +9,16 @@ class GroupsStore {
     constructor(stores) {
         this.stores = stores;
         // this.getList = this.getList.bind(this);
+        this.toggleShowGroupInfo = this.toggleShowGroupInfo.bind(this);
         this.decryptList = this.decryptList.bind(this);
     }
 
     @observable list = null;
     @observable current = null;
-    // @observable getListStatus = 'init';
     @observable search = '';
     @observable lastTxId = null;
+
+    @observable showGroupInfo = true;
 
     @observable listDB = null;
     @observable namesDB = null;
@@ -38,6 +40,11 @@ class GroupsStore {
     createGroupHash(publicKeys) {
         const sorted = publicKeys.sort().join('');
         return sha256(sorted);
+    }
+
+    @action
+    toggleShowGroupInfo() {
+        this.showGroupInfo = !this.showGroupInfo;
     }
 
 
@@ -70,6 +77,15 @@ class GroupsStore {
         Router.push('/');
         // cdms.list = null;
         // cdms.message = '';
+    }
+
+    @action
+    demolish() {
+        const { cdms } = this.stores;
+        this.list = null;
+        this.lastTxId = null;
+        cdms.list = null;
+        this.resetGroup();
     }
 
     @action

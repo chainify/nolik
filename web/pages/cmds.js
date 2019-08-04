@@ -46,6 +46,8 @@ class Cdms extends React.Component {
                                     key="header_info_button"
                                     type="default"
                                     shape="circle"
+                                    onClick={groups.toggleShowGroupInfo}
+                                    disabled={groups.showGroupInfo}
                                 >
                                     <Icon type="info" />
                                 </Button>,
