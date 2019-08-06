@@ -14,14 +14,15 @@ class CdmStore {
         this.stores = stores;
         this.decryptList = this.decryptList.bind(this);
         this.sendCdm = this.sendCdm.bind(this);
+        this.fwdCdms = this.fwdCdms.bind(this);
     }
 
     @observable list = null;
-    @observable getListStatus = 'init';
     @observable sendCdmStatus = 'init';
     @observable forwardCdmStatus = 'init';
 
     @observable withCrypto = [];
+    @observable fwdCdmsList = [];
     
     // @observable readCdmDB = null;
     @observable listDB = null;
@@ -83,17 +84,18 @@ class CdmStore {
                 });
             })
             .on('end', _ => {
+                const operations = [];
                 const txIds = records.map(el => el.value.txId);
-                const operations = list.map((el, index) => {
-                    if (txIds.indexOf(el.txId) < 0) {
-                        return {
+                for (let i = 0; i < list.length; i += 1) {
+                    if (txIds.indexOf(list[i].txId) < 0) {
+                        operations.push({
                             type: 'put',
-                            key: records.length + index + 1,
-                            value: JSON.stringify(el)
-                        }
+                            key: records.length + i + 1,
+                            value: JSON.stringify(list[i])
+                        });
                     }
-                });
-                
+                }
+
                 this.listDB.batch(operations, err => {
                     if (err) return console.log('Batch insert error', err);
                     this.readList();
@@ -141,23 +143,44 @@ class CdmStore {
 
     @action
     cdmData() {
-        const { compose, groups } = this.stores;
+        const { compose } = this.stores;
         this.sendCdmStatus = 'pending';
         
-        const grRecipients = groups.current ? groups.current.members : [];
+        // const grRecipients = groups.current ? groups.current.members : [];
         const toRecipients = compose.toRecipients;
         const ccRecipients = compose.ccRecipients;
 
-        const recipients = compose.composeMode ? toRecipients.concat(ccRecipients) : grRecipients;
-        const data = {
-            message: compose.message.trim(),
-            subject: compose.subject.trim(),
-            recipients: recipients.map(el => ({
-                recipient: el,
-                type: toRecipients.indexOf(el) > -1 ? 'to' : 'cc',
-            }))
-        };
-        return data;
+        const recipients = toRecipients.concat(ccRecipients);
+        const data = [];
+        if (this.fwdCdmsList.length === 0) {
+            data.push({
+                subject: compose.subject.trim(),
+                message: compose.message.trim(),
+                messageHash: null,
+                recipients: recipients.map(el => ({
+                    recipient: el,
+                    type: toRecipients.indexOf(el) > -1 ? 'to' : 'cc',
+                }))
+            });
+        } else {
+            for (let i = 0; i < this.fwdCdmsList.length; i += 1) {
+                const initCdm = this.list.filter(el => el.messageHash === this.fwdCdmsList[i])[0];
+                data.push({
+                    subject: `FWD: ${initCdm.subject.trim()}`,
+                    message: initCdm.message.trim(),
+                    messageHash: initCdm.messageHash,
+                    recipients: recipients.map(el => ({
+                        recipient: el,
+                        type: toRecipients.indexOf(el) > -1 ? 'to' : 'cc',
+                    }))
+                })
+            }
+        }
+
+        console.log('data', data);
+        
+        
+        return toJS(data);
     }
 
     @action
@@ -221,6 +244,27 @@ class CdmStore {
         .catch(e => {
             notifiers.error(e);
         });
+    }
+
+
+    @action
+    fwdCdms() {
+        const { groups, compose } = this.stores;
+        
+        const list = groups.current && this.list.filter(el => el.groupHash === groups.current.groupHash);
+        const fwdCdmsList = [];
+        if (list) {
+            for (let i = 0; i < list.length; i += 1) {
+                fwdCdmsList.push(list[i].messageHash);
+            }
+            this.fwdCdmsList = fwdCdmsList;
+        }
+        
+        for (let i = 0; i < groups.current.members.length; i =+ 1) {
+            compose.addTag('ccRecipients', groups.current.members[i]);
+        }
+
+        this.sendCdm();
     }
 
     @action

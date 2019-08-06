@@ -7,11 +7,11 @@ import { faLevelDownAlt, faLevelUpAlt } from '@fortawesome/free-solid-svg-icons'
 
 const { Paragraph } = Typography;
 
-@inject('groups', 'cdms')
+@inject('groups', 'compose')
 @observer
 class Header extends React.Component {
     render() {
-        const { item, groups, cdms } = this.props;
+        const { item, groups, compose } = this.props;
         const paragrapStyle = {
             margin: 0,
             padding: 0,
@@ -45,20 +45,26 @@ class Header extends React.Component {
                                     />
                                 </div>
                             )}
-                            <Paragraph ellipsis style={paragrapStyle}>
-                                <span className={`headerTitle`}>
-                                    {item.groupHash}
-                                </span>
-                            </Paragraph>
-                            <Paragraph ellipsis style={paragrapStyle}>
-                                <span className="headerMessage">
-                                    {item.lastCdm ? 
-                                        item.lastCdm.subject 
-                                            ? <span> <b>{item.lastCdm.subject}</b> {item.lastCdm.message}</span>
-                                            : item.lastCdm.message
-                                        : 'No messages yet'}
-                                </span>
-                            </Paragraph>
+                            {item.lastCdm && (
+                                <div>
+                                    {item.initCdm.subject && (
+                                        <Paragraph ellipsis style={paragrapStyle}>
+                                            <span className={`headerTitle`}>
+                                                {item.initCdm.subject}
+                                            </span>
+                                        </Paragraph>
+                                    )}
+                                    <Paragraph ellipsis={{ rows: item.lastCdm.subject ? 1 : 2 }} style={paragrapStyle}>
+                                        <span className="headerMessage">
+                                            {item.lastCdm ? 
+                                                item.lastCdm.subject 
+                                                    ? <span>{item.lastCdm.message}</span>
+                                                    : item.lastCdm.message
+                                                : 'No messages yet'}
+                                        </span>
+                                    </Paragraph>
+                                </div>
+                            )}
                         </div>
                         <div className="badgeDiv">
                             {item.totalCdms - item.readCdms > 0 && (

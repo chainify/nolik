@@ -31,7 +31,7 @@ class CryptoStore {
     }
 
     @action
-    encrypt(text, recipient) {
+    encrypt(recipient, text, hash) {
         return new Promise((resolve, reject) => {
             let msg = '';
             const randMessage = this.randomize(text);
@@ -40,7 +40,7 @@ class CryptoStore {
                 .encryptMessage(randMessage,recipient, 'chainify')
                 .then(cypherText => {
                     msg += `\r\n<ciphertext>${cypherText}</ciphertext>`;
-                    msg += `\r\n<sha256>${messageHash}</sha256>`;
+                    msg += `\r\n<sha256>${hash ? hash : messageHash}</sha256>`;
 
                     resolve(msg);
                 })
@@ -51,12 +51,12 @@ class CryptoStore {
     }
 
     @action
-    block(subject, message, recipient, type) {
+    block(subject, message, messageHash, recipient, type) {
         return new Promise((resolve, reject) => {
             let msg = '';
             const promises = [];
             if (subject) {
-                const sbj = this.encrypt(subject, recipient)
+                const sbj = this.encrypt(recipient, subject)
                     .then(res => {                                
                         msg += `\r\n<subject>`;
                         msg += res;
@@ -65,7 +65,7 @@ class CryptoStore {
                 promises.push(sbj);
             }
 
-            const body = this.encrypt(message, recipient)
+            const body = this.encrypt(recipient, message, messageHash)
                 .then(res => {
                     msg += `\r\n<${type}>`;
                     msg += `\r\n<publickey>${recipient}</publickey>`;
@@ -74,6 +74,7 @@ class CryptoStore {
                     msg += res;
                     msg += `\r\n</body>`;
                 });
+
             promises.push(body);
 
             Promise.all(promises).then(_ => {
@@ -83,26 +84,64 @@ class CryptoStore {
     }
 
     @action
+    message(data, groupHash) {
+        return new Promise((resolve, reject) => {
+            let msg = '';            
+            const promises = [];
+            for (let i = 0; i < data.recipients.length; i += 1) {
+                const block = this.block(
+                        data.subject,
+                        data.message,
+                        data.messageHash,
+                        data.recipients[i].recipient, 
+                        data.recipients[i].type
+                    )
+                    .then(res => {
+                        msg += '\r\n<message>';
+                        msg += res;
+                        if (groupHash) {
+                            msg += '\r\n<extra>';
+                            msg += `\r\n<groupHash>${groupHash}</groupHash>`;
+                            msg += '\r\n</extra>';
+                        }
+                        msg += '\r\n</message>';
+                    });
+                promises.push(block);
+            }
+
+            Promise.all(promises).then(_ => {
+                resolve(msg);
+            });
+        })
+    }
+
+
+    @action
     compose(data) {
         return new Promise((resolve, reject) => {
             if (typeof window !== 'undefined') {
+                const { groups, cdms } = this.stores;
+
                 let msg = '';
-                const promises = [];
-                for (let i = 0; i < data.recipients.length; i += 1) {
-                    const block = this.block(
-                            data.subject,
-                            data.message,
-                            data.recipients[i].recipient, 
-                            data.recipients[i].type
-                        )
-                        .then(res => {
-                            msg += '\r\n<message>';
-                            msg += res;
-                            msg += '\r\n</message>';
-                        })
-                    promises.push(block);
+                let groupHash = null;
+                if (groups.current) {
+                    if (cdms.fwdCdmsList.length === 0) {
+                        groupHash = groups.current.groupHash;
+                    } else {
+                        const initSubjectHash = data[0].subject ? sha256(this.randomize(data[0].subject)) : '';
+                        const initMessageHash = data[0].messageHash;
+                        groupHash = sha256([initSubjectHash, initMessageHash].join(''));
+                    }
                 }
-    
+
+                const promises = [];
+                for (let i = 0; i < data.length; i += 1) {
+                    const message = this.message(data[i], groupHash).then(res => {
+                        msg += res;
+                    });
+                    promises.push(message);
+                }
+
                 Promise.all(promises).then(_ => {
                     resolve(this.wrapCdm(msg));
                 });

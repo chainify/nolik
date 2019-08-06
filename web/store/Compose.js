@@ -1,6 +1,7 @@
 import { action, observable } from 'mobx';
 import { message } from 'antd';
 import { crypto } from '@waves/ts-lib-crypto';
+import { toJS } from 'mobx';
 const { verifyPublicKey } = crypto({output: 'Base58'});
  
 
@@ -9,6 +10,8 @@ class ComposeStore {
     constructor(stores) {
         this.stores = stores;
         this.toggleCompose = this.toggleCompose.bind(this);
+        this.toggleComment = this.toggleComment.bind(this);
+        this.toggleAddMeber = this.toggleAddMeber.bind(this);
     }
 
     @observable inputTo = '';
@@ -20,6 +23,8 @@ class ComposeStore {
 
     @observable composeMode = false;
     @observable composeCcOn = false;
+    @observable commentIsOn = false;
+    @observable addMemberOn = false;
 
     
     @action
@@ -31,8 +36,31 @@ class ComposeStore {
     }
 
     @action
+    toggleComment() {
+        const { groups } = this.stores;
+        this.commentIsOn = true;
+        this.subject = `Re: ${groups.current.initCdm.subject}`;
+        this.ccRecipients = groups.current.members;
+        this.toggleCompose();
+    }
+
+    @action
+    toggleAddMeber() {
+        const { groups } = this.stores;
+        this.addMemberOn = !this.addMemberOn;
+        if (this.addMemberOn === false) {
+            this.resetCompose();
+        } else {
+            groups.showGroupInfo = true;
+        }
+    }
+
+    @action
     resetCompose() {
         this.composeCcOn = false;
+        this.commentIsOn = false;
+        this.composeMode = false;
+        this.addMemberOn = false;
         this.inputTo = '';
         this.inputCc = '';
         this.message = '';
@@ -43,12 +71,24 @@ class ComposeStore {
 
     @action
     addTag(toArray, tagText) {
+        const { alice, groups } = this.stores;
+        if (tagText.trim() === '') { return }
         if (
             this.toRecipients.indexOf(tagText) > -1 ||
             this.ccRecipients.indexOf(tagText) > -1)
         {
             message.info('Recipient is already in the list');
             return;
+        }
+
+        if (groups.current && toArray === 'toRecipients') {
+            if (
+                groups.current.members.indexOf(tagText) > -1 ||
+                alice.publicKey === tagText
+            ) {
+                message.info('Recipient is already in the list');
+                return;
+            }
         }
         
         let isValidPublicKey = false;

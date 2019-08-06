@@ -39,7 +39,7 @@ class Index extends React.Component {
                     <Col xs={16} lg={groups.current && groups.showGroupInfo ? 12 : 18}>
                         <Main />
                     </Col>
-                    <Col xs={16} lg={groups.current && groups.showGroupInfo ? 6 : 0}>
+                    <Col xs={0} lg={groups.current && groups.showGroupInfo ? 6 : 0}>
                         <GroupInfo />
                     </Col>
                 </Row>

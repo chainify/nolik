@@ -88,8 +88,8 @@ class AliceStore {
                 }
             } finally {
                 if (this.publicKey === null) {
-                    groups.demolish();
                     compose.resetCompose();
+                    groups.demolish();
                     Router.push('/login');
                 }
             }

@@ -5,13 +5,13 @@ import { autorun, toJS } from 'mobx';
 // import { i18n, Link as Tlink, withNamespaces } from '../i18n';
 import { Input, Button, Icon } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPen } from '@fortawesome/free-solid-svg-icons';
+import { faPen, faInbox } from '@fortawesome/free-solid-svg-icons';
 
 import PageHeader from '../components/PageHeader';
 import Skeleton from '../components/Skeleton';
 import Group from '../components/Group';
 
-@inject('groups', 'heartbeat', 'compose')
+@inject('groups', 'heartbeat', 'compose', 'cdms')
 @observer
 class Groups extends React.Component {
     constructor(props) {
@@ -41,9 +41,11 @@ class Groups extends React.Component {
     }
 
     componentDidMount() {
-        const { groups } = this.props;
+        const { groups, cdms } = this.props;
         groups.initLevelDB();
+        cdms.initLevelDB();
         groups.readList();
+        cdms.readList();
     }
 
     componentWillUnmount() {
@@ -54,7 +56,7 @@ class Groups extends React.Component {
 
 
     render() {
-        const { groups, compose } = this.props;
+        const { groups, compose, cdms } = this.props;
         return (
             <div>
                 <div className="container">
@@ -62,7 +64,7 @@ class Groups extends React.Component {
                         extra={[
                             <Input
                                 key="header_search_field"
-                                placeholder="search"
+                                placeholder="Search"
                                 style={{ width: '100%' }}
                                 value={groups.search}
                                 onChange={e => {
@@ -74,7 +76,10 @@ class Groups extends React.Component {
                                 type="primary"
                                 shape="circle"
                                 onClick={compose.toggleCompose}
-                                disabled={compose.composeMode}
+                                disabled={
+                                    compose.composeMode ||
+                                    groups.current
+                                }
                             >
                                 <FontAwesomeIcon icon={faPen} />
                             </Button>
@@ -85,9 +90,11 @@ class Groups extends React.Component {
                             <Skeleton key={`skeleton_${el}`} />
                         ))}
                         {groups.list && groups.list.length === 0 && (
-                            <div className="noMessages">No messages yet</div>
+                            <div className="noMessages">
+                                <FontAwesomeIcon icon={faInbox} /> No messages yet
+                            </div>
                         )}
-                        {groups.list && groups.list.length > 0 && groups.list.map(el => (
+                        {groups.list && cdms.list && groups.list.length > 0 && groups.list.map(el => (
                             <Group item={el} key={`group_${el.groupHash}`} />
                         ))}
                     </div>

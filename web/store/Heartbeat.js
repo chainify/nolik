@@ -37,8 +37,8 @@ class HeartbeatStore {
                         listGroups.length > 0 &&
                         listGroups[listGroups.length - 1].lastCdm.txId !== groups.lastTxId
                     ) {
-                        groups.saveList(listGroups);
                         cdms.saveList(listCdms);
+                        groups.saveList(listGroups);
                     }
                 })
                 .then(_ => {

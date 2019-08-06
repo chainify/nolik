@@ -11,11 +11,11 @@ const { Paragraph } = Typography;
 // const MarkdownIt = require('markdown-it');
 // const md = new MarkdownIt();
 
-@inject('cdms')
+@inject('cdms', 'alice')
 @observer
 class Message extends React.Component {
     render() {
-        const { item, cdms } = this.props;
+        const { item, cdms, alice } = this.props;
         const message = <ReactMarkdown
             source={item.message}
             linkTarget="_blank"
@@ -61,8 +61,16 @@ class Message extends React.Component {
                 <div className="message">
                     <div className="header">
                         <div className="members">
-                            <div className="sender"><Paragraph ellipsis style={pstyle}>{item.logicalSender}</Paragraph></div>
-                            <div className="recipient"><Paragraph ellipsis style={pstyle}>To: {item.recipient}</Paragraph></div>
+                            <div className="sender">
+                                {item.logicalSender === alice.publicKey 
+                                    ? <div className="self">You</div>
+                                    : <Paragraph ellipsis style={pstyle}>{item.logicalSender}</Paragraph>}
+                            </div>
+                            <div className="recipient">
+                                {item.recipient === alice.publicKey
+                                    ? <span>To: <div className="self">You</div></span>
+                                    : <Paragraph ellipsis style={pstyle}>To: {item.recipient}</Paragraph>}
+                            </div>
                         </div>
                         <div className="info">
                             <div className="time">
@@ -179,6 +187,14 @@ class Message extends React.Component {
 
                     .ellipsis:hover {
                         color: #ddd;
+                    }
+
+                    .self {
+                        background: #ba68c8;
+                        color: #fff;
+                        padding: 0 0.4em;
+                        border-radius: 4px;
+                        display: inline-block;
                     }
                 `}</style>
             </div>

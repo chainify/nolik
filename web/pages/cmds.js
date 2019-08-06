@@ -6,24 +6,21 @@ import { autorun, toJS } from 'mobx';
 // import { i18n, Link as Tlink, withNamespaces } from '../i18n';
 import { Input, Button, Icon } from 'antd';
 
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPen } from '@fortawesome/free-solid-svg-icons';
+
 import PageHeader from '../components/PageHeader';
 import CdmsList from '../components/Cdms';
 
-@inject('cdms', 'groups')
+@inject('groups', 'compose')
 @observer
 class Cdms extends React.Component {
     constructor(props) {
         super(props);
     }
 
-    componentDidMount() {
-        const { cdms } = this.props;
-        cdms.initLevelDB();
-        cdms.readList();
-    }
-
     render() {
-        const { cdms, groups } = this.props;   
+        const { groups, compose } = this.props;   
         return (
             <div>
                 <div className="container">
@@ -40,8 +37,17 @@ class Cdms extends React.Component {
                                     <Icon type="arrow-left" />
                                 </Button>
                             }
-                            title={groups.current.groupHash}
+                            title={groups.current.initCdm.subject}
                             extra={[
+                                <Button
+                                    key="header_write_to_group"
+                                    type="primary"
+                                    shape="round"
+                                    onClick={compose.toggleComment}
+                                    disabled={compose.addMemberOn}
+                                >
+                                     Cc: To all
+                                </Button>,
                                 <Button
                                     key="header_info_button"
                                     type="default"
@@ -55,6 +61,8 @@ class Cdms extends React.Component {
                                     key="header_add_group_member_button"
                                     type="default"
                                     shape="circle"
+                                    onClick={compose.toggleAddMeber}
+                                    disabled={compose.addMemberOn}
                                 >
                                     <Icon type="usergroup-add" />
                                 </Button>,

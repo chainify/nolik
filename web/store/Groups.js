@@ -50,8 +50,10 @@ class GroupsStore {
 
     @action
     setGroup(group) {
-        const { alice, cdms } = this.stores;
+        const { compose } = this.stores;
         this.current = group;
+
+        compose.resetCompose();
         Router.push(`/index?groupHash=${group.groupHash}`, `/gr/${group.groupHash}`);
         // return;
         // sessionStorage.setItem('groupHash', group.groupHash);
@@ -72,8 +74,10 @@ class GroupsStore {
 
     @action
     resetGroup() {
+        const { compose } = this.stores;
         this.current = null;
         this.search = '';
+        compose.resetCompose();
         Router.push('/');
         // cdms.list = null;
         // cdms.message = '';
@@ -145,7 +149,7 @@ class GroupsStore {
                                 
                 this.listDB.batch(operations, err => {
                     if (err) return console.log('Batch insert error', err);
-                    this.lastTxId = list[list.length - 1].lastCdm.txId;
+                    // this.lastTxId = list[list.length - 1].lastCdm.txId;
                     this.readList();
                 });
             });
@@ -158,6 +162,17 @@ class GroupsStore {
         const promises = [];
         for (let i = 0; i < list.length; i += 1) {
             if (list[i].lastCdm) {
+                if (list[i].initCdm.subject) {
+                    const subject = crypto.decryptMessage(
+                        list[i].initCdm.subject,
+                        list[i].initCdm.direction === 'outgoing' ? list[i].initCdm.recipient : list[i].initCdm.logicalSender
+                    )
+                    .then(res => {
+                        list[i].initCdm.subject = res.replace(/[`*]/gm, '');
+                    });
+                    promises.push(subject);
+                }
+
                 if (list[i].lastCdm.subject) {
                     const subject = crypto.decryptMessage(
                         list[i].lastCdm.subject,

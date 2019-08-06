@@ -21,9 +21,9 @@ class Main extends React.Component {
         return (
             <div>
                 <div className="container">
-                    {compose.composeMode && <Compose />}
-                    {!compose.composeMode && <Cdms />}
-                    {/* {!groups.current && !compose.composeMode && <div className="empty" />} */}
+                    {compose.composeMode
+                        ? <Compose />
+                        : groups.current ? <Cdms /> : <div className="empty" />}
                 </div>
                 <style jsx>{`
                     .container {
