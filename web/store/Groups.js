@@ -103,7 +103,7 @@ class GroupsStore {
                     key: k,
                     value: JSON.parse(v)
                 });
-                // this.listDB.del(k);
+                this.listDB.del(k);
             })
             .on('end', _ => {
                 this.decryptList(list.map(el => el.value));
@@ -168,7 +168,8 @@ class GroupsStore {
                         list[i].initCdm.direction === 'outgoing' ? list[i].initCdm.recipient : list[i].initCdm.logicalSender
                     )
                     .then(res => {
-                        list[i].initCdm.subject = res.replace(/[`*]/gm, '');
+                        list[i].initCdm.rawSubject = res;
+                        list[i].initCdm.subject = res.replace(/@[\w]{64}$/gmi, "").replace(/[`*]/gm, '');
                     });
                     promises.push(subject);
                 }
@@ -179,7 +180,8 @@ class GroupsStore {
                         list[i].lastCdm.direction === 'outgoing' ? list[i].lastCdm.recipient : list[i].lastCdm.logicalSender
                     )
                     .then(res => {
-                        list[i].lastCdm.subject = res.replace(/[`*]/gm, '');
+                        list[i].lastCdm.rawSubject = res;
+                        list[i].lastCdm.subject = res.replace(/@[\w]{64}$/gmi, "").replace(/[`*]/gm, '');
                     });
                     promises.push(subject);
                 }
@@ -189,7 +191,8 @@ class GroupsStore {
                     list[i].lastCdm.direction === 'outgoing' ? list[i].lastCdm.recipient : list[i].lastCdm.logicalSender
                 )
                 .then(res => {
-                    list[i].lastCdm.message = res.replace(/[`*]/gm, '');
+                    list[i].lastCdm.rawMessage = res;
+                    list[i].lastCdm.message = res.replace(/@[\w]{64}$/gmi, "").replace(/[`*]/gm, '');
                     decList.push(list[i]);
                 });
                 promises.push(message);

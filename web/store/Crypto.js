@@ -31,16 +31,15 @@ class CryptoStore {
     }
 
     @action
-    encrypt(recipient, text, hash) {
+    encrypt(recipient, text) {
         return new Promise((resolve, reject) => {
             let msg = '';
-            const randMessage = this.randomize(text);
-            const messageHash = sha256(randMessage);
+            const messageHash = sha256(text);
             window.Waves
-                .encryptMessage(randMessage,recipient, 'chainify')
-                .then(cypherText => {
-                    msg += `\r\n<ciphertext>${cypherText}</ciphertext>`;
-                    msg += `\r\n<sha256>${hash ? hash : messageHash}</sha256>`;
+                .encryptMessage(text, recipient, 'chainify')
+                .then(cipherText => {
+                    msg += `\r\n<ciphertext>${cipherText}</ciphertext>`;
+                    msg += `\r\n<sha256>${messageHash}</sha256>`;
 
                     resolve(msg);
                 })
@@ -51,7 +50,7 @@ class CryptoStore {
     }
 
     @action
-    block(subject, message, messageHash, recipient, type) {
+    block(subject, text, recipient, type) {
         return new Promise((resolve, reject) => {
             let msg = '';
             const promises = [];
@@ -65,7 +64,7 @@ class CryptoStore {
                 promises.push(sbj);
             }
 
-            const body = this.encrypt(recipient, message, messageHash)
+            const body = this.encrypt(recipient, text)
                 .then(res => {
                     msg += `\r\n<${type}>`;
                     msg += `\r\n<publickey>${recipient}</publickey>`;
@@ -88,11 +87,13 @@ class CryptoStore {
         return new Promise((resolve, reject) => {
             let msg = '';            
             const promises = [];
+
+            const text = data.rawMessage ? data.rawMessage : this.randomize(data.message);
+
             for (let i = 0; i < data.recipients.length; i += 1) {
                 const block = this.block(
                         data.subject,
-                        data.message,
-                        data.messageHash,
+                        text,
                         data.recipients[i].recipient, 
                         data.recipients[i].type
                     )
@@ -151,32 +152,15 @@ class CryptoStore {
         })
     }
 
-    // @action
-    // generateForwardCdm(recipients, list) {
-    //     return new Promise((resolve, reject) => {
-    //         const promises = [];
-    //         for (let i = 0; i < list.length; i += 1) {
-    //             console.log('i', i, list[i].messageHash);
-                
-    //             const p = this.encryptCdm(recipients, list[i].message);
-    //             promises.push(p);
-    //         }
-
-    //         Promise.all(promises).then(res => { 
-    //             return resolve(this.wrapCdm(res));
-    //         });
-    //     })
-        
-    // }
 
     @action
-    decryptMessage(cypherText, publicKey) {
+    decryptMessage(cipherText, publicKey) {
         return new Promise((resolve, reject) => {
             if (typeof window !== 'undefined') {
                 window.Waves
-                    .decryptMessage(cypherText, publicKey, 'chainify')
+                    .decryptMessage(cipherText, publicKey, 'chainify')
                     .then(res => {
-                        resolve(res.replace(/@[\w]{64}$/gmi, ""));
+                        resolve(res);
                     })
                     .catch(e => {
                         resolve('⚠️ Decoding error');

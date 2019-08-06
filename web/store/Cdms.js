@@ -64,7 +64,7 @@ class CdmStore {
                     key: k,
                     value: JSON.parse(v)
                 });
-                // this.listDB.del(k);
+                this.listDB.del(k);
             })
             .on('end', _ => {
                 this.decryptList(list.map(el => el.value));
@@ -117,7 +117,7 @@ class CdmStore {
                     listEl.direction === 'outgoing' ? listEl.recipient : listEl.logicalSender
                 )
                 .then(res => {
-                    listEl.subject = res;
+                    listEl.subject = res.replace(/@[\w]{64}$/gmi, "");
                 });
                 promises.push(subject);
             }
@@ -127,7 +127,8 @@ class CdmStore {
                 listEl.direction === 'outgoing' ? listEl.recipient : listEl.logicalSender
             )
             .then(msg => {
-                listEl.message = msg;
+                listEl.rawMessage = msg;
+                listEl.message = msg.replace(/@[\w]{64}$/gmi, "");
                 decList.push(listEl);
             })
             promises.push(message);
@@ -156,7 +157,7 @@ class CdmStore {
             data.push({
                 subject: compose.subject.trim(),
                 message: compose.message.trim(),
-                messageHash: null,
+                rawMessage: null,
                 recipients: recipients.map(el => ({
                     recipient: el,
                     type: toRecipients.indexOf(el) > -1 ? 'to' : 'cc',
@@ -168,7 +169,7 @@ class CdmStore {
                 data.push({
                     subject: `FWD: ${initCdm.subject.trim()}`,
                     message: initCdm.message.trim(),
-                    messageHash: initCdm.messageHash,
+                    rawMessage: initCdm.rawMessage,
                     recipients: recipients.map(el => ({
                         recipient: el,
                         type: toRecipients.indexOf(el) > -1 ? 'to' : 'cc',
@@ -176,9 +177,6 @@ class CdmStore {
                 })
             }
         }
-
-        console.log('data', data);
-        
         
         return toJS(data);
     }
@@ -238,7 +236,7 @@ class CdmStore {
             if (data) {
                 notifiers.success('Message has been sent');
             }
-            compose.toggleCompose();
+            compose.resetCompose();
             this.sendCdmStatus = 'success';
         })
         .catch(e => {

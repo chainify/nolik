@@ -38,9 +38,13 @@ class ComposeStore {
     @action
     toggleComment() {
         const { groups } = this.stores;
-        this.commentIsOn = true;
-        this.subject = `Re: ${groups.current.initCdm.subject}`;
-        this.ccRecipients = groups.current.members;
+        this.commentIsOn = !this.commentIsOn;
+        
+        if (this.commentIsOn === true) {
+            this.subject = `Re: ${groups.current.initCdm.subject}`;
+            this.ccRecipients = groups.current.members;
+        }
+        
         this.toggleCompose();
     }
 
@@ -48,10 +52,10 @@ class ComposeStore {
     toggleAddMeber() {
         const { groups } = this.stores;
         this.addMemberOn = !this.addMemberOn;
-        if (this.addMemberOn === false) {
-            this.resetCompose();
-        } else {
+        if (this.addMemberOn === true) {
             groups.showGroupInfo = true;
+        } else {
+            this.resetCompose();
         }
     }
 
