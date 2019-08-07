@@ -36,24 +36,19 @@ class Message extends React.Component {
                     }
                 }}
             >
-                <Menu.Item key="forward">
+                <Menu.Item key="forward" disabled>
                     <FontAwesomeIcon icon={faShare} /> Forward
+                </Menu.Item>
+                <Menu.Item key="forward" disabled>
+                    <FontAwesomeIcon icon={faReply} /> Reply
+                </Menu.Item>
+                <Menu.Item key="forward" disabled>
+                    <FontAwesomeIcon icon={faReplyAll} /> Reply All
                 </Menu.Item>
                 <Menu.Divider />
                 <Menu.Item key="crypto">
                     <FontAwesomeIcon icon={faKey} /> Crypto
                 </Menu.Item>
-
-                {/* <Menu.Item key="1">
-                    <FontAwesomeIcon icon={faReply} /> Reply
-                </Menu.Item>
-                <Menu.Item key="2">
-                    <FontAwesomeIcon icon={faReplyAll} /> Reply All
-                </Menu.Item> */}
-                {/* <Menu.Divider />
-                <Menu.Item key="3">
-                    <FontAwesomeIcon icon={faArchive} /> Archive
-                </Menu.Item> */}
             </Menu>
         );
 

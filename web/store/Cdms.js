@@ -64,7 +64,7 @@ class CdmStore {
                     key: k,
                     value: JSON.parse(v)
                 });
-                this.listDB.del(k);
+                // this.listDB.del(k);
             })
             .on('end', _ => {
                 this.decryptList(list.map(el => el.value));
