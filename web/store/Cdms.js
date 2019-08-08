@@ -240,6 +240,7 @@ class CdmStore {
             this.sendCdmStatus = 'success';
         })
         .catch(e => {
+            console.log(e);
             notifiers.error(e);
         });
     }

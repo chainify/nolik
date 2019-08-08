@@ -1,1 +1,0 @@
-FROM willfarrell/autoheal:latest

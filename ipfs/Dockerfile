@@ -1,1 +1,2 @@
-FROM jbenet/go-ipfs:latest
+FROM ipfs/go-ipfs
+EXPOSE 4001 5001 8080

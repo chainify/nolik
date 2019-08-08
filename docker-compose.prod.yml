@@ -2,6 +2,7 @@ version: "2"
 
 services:
   nginx:
+    build: ./nginx
     image: chainify/nolik-nginx
     container_name: nolik-nginx
     ports:
@@ -12,9 +13,12 @@ services:
       - api
       - parser
       - ipfs
+      - postgres
+      - redis
     restart: always
 
   web:
+    build: ./web
     image: chainify/nolik-web
     container_name: nolik-web
     depends_on:
@@ -23,41 +27,76 @@ services:
     command: bash -c "npm run start"
 
   api:
-    image: chainify/engine-api
-    container_name: engine-api
+    build: ./server
+    image: chainify/nolik-api
+    container_name: nolik-api
     depends_on:
       - ipfs
+      - postgres
+      - redis
     command: bash -c "python3.7 server.py"
     tty: true
     stdin_open: true
     restart: always
 
   parser:
-    image: chainify/engine-parser
-    container_name: engine-parser
+    build: ./parser
+    image: chainify/nolik-parser
+    container_name: nolik-parser
     command: bash -c "python3.7 server.py"
     tty: true
     stdin_open: true
+    depends_on:
+      - postgres
     labels:
       - "autoheal=true"
     restart: always
 
   ipfs:
-    image: chainify/engine-ipfs
-    container_name: engine-ipfs
+    build: ./ipfs
+    image: ipfs/go-ipfs:latest
+    container_name: nolik-ipfs
     volumes:
-      - ~/.data/ipfs/chainify/data:/data/ipfs
-      - ~/.data/ipfs/chainify/staging:/export
+      - ~/.data/nolik/ipfs/data:/data/ipfs
+      - ~/.data/nolik/ipfs/staging:/export
     ports:
       - 4001:4001
       - 5001:5001
+      - 8080:8080
+    tty: true
+    stdin_open: true
+    restart: always
+
+  postgres:
+    build: ./postgres
+    image: chainify/nolik-postgres
+    container_name: nolik-postgres
+    volumes:
+      - ~/.data/nolik/postgres:/var/lib/postgresql/data
+      - ./postgresql/postgresql.conf:/etc/postgresql/postgresql.conf
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=chainify
+      - POSTGRES_USER=chainify
+      - POSTGRES_PASSWORD=chainify
+    tty: true
+    stdin_open: true
+    restart: always
+
+  redis:
+    build: ./redis
+    image: chainify/nolik-redis
+    container_name: nolik-redis
+    volumes:
+      - ~/.data/nolik/redis:/data
     tty: true
     stdin_open: true
     restart: always
 
   autoheal:
-    image: chainify/engine-autoheal
-    container_name: engine-autoheal
+    image: willfarrell/autoheal:latest
+    container_name: nolik-autoheal
     restart: always
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
