@@ -7,8 +7,6 @@ services:
     ports:
       - 80:80
       - 443:443
-      - 4001:4001
-      - 5001:5001
     depends_on:
       - web
       - api
@@ -50,6 +48,9 @@ services:
     volumes:
       - ~/.data/ipfs/chainify/data:/data/ipfs
       - ~/.data/ipfs/chainify/staging:/export
+    ports:
+      - 4001:4001
+      - 5001:5001
     tty: true
     stdin_open: true
     restart: always

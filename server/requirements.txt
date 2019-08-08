@@ -1,0 +1,15 @@
+sanic
+PyJWT
+sendgrid
+pywaves == 0.8.20
+requests
+aiohttp
+psycopg2-binary
+ipfsapi
+configparser
+base58 == 0.2.5
+python-socketio
+sanic-cors
+pycrypto
+plyvel
+redis

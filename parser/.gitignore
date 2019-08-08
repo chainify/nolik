@@ -1,0 +1,16 @@
+.idea
+.postgresql
+.pycharm_helpers
+.vscode
+project
+ca-certificate.crt
+
+pycharm
+
+config.stage.ini
+config.prod.ini
+config.ini
+
+*.pyc
+
+parser_ar.py

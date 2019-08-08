@@ -25,3 +25,89 @@ services:
       WS_PORT: 3001
     restart: unless-stopped
     command: bash -c "npm install -y && npm run dev"
+
+  api:
+    build: ./server
+    image: chainify/nolik-api
+    container_name: nolik-api
+    volumes:
+      - ./server:/opt
+      - ./server/config.ini:/opt/config.ini
+      - ~/.data/leveldb/chainify/messenger:/root/.data/leveldb/messenger
+      - ~/.data/leveldb/chainify/sql:/root/.data/leveldb/sql
+    command: bash -c "python3.7 server.py"
+    depends_on:
+      - ipfs
+      - postgres
+    tty: true
+    stdin_open: true
+    restart: unless-stopped
+
+  postgres:
+    build: ./postgresql
+    image: chainify/nolik-postgres
+    container_name: nolik-postgres
+    volumes:
+      - ~/.data/chainify/postgres:/var/lib/postgresql/data
+      - ./postgresql/postgresql.conf:/etc/postgresql/postgresql.conf
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=chainify
+      - POSTGRES_USER=chainify
+      - POSTGRES_PASSWORD=chainify
+    tty: true
+    stdin_open: true
+    restart: unless-stopped
+
+  redis:
+    build: ./redis
+    image: chainify/nolik-redis
+    container_name: nolik-redis
+    volumes:
+      - ~/.data/chainify/redis:/data
+    ports:
+      - 6379:6379
+    tty: true
+    stdin_open: true
+    restart: unless-stopped
+
+  parser:
+    build: ./parser
+    image: chainify/nolik-parser
+    container_name: nolik-parser
+    volumes:
+      - ./parser:/opt
+    depends_on:
+      - postgres
+      - ipfs
+    command: bash -c "python3.7 server.py"
+    tty: true
+    stdin_open: true
+    labels:
+      - "autoheal=true"
+    restart: unless-stopped
+
+  ipfs:
+    build: ./ipfs
+    image: chainify/nolik-ipfs
+    container_name: nolik-ipfs
+    volumes:
+      - ~/.data/ipfs/nolik/data:/data/ipfs
+      - ~/.data/ipfs/nolik/staging:/export
+    ports:
+      - 4001:4001
+      - 5001:5001
+    restart: unless-stopped
+    tty: true
+    stdin_open: true
+
+  autoheal:
+    build: ./autoheal
+    image: chainify/nolik-autoheal
+    container_name: nolik-autoheal
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - AUTOHEAL_CONTAINER_LABEL=autoheal
