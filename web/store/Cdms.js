@@ -184,7 +184,7 @@ class CdmStore {
     @action
     generateTxData(attachment) {
         const { alice } = this.stores;
-        const recipient = address(alice.publicKey, process.env.NETWORK === 'testnet' ? 'T' : 'M');
+        const recipient = process.env.NETWORK === 'testnet' ? address(alice.publicKey, 'T') : address(alice.publicKey);
         const txData = {
             type: 4,
             data: {
