@@ -74,20 +74,9 @@ class Message extends React.Component {
                             </div>
                             <div className="recipient">
                                 <div>
-                                    {toRecipients.length > 0 && <Paragraph ellipsis={{ rows: 1, expandable: true}} style={pstyle}><b>To:</b>&nbsp; {toRecipients.join(', ')}</Paragraph>}
-                                    {ccRecipients.length > 0 && <Paragraph ellipsis={{ rows: 1, expandable: true}} style={pstyle}><b>Cc:</b>&nbsp; {ccRecipients.join(', ')}</Paragraph>}
+                                    {toRecipients.length > 0 && <Paragraph ellipsis={{ rows: 1, expandable: true }} style={pstyle}>To: {toRecipients.join(', ')}</Paragraph>}
+                                    {ccRecipients.length > 0 && <Paragraph ellipsis={{ rows: 1, expandable: true }} style={pstyle}>Cc: {ccRecipients.join(', ')}</Paragraph>}
                                 </div>
-                                {/* {item.recipient === alice.publicKey
-                                    ? (
-                                        <span>
-                                            To:&nbsp; {toRecipients.length > 0 ? toRecipients.join(', ') : '-'}
-                                        </span>
-                                    )
-                                    : (
-                                        <Paragraph ellipsis style={pstyle}>
-                                            {item.type.charAt(0).toUpperCase() + item.type.slice(1)}: {item.recipient}
-                                        </Paragraph>
-                                    )} */}
                             </div>
                         </div>
                         <div className="info">

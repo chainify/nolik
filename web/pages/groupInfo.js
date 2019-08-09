@@ -52,7 +52,8 @@ class GroupInfo extends React.Component {
                         <div className="paper">
                             {groups.current && [alice.publicKey].concat(groups.current.members).map((el, index)=> (
                                 <Paragraph
-                                    ellipsis style={pstyle}
+                                    ellipsis
+                                    style={pstyle}
                                     key={`member_${el}`}
                                 >
                                     {index + 1}. {el === alice.publicKey ? <span className="self">You</span> : el}
@@ -60,7 +61,8 @@ class GroupInfo extends React.Component {
                             ))}
                             {groups.current && compose.toRecipients.map((el, index) => (
                                 <Paragraph
-                                    ellipsis style={pstyle}
+                                    ellipsis
+                                    style={pstyle}
                                     key={`member_${el}`}
                                 >
                                     {groups.current.members.length + 2 + index}. {el}

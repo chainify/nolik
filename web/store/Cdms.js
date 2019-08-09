@@ -228,6 +228,7 @@ class CdmStore {
                     .then(data => {
                         return data;
                     }).catch(e => {
+                        console.log(e);
                         notifiers.keeper(e);
                     });
             }
