@@ -68,7 +68,7 @@ services:
     restart: always
 
   postgres:
-    build: ./postgres
+    build: ./postgresql
     image: chainify/nolik-postgres
     container_name: nolik-postgres
     volumes:
