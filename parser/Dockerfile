@@ -27,7 +27,7 @@ COPY server.py /opt/server.py
 
 HEALTHCHECK --interval=2s --timeout=3s --retries=3 CMD curl --fail http://0.0.0.0:8080/api/v1/parser/healthcheck || exit 1
 
-RUN mkdir /root/.postgresql
-COPY ./.postgresql/root.crt /root/.postgresql/root.crt
+# RUN mkdir /root/.postgresql
+# COPY ./.postgresql/root.crt /root/.postgresql/root.crt
 
 EXPOSE 8080
