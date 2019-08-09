@@ -35,17 +35,17 @@ cdms = Blueprint('cdms_v1', url_prefix='/cdms')
 
 
 class Cdms(HTTPMethodView):
-    @staticmethod
-    def post(request):
-        message = request.form['message'][0]
-        tx = send_cdm(message)
+    # @staticmethod
+    # def post(request):
+    #     message = request.form['message'][0]
+    #     tx = send_cdm(message)
         
-        data = {
-            'message': message,
-            'tx': tx
-        }
+    #     data = {
+    #         'message': message,
+    #         'tx': tx
+    #     }
 
-        return json(data, status=201)
+    #     return json(data, status=201)
 
     @staticmethod
     def get(request, alice, group_hash):
@@ -54,22 +54,22 @@ class Cdms(HTTPMethodView):
         }
         return json(data, status=200)
 
-def send_cdm(message):
-    pw.setNode(node=config['blockchain']['host'], chain=config['blockchain']['network'])
-    sponsor = pw.Address(seed=config['blockchain']['sponsor_seed'])
+# def send_cdm(message):
+#     pw.setNode(node=config['blockchain']['host'], chain=config['blockchain']['network'])
+#     sponsor = pw.Address(seed=config['blockchain']['sponsor_seed'])
     
-    asset = pw.Asset(config['blockchain']['asset_id'])
-    feeAsset = pw.Asset(config['blockchain']['asset_id'])
-    attachment = create_ipfs_file(message)
+#     asset = pw.Asset(config['blockchain']['asset_id'])
+#     feeAsset = pw.Asset(config['blockchain']['asset_id'])
+#     attachment = create_ipfs_file(message)
 
-    tx = sponsor.sendAsset(
-        recipient = sponsor,
-        asset = asset,
-        feeAsset = feeAsset,
-        amount = 1,
-        attachment = attachment['Hash'])
+#     tx = sponsor.sendAsset(
+#         recipient = sponsor,
+#         asset = asset,
+#         feeAsset = feeAsset,
+#         amount = 1,
+#         attachment = attachment['Hash'])
 
-    return tx
+#     return tx
 
 
 def get_cdms(alice, group_hash=None, limit=None, last_tx_id=None):

@@ -24,7 +24,7 @@ services:
     depends_on:
       - api
     restart: always
-    command: bash -c "npm run start"
+    command: bash -c "npm install -y && npm run build && npm run start"
 
   api:
     build: ./server
