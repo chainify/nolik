@@ -81,7 +81,7 @@ class Parser:
                         print('attachment_base58', attachment_base58)
                         attachment = None
                         try:
-                            attachment = requests.get('{0}:{1}/ipfs/{2}'.format(config['ipfs']['host'], config['ipfs']['get_port'], attachment_base58)).text
+                            attachment = requests.get('{0}:{1}/ipfs/{2}'.format(config['ipfs']['host'], config['ipfs']['get_port'], attachment_base58), timeout=2).text
                         except Exception as error:
                             logger.error('IPFS Error: {0}'.format(error))
 
