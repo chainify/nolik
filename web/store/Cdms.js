@@ -86,7 +86,7 @@ class CdmStore {
             .on('end', _ => {
                 const operations = [];
                 const txIds = records.map(el => el.value.txId);
-                const lastKey = records[records.length - 1].key;
+                const lastKey = records.length > 0 ? records[records.length - 1].key : 0;
                 for (let i = 0; i < list.length; i += 1) {
                     if (txIds.indexOf(list[i].txId) < 0) {
                         operations.push({
@@ -99,7 +99,6 @@ class CdmStore {
 
                 console.log('records', records);
                 console.log('operations', operations);
-                
 
                 this.listDB.batch(operations, err => {
                     if (err) return console.log('Batch insert error', err);
