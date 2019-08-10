@@ -96,6 +96,10 @@ class CdmStore {
                     }
                 }
 
+                console.log('records', records);
+                console.log('operations', operations);
+                
+
                 this.listDB.batch(operations, err => {
                     if (err) return console.log('Batch insert error', err);
                     this.readList();
