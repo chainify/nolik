@@ -64,7 +64,7 @@ class CdmStore {
                     key: k,
                     value: JSON.parse(v)
                 });
-                // this.listDB.del(k);
+                this.listDB.del(k);
             })
             .on('end', _ => {
                 this.decryptList(list.map(el => el.value));
@@ -86,11 +86,12 @@ class CdmStore {
             .on('end', _ => {
                 const operations = [];
                 const txIds = records.map(el => el.value.txId);
+                const lastKey = records[records.length - 1].key;
                 for (let i = 0; i < list.length; i += 1) {
                     if (txIds.indexOf(list[i].txId) < 0) {
                         operations.push({
                             type: 'put',
-                            key: records.length + i + 1,
+                            key: lastKey + i + 1,
                             value: JSON.stringify(list[i])
                         });
                     }
