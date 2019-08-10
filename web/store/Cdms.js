@@ -64,7 +64,7 @@ class CdmStore {
                     key: k,
                     value: JSON.parse(v)
                 });
-                this.listDB.del(k);
+                // this.listDB.del(k);
             })
             .on('end', _ => {
                 this.decryptList(list.map(el => el.value));
@@ -96,9 +96,6 @@ class CdmStore {
                         });
                     }
                 }
-
-                console.log('records', records);
-                console.log('operations', operations);
 
                 this.listDB.batch(operations, err => {
                     if (err) return console.log('Batch insert error', err);
