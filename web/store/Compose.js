@@ -37,12 +37,12 @@ class ComposeStore {
 
     @action
     toggleComment() {
-        const { groups } = this.stores;
+        const { groups,  alice } = this.stores;
         this.commentIsOn = !this.commentIsOn;
         
         if (this.commentIsOn === true) {
             this.subject = `Re: ${groups.current.initCdm.subject}`;
-            this.ccRecipients = groups.current.members;
+            this.ccRecipients = groups.current.members.length > 0 ? groups.current.members : alice.publicKey;
         }
         
         this.toggleCompose();

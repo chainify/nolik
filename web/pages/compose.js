@@ -102,7 +102,7 @@ class Compose extends React.Component {
                         <TextArea
                             placeholder="Message"
                             style={messageStyle}
-                            autosize
+                            autosize={{ minRows: 6 }}
                             autoFocus
                             value={compose.message}
                             className="mousetrap"
