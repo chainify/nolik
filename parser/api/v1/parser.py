@@ -160,6 +160,8 @@ class Parser:
                                     sender_id = str(uuid.uuid4())                                    
                                     self.sql_data_senders.append((sender_id, cdm_id, sender_public_key, signature, True))
 
+
+                        print('self.sql_data_cdms.append', self.sql_data_cdms.append)
                         tx_data = (
                             tx['id'],
                             data['height'],
