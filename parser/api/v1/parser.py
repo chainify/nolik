@@ -78,6 +78,7 @@ class Parser:
                     if tx['type'] in [4] and tx['feeAssetId'] == config['blockchain']['asset_id']:
                         
                         attachment_base58 = base58.b58decode(tx['attachment']).decode('utf-8')
+                        print('attachment_base58', attachment_base58)
                         attachment = requests.get('{0}:{1}/ipfs/{2}'.format(config['ipfs']['host'], config['ipfs']['get_port'], attachment_base58)).text
                         attachment_hash = hashlib.sha256(attachment.encode('utf-8')).hexdigest()
                         print(attachment)
