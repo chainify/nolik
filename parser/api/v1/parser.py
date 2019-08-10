@@ -79,7 +79,16 @@ class Parser:
                         
                         attachment_base58 = base58.b58decode(tx['attachment']).decode('utf-8')
                         print('attachment_base58', attachment_base58)
-                        attachment = requests.get('{0}:{1}/ipfs/{2}'.format(config['ipfs']['host'], config['ipfs']['get_port'], attachment_base58)).text
+                        attachment = None
+                        try:
+                            attachment = requests.get('{0}:{1}/ipfs/{2}'.format(config['ipfs']['host'], config['ipfs']['get_port'], attachment_base58)).text
+                        except Exception as error:
+                            logger.error('IPFS Error: {0}'.format(error))
+
+                        if attachment == None:
+                            logger.warning('CONTINUE ON IPFS HASH {0}'.format(attachment_base58) )
+                            continue
+
                         attachment_hash = hashlib.sha256(attachment.encode('utf-8')).hexdigest()
                         print(attachment)
                         root = ET.fromstring(attachment)
