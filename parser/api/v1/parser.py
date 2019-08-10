@@ -80,7 +80,7 @@ class Parser:
                         attachment_base58 = base58.b58decode(tx['attachment']).decode('utf-8')
                         attachment = requests.get('{0}:{1}/ipfs/{2}'.format(config['ipfs']['host'], config['ipfs']['get_port'], attachment_base58)).text
                         attachment_hash = hashlib.sha256(attachment.encode('utf-8')).hexdigest()
-
+                        print(attachment)
                         root = ET.fromstring(attachment)
                         version = root.findall('version')[0].text if len(root.findall('version')) > 0 else None
                         blockchain = root.findall('blockchain')[0].text if len(root.findall('blockchain')) > 0 else None
@@ -160,8 +160,6 @@ class Parser:
                                     sender_id = str(uuid.uuid4())                                    
                                     self.sql_data_senders.append((sender_id, cdm_id, sender_public_key, signature, True))
 
-
-                        print('self.sql_data_cdms.append', self.sql_data_cdms.append)
                         tx_data = (
                             tx['id'],
                             data['height'],
