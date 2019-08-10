@@ -24,9 +24,9 @@ class Cdms extends React.Component {
                 <NoSSR>
                     <div className="list">
                         {cdms.list && cdms.list.map(item => {
-                            if (groups.current && item.groupHash !== groups.current.groupHash) {
-                                return null;
-                            }
+                            // if (groups.current && item.groupHash !== groups.current.groupHash) {
+                            //     return null;
+                            // }
                             return <Message item={item}  key={`message_${item.messageHash}_${item.timestamp}`} />
                         })}
                     </div>
