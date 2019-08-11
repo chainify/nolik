@@ -11,7 +11,7 @@ import PageHeader from '../components/PageHeader';
 import Skeleton from '../components/Skeleton';
 import Group from '../components/Group';
 
-@inject('groups', 'heartbeat', 'compose', 'cdms')
+@inject('groups', 'heartbeat', 'compose', 'cdms', 'alice', 'notifiers')
 @observer
 class Groups extends React.Component {
     constructor(props) {
@@ -32,12 +32,6 @@ class Groups extends React.Component {
                 heartbeat.push();
             }
         });
-
-        // this.groupsRead = autorun(() => {
-        //     if (groups.lastTxId !== null) {
-        //         groups.readList();
-        //     }
-        // });
     }
 
     componentDidMount() {
@@ -51,16 +45,25 @@ class Groups extends React.Component {
     componentWillUnmount() {
         this.heartbeatPeriodic();
         this.initialHeartbeat();
-        // this.groupsRead();
     }
 
 
     render() {
-        const { groups, compose, cdms } = this.props;
+        const { groups, compose, cdms, alice, notifiers } = this.props;
         return (
             <div>
                 <div className="container">
                     <PageHeader
+                        goBack={
+                            <Button
+                                key="header_logout_button"
+                                type="default"
+                                shape="circle"
+                                onClick={alice.logOut}
+                            >
+                                <Icon type="poweroff" />
+                            </Button>
+                        }
                         extra={[
                             <Input
                                 key="header_search_field"
@@ -68,7 +71,8 @@ class Groups extends React.Component {
                                 style={{ width: '100%' }}
                                 value={groups.search}
                                 onChange={e => {
-                                    groups.search = e.target.value;
+                                    notifiers.info('Not available yet')
+                                    // groups.search = e.target.value;
                                 }}
                             />,
                             <Button

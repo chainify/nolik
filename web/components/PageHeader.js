@@ -38,7 +38,7 @@ class PageHeader extends React.Component {
                     }
 
                     .goBack {
-                        min-width: 60px;
+                        min-width: 40px;
                         text-align: left;
                     }
 

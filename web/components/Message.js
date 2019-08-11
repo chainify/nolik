@@ -44,7 +44,7 @@ class Message extends React.Component {
                     <FontAwesomeIcon icon={faShare} /> Forward
                 </Menu.Item>
                 <Menu.Item key="forward" disabled>
-                    <FontAwesomeIcon icon={faReply} /> Reply
+                    <FontAwesomeIcon icon={faReply} /> Reply (New Thread)
                 </Menu.Item>
                 <Menu.Item key="forward" disabled>
                     <FontAwesomeIcon icon={faReplyAll} /> Reply All
@@ -124,14 +124,11 @@ class Message extends React.Component {
                 </div>
                 <style jsx>{`
                     .message {
-                        width: 100%;
                         background: #fff;
                         -webkit-box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.1);
                         -moz-box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.1);
                         box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.1);
-                        margin-bottom: 2em;
                         border-radius: 4px;
-
                         padding: 1em 1em 1em 2em;
                         font-size: 14px;
                     }

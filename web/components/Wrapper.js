@@ -2,19 +2,27 @@ import React from 'react';
 import { Layout, Menu, Icon } from 'antd';
 import { observer, inject } from 'mobx-react';
 
-@inject('wrapper', 'alice')
+@inject('wrapper', 'alice', 'notifiers')
 @observer
 class Wrapper extends React.Component {
     render() {
-        const { children, alice } = this.props;
+        const { children, notifiers } = this.props;
 
         return (
             <div>
                 <div className="wrapper">
                     <div className="sideBar">
-                        <div className="item">
-                            <Icon type="poweroff" onClick={alice.logOut} />
-                        </div>
+                        <button
+                            className="item add"
+                            onClick={_ => {
+                                notifiers.info('Not available yet');
+                            }}
+                        >
+                            <Icon type="plus-circle" />
+                        </button>
+                        <button className="item active">
+                            CNFY
+                        </button>
                     </div>
                     <div className="main">
                         {children}
@@ -44,12 +52,27 @@ class Wrapper extends React.Component {
                         height: 36px;
                         display: block;
                         color: #455a64;
-                        cursor: pointer;
                         text-align: center;
-                        font-size: 18px;
+                        font-size: 14px;
                         line-height: 20px;
                         padding: 8px 0;
                         font-family: 'Roboto', sans-serif;
+
+                        border: none;
+                        background: transparent;
+                        margin: 0;
+                        box-shadow: none;
+                        outline:0;
+                        cursor: pointer;
+                    }
+
+                    .sideBar .item.add {
+                        font-size: 20px;
+                    }
+
+                    .sideBar .item.active {
+                        color: #b0bec5;
+                        background: #37474f;
                     }
 
                     .sideBar .item:hover {
