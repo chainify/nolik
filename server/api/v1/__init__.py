@@ -1,7 +1,6 @@
 from sanic import Blueprint
 from .cdms import cdms
 from .ipfs import ipfs
-# from .accounts import accounts
 from .groups import groups
 from .heartbeat import heartbeat
 

@@ -1,6 +1,4 @@
 import os
-import sys
-import re
 from sanic import Blueprint
 from sanic.response import json
 from sanic.log import logger
@@ -10,8 +8,6 @@ import requests
 import psycopg2
 import json as pjson
 from psycopg2.extras import execute_values
-import sendgrid
-from sendgrid.helpers.mail import *
 import hashlib
 from datetime import datetime
 from time import time
@@ -19,9 +15,7 @@ from .errors import bad_request
 import configparser
 import uuid
 import signal
-import subprocess
 import base58
-from .utils import verify_signature
 import xml.etree.ElementTree as ET
 
 config = configparser.ConfigParser()
@@ -29,9 +23,9 @@ config.read('config.ini')
 
 parser = Blueprint('parser_v1', url_prefix='/parser')
 dsn = {
-    "user": config['DB']['user'],
-    "password": config['DB']['password'],
-    "database": config['DB']['database'],
+    "user": os.environ['POSTGRES_USER'],
+    "password": os.environ['POSTGRES_PASSWORD'],
+    "database": os.environ['POSTGRES_DB'],
     "host": config['DB']['host'],
     "port": config['DB']['port'],
     "sslmode": config['DB']['sslmode'],
@@ -75,12 +69,12 @@ class Parser:
                 cnfy_id = 'cnfy-{}'.format(str(uuid.uuid4()))
 
                 for tx in data['transactions']:
-                    if tx['type'] in [4] and tx['feeAssetId'] == config['blockchain']['asset_id']:
+                    if tx['type'] in [4] and tx['feeAssetId'] == os.environ['ASSET_ID']:
                         
                         attachment_base58 = base58.b58decode(tx['attachment']).decode('utf-8')
                         attachment = None
                         try:
-                            attachment = requests.get('{0}:{1}/ipfs/{2}'.format(config['ipfs']['host'], config['ipfs']['get_port'], attachment_base58), timeout=2).text
+                            attachment = requests.get('{0}:{1}/ipfs/{2}'.format(config['ipfs']['host'], config['ipfs']['port'], attachment_base58), timeout=2).text
                         except Exception as error:
                             logger.error('IPFS Error: {0}'.format(error))
 
@@ -267,8 +261,8 @@ class Parser:
                         if max_height[0] > self.blocks_to_check:
                             self.height = max_height[0] - self.blocks_to_check
 
-                    if config['blockchain']['start_height']:
-                        start_height = int(config['blockchain']['start_height'])
+                    if os.environ['START_HEIGHT']:
+                        start_height = int(os.environ['START_HEIGHT'])
                         if self.height < start_height:
                             self.height = start_height
 
@@ -279,7 +273,7 @@ class Parser:
 
         while True:
             try:
-                req = requests.get('{0}/node/status'.format(config['blockchain']['host']))
+                req = requests.get('{0}/node/status'.format(os.environ['NODE_URL']))
                 data = req.json()
                 self.last_block = int(data['blockchainHeight'])
 
@@ -311,7 +305,7 @@ class Parser:
                             batch_range = (self.height, batch)
                             tasks = []
                             for i in range(batch_range[0], batch_range[1]):
-                                url = '{0}/blocks/at/{1}'.format(config['blockchain']['host'], self.height)
+                                url = '{0}/blocks/at/{1}'.format(os.environ['NODE_URL'], self.height)
                                 task = asyncio.create_task(self.fetch_data(url, session))
                                 tasks.append(task)
                                 self.height += 1
@@ -351,32 +345,6 @@ def gentle_exit(app, loop):
     logger.info('Killing the process')
     os.kill(os.getpid(), signal.SIGKILL)
 
-# @parser.route('/start', methods=['POST'])
-# def controls_start(request):
-#     loop = asyncio.get_running_loop()
-#     loop.create_task(controls.start())
-#     return json({"action": "start", "status": "OK"})
-
 @parser.route('/healthcheck', methods=['GET'])
 def container_healthcheck(request):
     return json({"action": "healthcheck", "status": "OK"})
-
-
-# @parser.route('/stop', methods=['POST'])
-# def controls_stop(request):
-#     try:
-#         loop = asyncio.get_running_loop()
-#         tasks = [t for t in asyncio.all_tasks() if t is not
-#                  asyncio.current_task()]
-
-#         [task.cancel() for task in tasks]
-
-#         logger.info('Canceling outstanding tasks')
-#         asyncio.gather(*tasks)
-#         loop.stop()
-#         logger.info('Shutdown complete.')
-
-#     except Exception as error:
-#         return bad_request(error)
-
-#     return json({"action": "stop", "status": "OK"})

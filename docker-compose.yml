@@ -7,11 +7,14 @@ services:
     container_name: nolik-nginx
     ports:
       - 80:80
+      - 8090:8090
       - 3001:3001
     volumes:
       - ./nginx/nginx.dev.conf:/etc/nginx/nginx.conf
     depends_on:
       - web
+    networks:
+      - internal
     restart: unless-stopped
 
   web:
@@ -22,8 +25,14 @@ services:
       - ./web:/opt
       - ./web/next-config.js:/opt/next-config.js
     environment:
-      WS_PORT: 3001
+      - ASSET_ID=${ASSET_ID}
+      - KEEPER_SECRET=${KEEPER_SECRET}
+      - API_HOST=${API_HOST}
+      - NETWORK=${NETWORK}
+      - WS_PORT=3001
     restart: unless-stopped
+    networks:
+      - internal
     command: bash -c "npm install -y && npm run dev"
 
   api:
@@ -33,14 +42,22 @@ services:
     volumes:
       - ./server:/opt
       - ./server/config.ini:/opt/config.ini
-      - ~/.data/nolik/leveldb:/root/.data/leveldb
-    command: bash -c "python3.7 server.py"
+    environment:
+      - ENV=${ENV}
+      - ORIGINS=${ORIGINS}
+      - ASSET_ID=${ASSET_ID}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     depends_on:
       - ipfs
       - postgres
     tty: true
     stdin_open: true
+    networks:
+      - internal
     restart: unless-stopped
+    command: bash -c "python3.7 server.py"
 
   postgres:
     build: ./postgresql
@@ -52,11 +69,13 @@ services:
     ports:
       - 5432:5432
     environment:
-      - POSTGRES_DB=chainify
-      - POSTGRES_USER=chainify
-      - POSTGRES_PASSWORD=chainify
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     tty: true
     stdin_open: true
+    networks:
+      - internal
     restart: unless-stopped
 
   redis:
@@ -67,6 +86,8 @@ services:
       - ~/.data/nolik/redis:/data
     tty: true
     stdin_open: true
+    networks:
+      - internal
     restart: unless-stopped
 
   parser:
@@ -78,15 +99,24 @@ services:
     depends_on:
       - postgres
       - ipfs
+    environment:
+      - ENV=${ENV}
+      - ASSET_ID=${ASSET_ID}
+      - NODE_URL=${NODE_URL}
+      - START_HEIGHT=${START_HEIGHT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     command: bash -c "python3.7 server.py"
     tty: true
     stdin_open: true
+    networks:
+      - internal
     labels:
       - "autoheal=true"
     restart: unless-stopped
 
   ipfs:
-    # build: ./ipfs
     image: ipfs/go-ipfs:latest
     container_name: nolik-ipfs
     volumes:
@@ -97,6 +127,9 @@ services:
       - 5001:5001
       - 8080:8080
     restart: unless-stopped
+    networks:
+      internal:
+        ipv4_address: 10.7.0.7
     tty: true
     stdin_open: true
 
@@ -104,7 +137,17 @@ services:
     image: willfarrell/autoheal:latest
     container_name: nolik-autoheal
     restart: always
+    networks:
+      - internal
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - AUTOHEAL_CONTAINER_LABEL=autoheal
+
+networks:
+  internal:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 10.7.0.0/16
+         gateway: 10.7.0.1

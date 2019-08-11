@@ -2,29 +2,19 @@ from sanic import Sanic
 import os
 from sanic import Blueprint
 from sanic.views import HTTPMethodView
-from sanic.log import logger
 from sanic.response import json
-import requests
 import psycopg2
 from .errors import bad_request
 import configparser
-import base58
-from .ipfs import create_ipfs_file, read_ipfs_file
-from time import time
-import websockets
-import contextvars
-import collections
-import pywaves as pw
-import datetime
 import base58
 
 config = configparser.ConfigParser()
 config.read('config.ini')
 
 dsn = {
-    "user": config['DB']['user'],
-    "password": config['DB']['password'],
-    "database": config['DB']['database'],
+    "user": os.environ['POSTGRES_USER'],
+    "password": os.environ['POSTGRES_PASSWORD'],
+    "database": os.environ['POSTGRES_DB'],
     "host": config['DB']['host'],
     "port": config['DB']['port'],
     "sslmode": config['DB']['sslmode'],
@@ -35,42 +25,12 @@ cdms = Blueprint('cdms_v1', url_prefix='/cdms')
 
 
 class Cdms(HTTPMethodView):
-    # @staticmethod
-    # def post(request):
-    #     message = request.form['message'][0]
-    #     tx = send_cdm(message)
-        
-    #     data = {
-    #         'message': message,
-    #         'tx': tx
-    #     }
-
-    #     return json(data, status=201)
-
     @staticmethod
     def get(request, alice, group_hash):
         data = {
             'cdms': get_cdms(alice, group_hash)
         }
         return json(data, status=200)
-
-# def send_cdm(message):
-#     pw.setNode(node=config['blockchain']['host'], chain=config['blockchain']['network'])
-#     sponsor = pw.Address(seed=config['blockchain']['sponsor_seed'])
-    
-#     asset = pw.Asset(config['blockchain']['asset_id'])
-#     feeAsset = pw.Asset(config['blockchain']['asset_id'])
-#     attachment = create_ipfs_file(message)
-
-#     tx = sponsor.sendAsset(
-#         recipient = sponsor,
-#         asset = asset,
-#         feeAsset = feeAsset,
-#         amount = 1,
-#         attachment = attachment['Hash'])
-
-#     return tx
-
 
 def get_cdms(alice, group_hash=None, limit=None, last_tx_id=None):
     conn = psycopg2.connect(**dsn)

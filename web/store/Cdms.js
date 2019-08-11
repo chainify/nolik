@@ -8,6 +8,10 @@ import stringFromUTF8Array from '../utils/batostr';
 import { crypto } from '@waves/ts-lib-crypto';
 const { address } = crypto({output: 'Base58'});
 
+import getConfig from 'next/config';
+const { publicRuntimeConfig } = getConfig();
+const { NETWORK, ASSET_ID, API_HOST } = publicRuntimeConfig;
+
 class CdmStore {
     stores = null;
     constructor(stores) {
@@ -19,7 +23,6 @@ class CdmStore {
 
     @observable list = null;
     @observable sendCdmStatus = 'init';
-    @observable forwardCdmStatus = 'init';
 
     @observable withCrypto = [];
     @observable fwdCdmsList = [];
@@ -136,7 +139,7 @@ class CdmStore {
         }
         Promise.all(promises)
             .then(_ => {
-                this.list = decList;
+                this.list = decList.reverse();
             })
             .catch(e => {
                 message.error(e.message || e);
@@ -185,16 +188,16 @@ class CdmStore {
     @action
     generateTxData(attachment) {
         const { alice } = this.stores;
-        const recipient = process.env.NETWORK === 'testnet' ? address(alice.publicKey, 'T') : address(alice.publicKey);
+        const recipient = NETWORK === 'testnet' ? address(alice.publicKey, 'T') : address(alice.publicKey);
         const txData = {
             type: 4,
             data: {
                 amount: {
-                assetId: process.env.ASSET_ID,
+                assetId: ASSET_ID,
                 tokens: "0.00000001"
                 },
                 fee: {
-                    assetId: process.env.ASSET_ID,
+                    assetId: ASSET_ID,
                     tokens: "0.001"
                 },
                 recipient: recipient,
@@ -217,7 +220,7 @@ class CdmStore {
             const formConfig = {};
             const formData = new FormData();
             formData.append('data', cdm);
-            return axios.post(`${process.env.API_HOST}/api/v1/ipfs`, formData, formConfig)
+            return axios.post(`${API_HOST}/api/v1/ipfs`, formData, formConfig)
                 .then(ipfsData => {
                     return ipfsData;
                 });
@@ -243,6 +246,7 @@ class CdmStore {
         })
         .catch(e => {
             console.log(e);
+            this.sendCdmStatus = 'error';
             notifiers.error(e);
         });
     }
@@ -266,228 +270,6 @@ class CdmStore {
         }
 
         this.sendCdm();
-    }
-
-    @action
-    savePendingCdm() {
-        const { groups } = this.stores;
-    }
-
-
-    @action
-    sendCdm3() {
-        const { groups, crypto } = this.stores;
-        this.sendCdmStatus = 'pending';
-        
-        return;
-        const recipients = groups.current.members;
-        const messages = [{
-            text: this.message.trim(),
-            hash: null,
-            type: 'to' // 'to' or 'cc'
-        }]  
-        crypto.generateCdm(recipients, messages)
-            .then(encMessage => {
-                const now = moment().unix();
-                this.attachmentHash = sha256(encMessage);
-                this.list = this.list.concat([{
-                    'hash': this.attachmentHash,
-                    'message': this.message,
-                    'type': 'pending',
-                    'timestamp': now
-                }]);
-                return encMessage;
-            })
-            .then(encMessage => {
-                this.pendnigDB.put(this.attachmentHash, this.message);
-                this.message = '';
-                return encMessage;
-            })
-            .then(encMessage => {
-                const formConfig = {};
-                const formData = new FormData();
-                formData.append('data', encMessage);
-                return axios.post(`${process.env.API_HOST}/api/v1/ipfs`, formData, formConfig)
-                    .then(ipfsData => {
-                        return ipfsData;
-                    });
-            })
-            .then(ipfsData => {
-                if (typeof window !== 'undefined') {
-                    return window.Waves.publicState().then(udata => {
-                        const txData = {
-                            type: 4,
-                            data: {
-                                amount: {
-                                   assetId: process.env.ASSET_ID,
-                                   tokens: "0.00000001"
-                                },
-                                fee: {
-                                    assetId: process.env.ASSET_ID,
-                                    tokens: "0.001"
-                                },
-                                recipient: udata.account.address,
-                                attachment: ipfsData.data['Hash']
-                            }
-                        };
-                        return window.WavesKeeper.signAndPublishTransaction(txData).then(data => {
-                            return data;
-                        }).catch(e => { 
-                            console.log(e);
-                            if (e.code && e.code === "15") {
-                                notification['warning']({
-                                    message: 'The message is not sent',
-                                    description:
-                                        <div>
-                                            <p>Plese make sure your account has a positive balance</p>
-                                        </div>
-                                  });
-                            } else if (e.code && e.code === "10") {
-                                message.info('Message sending has been canceled');
-                            } else {
-                                message.error(e.message || e);
-                            }
-                        });
-                    });   
-                }
-            })
-            .then(data => {
-                if (!data) {
-                    const list = this.list;
-                    list.splice(-1, 1);
-                    this.list = list;
-                    this.updateReadCdmDB();
-                    this.pendnigDB.del(this.attachmentHash);
-                    this.forwardedList = null;
-                }
-                this.attachmentHash = null;
-                this.sendCdmStatus = 'success'
-            })
-            .catch(e => {
-                console.log(e);
-                message.error(e.message || e);
-                this.sendCdmStatus = 'error';
-            });
-    }
-
-    @action
-    forwardCdms() {
-        const { alice, groups, index, crypto } = this.stores;
-        const formConfig = {}
-
-        return;
-
-        if (groups.current === null)  { return }
-
-        this.forwardCdmStatus = 'pending';
-        axios
-            .get(`${process.env.API_HOST}/api/v1/cdms/${alice.publicKey}/${groups.current.groupHash}`, formConfig)
-            .then(res => {
-                return res.data.cdms;
-            })
-            .then(list => {
-                return this.decryptList(list, false);
-            })
-            .then(list => {
-                this.forwardedList = list;
-                const recipients = toJS(groups.current.members).concat(index.newGroupMembers);
-                const messages = list.map(el => {
-                    return {
-                        text: el.message,
-                        hash: el.messageHash
-                    }
-                });
-                
-                return crypto.generateCdm(recipients, messages)
-                    .then(cdm => {
-                        this.attachmentHash = sha256(cdm);
-                        return cdm;
-                    });
-            })
-            .then(cdm => {
-                const formConfig = {};
-                const formData = new FormData();
-                formData.append('data', cdm);
-                return axios.post(`${process.env.API_HOST}/api/v1/ipfs`, formData, formConfig)
-                    .then(ipfsData => {
-                        return ipfsData;
-                    });
-            })
-            .then(ipfsData => {
-                if (typeof window !== 'undefined') {
-                    return window.Waves.publicState().then(udata => {
-                        const txData = {
-                            type: 4,
-                            data: {
-                                amount: {
-                                   assetId: process.env.ASSET_ID,
-                                   tokens: "0.00000001"
-                                },
-                                fee: {
-                                    assetId: process.env.ASSET_ID,
-                                    tokens: "0.001"
-                                },
-                                recipient: udata.account.address,
-                                attachment: ipfsData.data['Hash']
-                            }
-                        };
-                        return window.WavesKeeper.signAndPublishTransaction(txData)
-                            .then(data => {
-                                return data;
-                            })
-                            .catch(e => { 
-                                console.log(e);
-                                if (e.code && e.code === "15") {
-                                    notification['warning']({
-                                        message: 'The message is not sent',
-                                        description:
-                                            <div>
-                                                <p>Plese make sure your account has a positive balance</p>
-                                            </div>
-                                    });
-                                } else if (e.code && e.code === "10") {
-                                    message.info('Message sending has been canceled');
-                                } else {
-                                    message.error(e.message || e);
-                                }
-                            });
-                    });   
-                }
-            })
-            .then(data => {
-                if (data) {
-                    groups.setGroup(groups.newGroups[0]);
-                    const pendingCdms = [];
-                    for (let i = 0; i < this.forwardedList.length; i += 1) {
-                        const listEl = this.forwardedList[i];
-                        const message = listEl.message.replace(/@[\w]{64}$/gmi, "");
-                        this.pendnigDB.put(this.attachmentHash, message);
-                        this.readCdmDB.put(groups.current.groupHash, this.forwardedList.length);
-
-                        const now = moment().unix();
-                        pendingCdms.push({
-                            'hash': this.attachmentHash,
-                            'message': message,
-                            'type': 'pending',
-                            'timestamp': now
-                        });
-                    }
-                    
-                    this.list = pendingCdms;
-                    index.resetNewGroupMember();
-                    index.showNewGroupMembersModal = false;
-
-                } else {
-                    groups.newGroups = [];
-                }
-                this.attachmentHash = null;
-                this.forwardCdmStatus = 'success';
-            })
-            .catch(e => {
-                console.log(e);
-                message.error(e.message || e);
-                this.forwardCdmStatus = 'error';
-            });
     }
 }
 

@@ -1,10 +1,14 @@
 import React from 'react';
 import { observer, inject } from 'mobx-react';
 import * as moment from 'moment';
-import { Menu, Typography, Dropdown } from 'antd';
+import { Menu, Typography, Dropdown, Icon } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEllipsisV, faKey, faReply, faShare, faReplyAll, faArchive } from '@fortawesome/free-solid-svg-icons'
 import { sha256 } from 'js-sha256';
+
+import getConfig from 'next/config';
+const { publicRuntimeConfig } = getConfig();
+const { NETWORK, API_HOST } = publicRuntimeConfig;
 
 const ReactMarkdown = require('react-markdown');
 const { Paragraph } = Typography;
@@ -60,7 +64,7 @@ class Message extends React.Component {
             .filter(el => el.txId === item.txId)
             .filter(el => el.type === 'cc')
             .map(el => el.publicKey)
-                                        {/* </span><div className="self">You</div> */}
+            {/* </span><div className="self">You</div> */}
 
         return (
             <div>
@@ -93,11 +97,21 @@ class Message extends React.Component {
                         </div>
                     </div>
                     <div className={`crypto ${cdms.withCrypto.indexOf(item.txId) > -1 && 'active'}`}>
-                        <p><b>Blockchain transaction ID:</b> <a href={`https://wavesexplorer.com/${process.env.NETWORK === 'testnet' ? 'testnet/' : ''}tx/${item.txId}`} target="_blank">{item.txId}</a></p>
-                        <p><b>IPFS Hash:</b> <a href={`${process.env.API_HOST}/ipfs/${item.ipfsHash}`} target="_blank">{item.ipfsHash}</a></p>
+                        <div className="close">
+                            <button
+                                className="menuBtn"
+                                onClick={_ => {
+                                    cdms.toggleWithCrypto(item.txId);
+                                }}
+                            >
+                                <Icon type="close" />
+                            </button>
+                        </div>
+                        <p><b>Blockchain transaction ID:</b> <a href={`https://wavesexplorer.com/${NETWORK === 'testnet' ? 'testnet/' : ''}tx/${item.txId}`} target="_blank">{item.txId}</a></p>
+                        <p><b>IPFS Hash:</b> <a href={`${API_HOST}/ipfs/${item.ipfsHash}`} target="_blank">{item.ipfsHash}</a></p>
                         <p>--</p>
                         <p><b>Raw message:</b> {item.rawMessage}</p>
-                        <p><b>Message SHA256:</b> {item.messageHash}</p>
+                        <p><b>Message SHA256 hash:</b> {item.messageHash}</p>
                         <p><b>Hash is valid:</b> {sha256(item.rawMessage) === item.messageHash ? 'TRUE' : 'FALSE'}</p>
                         <p>--</p>
                         <p><b>CDM type:</b> {item.logicalSender === item.realSender ? 'Direct (Blockchain proof)' : 'Sponsored (CDM proof)'}</p>
@@ -156,6 +170,24 @@ class Message extends React.Component {
                         border-radius: 4px;
                         display: none;
                         word-wrap: break-word;
+                        position: relative;
+                    }
+
+                    .crypto .close {
+                        width: 20px;
+                        height: 20px;
+                        position: absolute;
+                        right: 10px;
+                        top: 10px;
+                        text-align: center;
+                        border: 1px solid #ddd;
+                        border-radius: 4px;
+                        font-size: 18px;
+                        line-height: 18px;
+                    }
+
+                    .crypto .close:hover {
+                        color: #ccc;
                     }
 
                     .crypto.active {

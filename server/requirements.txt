@@ -1,15 +1,8 @@
 sanic
-PyJWT
-sendgrid
-pywaves == 0.8.20
 requests
-aiohttp
 psycopg2-binary
-ipfsapi
+ipfshttpclient
 configparser
-base58 == 0.2.5
-python-socketio
+base58
 sanic-cors
-pycrypto
-plyvel
 redis

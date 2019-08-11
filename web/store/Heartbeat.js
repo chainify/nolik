@@ -1,9 +1,9 @@
 import { action, observable } from 'mobx';
 import axios from 'axios';
-import Router from 'next/router';
-import stringFromUTF8Array from '../utils/batostr';
-import { keyPair as wckp } from '@waves/waves-crypto';
 
+import getConfig from 'next/config';
+const { publicRuntimeConfig } = getConfig();
+const { API_HOST } = publicRuntimeConfig;
 
 class HeartbeatStore {
     stores = null;
@@ -29,7 +29,7 @@ class HeartbeatStore {
         
         utils.sleep(this.pushStatus === 'init' ? 0 : 1000).then(() => {
             this.pushStatus = 'pending';
-            axios.post(`${process.env.API_HOST}/api/v1/heartbeat`, formData, formConfig)
+            axios.post(`${API_HOST}/api/v1/heartbeat`, formData, formConfig)
                 .then(res => {
                     const listGroups = res.data.groups;
                     const listCdms = res.data.cdms;

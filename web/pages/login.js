@@ -5,7 +5,6 @@ import { observer, inject } from 'mobx-react';
 import { Row, Col, Input, Button, notification, Icon, Divider } from 'antd';
 import mouseTrap from 'react-mousetrap';
 
-
 @inject('login', 'alice')
 @observer
 class Index extends React.Component {

@@ -1,9 +1,9 @@
 import { action, observable } from 'mobx';
-import axios from 'axios';
 import Router from 'next/router';
-import stringFromUTF8Array from './../utils/batostr';
-import { keyPair as wckp } from '@waves/waves-crypto';
 
+import getConfig from 'next/config';
+const { publicRuntimeConfig } = getConfig();
+const { KEEPER_SECRET } = publicRuntimeConfig;
 
 class AliceStore {
     stores = null;
@@ -28,21 +28,11 @@ class AliceStore {
             try {
                 window.Waves.auth({
                     name: 'Nolik',
-                    data: process.env.SECRET,
+                    data: KEEPER_SECRET,
                 }).then(() => {
                     window.Waves.publicState().then(data => {
                         this.publicKey = data.account.publicKey; 
                         groups.resetGroup();
-                        // cdms.list = null;
-                        // groups.list = null;
-                        // index.resetNewGroupMember();
-                        // index.showGroupInfoModal = false;
-                        // index.showNewGroupMembersModal = false;
-                        // const groupHash = sessionStorage.getItem('groupHash');
-                        // cdms.initLevelDB(data.account.publicKey, groupHash || 'none');
-                        // contacts.initLevelDB();
-                        // contacts.saveContact(this.publicKey, data.account.name); 
-                        // 
                     })
                     .catch(e => {
                         console.error(e);

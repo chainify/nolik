@@ -3,19 +3,11 @@ import os
 import time
 from sanic import Blueprint
 from sanic.views import HTTPMethodView
-from sanic.response import text
-from sanic.log import logger
 from sanic.response import json
-import uuid
-import asyncio
-import aiohttp
-import requests
 import psycopg2
-import hashlib
 from .cdms import get_cdms
 from .errors import bad_request
 import configparser
-import base58
 
 groups = Blueprint('groups_v1', url_prefix='/groups')
 
@@ -23,15 +15,14 @@ config = configparser.ConfigParser()
 config.read('config.ini')
 
 dsn = {
-    "user": config['DB']['user'],
-    "password": config['DB']['password'],
-    "database": config['DB']['database'],
+    "user": os.environ['POSTGRES_USER'],
+    "password": os.environ['POSTGRES_PASSWORD'],
+    "database": os.environ['POSTGRES_DB'],
     "host": config['DB']['host'],
     "port": config['DB']['port'],
     "sslmode": config['DB']['sslmode'],
     "target_session_attrs": config['DB']['target_session_attrs']
 }
-
 
 class Groups(HTTPMethodView):
     @staticmethod
@@ -103,4 +94,3 @@ def get_groups(alice, last_tx_id = None):
 
 
 groups.add_route(Groups.as_view(), '/<alice>')
-# groups.add_route(Groups.as_view(), '/<alice>/<lasl_cdm_hash>')
