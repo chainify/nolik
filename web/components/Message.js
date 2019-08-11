@@ -93,7 +93,7 @@ class Message extends React.Component {
                         </div>
                     </div>
                     <div className={`crypto ${cdms.withCrypto.indexOf(item.txId) > -1 && 'active'}`}>
-                        <p><b>Blockchain transaction ID:</b> <a href={`https://wavesexplorer.com/${process.env.NETWORK === 'testnet' && 'testnet/'}tx/${item.txId}`} target="_blank">{item.txId}</a></p>
+                        <p><b>Blockchain transaction ID:</b> <a href={`https://wavesexplorer.com/${process.env.NETWORK === 'testnet' ? 'testnet/' : ''}tx/${item.txId}`} target="_blank">{item.txId}</a></p>
                         <p><b>IPFS Hash:</b> <a href={`${process.env.API_HOST}/ipfs/${item.ipfsHash}`} target="_blank">{item.ipfsHash}</a></p>
                         <p>--</p>
                         <p><b>Raw message:</b> {item.rawMessage}</p>
