@@ -10,7 +10,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
 
 import PageHeader from '../components/PageHeader';
-import CdmsList from '../components/Cdms';
+import CdmsList from './cdmsList';
 
 @inject('groups', 'compose')
 @observer

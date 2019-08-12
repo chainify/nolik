@@ -1,7 +1,7 @@
 import React from 'react';
 import { observer, inject } from 'mobx-react';
 import { autorun } from 'mobx';
-import Message from './Message';
+import Message from './../components/Message';
 import * as moment from 'moment';
 import { Divider } from 'antd';
 import NoSSR from 'react-no-ssr';
@@ -15,26 +15,12 @@ class Cdms extends React.Component {
     }
 
     componentDidUpdate() {
-        console.log('update');
-        // this.contentDiv.scrollTop = this.contentDiv.scrollHeight - this.contentDiv.clientHeight;
         this.contentDiv.scrollTop = 0;
     }
 
     componentDidMount() {
         const { cdms } = this.props;
-        // console.log('mount', this.contentDiv);
-        // console.log('mount', this.contentDiv.scrollTopMax, this.contentDiv.clientHeight);
         this.contentDiv.scrollTop = 0;
-        // if (
-        //     this.contentDiv &&
-        //     cdms.list &&
-        //     cdms.list.length > 0 && 
-        //     this.contentDiv.scrollHeight - this.contentDiv.clientHeight > 0
-        // ) {
-        //     console.log('zxc');
-            
-        //     this.contentDiv.scrollTop = this.contentDiv.scrollHeight - this.contentDiv.clientHeight;
-        // }
     }
 
     render() {

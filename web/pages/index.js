@@ -4,7 +4,7 @@ import { withRouter } from 'next/router';
 import { observer, inject } from 'mobx-react';
 import { autorun, toJS } from 'mobx';
 // import { i18n, Link as Tlink, withNamespaces } from '../i18n';
-import Wrapper from '../components/Wrapper';
+import Wrapper from './wrapper';
 import GroupInfo from './groupInfo';
 import { Row, Col, Input, Button, Icon } from 'antd';
 
