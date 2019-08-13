@@ -78,8 +78,8 @@ class Message extends React.Component {
                             </div>
                             <div className="recipients">
                                 <div>
-                                    <div><b>To:</b>{toRecipients.map(el => <span className="contact" key={`contact_${el}`}>{el}</span>)}</div>
-                                    <div><b>Cc:</b>{ccRecipients.map(el => <span className="contact" key={`contact_${el}`}>{el}</span>)}</div>
+                                    <div><b>To:</b> {toRecipients.length > 0 ? toRecipients.map(el => <span className="contact" key={`contact_${el}`}>{el === alice.publicKey ? 'You' : el}</span>) : '-'}</div>
+                                    <div><b>Cc:</b> {ccRecipients.length > 0 ? ccRecipients.map(el => <span className="contact" key={`contact_${el}`}>{el === alice.publicKey ? 'You' : el}</span>) : '-'}</div>
                                 </div>
                             </div>
                         </div>
@@ -231,7 +231,7 @@ class Message extends React.Component {
 
                     .contact {
                         background: #eee;
-                        margin: 0 4px 4px 4px;
+                        margin: 0 4px 4px 0px;
                         padding: 0.2em 0.4em;
                         border-radius: 4px;
                         font-size: 12px;

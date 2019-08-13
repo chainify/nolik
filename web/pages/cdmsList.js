@@ -49,12 +49,12 @@ class Cdms extends React.Component {
                     }
 
                     .messageContainer {
-                        padding-left: 2em;
+                        padding-left: 0em;
                         padding-bottom: 2em;
                     }
 
                     .messageContainer:first-child {
-                        padding-left: 0;
+                        padding-left: 0em;
                     }
                 `}</style>
             </div>

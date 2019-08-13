@@ -66,8 +66,9 @@ class ThreadsStore {
 
     @action
     demolish() {
+        const { heartbeat } = this.stores;
         this.list = null;
-        this.lastTxId = null;
+        heartbeat.lastTxId = null;
         this.resetThread();
     }
 
@@ -78,7 +79,7 @@ class ThreadsStore {
             .on('data', data => {
                 const k = parseInt(stringFromUTF8Array(data.key));
                 const v = stringFromUTF8Array(data.value);
-                // this.listDB.del(k);
+                this.listDB.del(k);
 
                 const item = JSON.parse(v);
                 const p = this.decrypItem(item).then(res => {

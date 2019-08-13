@@ -63,7 +63,7 @@ def get_threads(alice, last_tx_id = None):
                 )
 
                 if last_tx_id:
-                    sql += "AND c.timestamp > (SELECT timestamp FROM cdms WHERE tx_id='{0}')".format(last_tx_id)
+                    sql += "AND c.timestamp > (SELECT DISTINCT timestamp FROM cdms WHERE tx_id='{0}')".format(last_tx_id)
                 sql += "\nORDER BY c.timestamp ASC"
 
                 cur.execute(sql)

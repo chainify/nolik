@@ -53,7 +53,7 @@ class CdmStore {
 
     @action
     cdmData() {
-        const { compose } = this.stores;
+        const { compose, threads } = this.stores;
         this.sendCdmStatus = 'pending';
         
         // const grRecipients = threads.current ? threads.current.members : [];
@@ -74,11 +74,11 @@ class CdmStore {
             });
         } else {
             for (let i = 0; i < this.fwdCdmsList.length; i += 1) {
-                const initCdm = this.list.filter(el => el.messageHash === this.fwdCdmsList[i])[0];
+                const fwdCdm = threads.current.cdms.filter(el => el.messageHash === this.fwdCdmsList[i])[0];
                 data.push({
-                    subject: `FWD: ${initCdm.subject.trim()}`,
-                    message: initCdm.message.trim(),
-                    rawMessage: initCdm.rawMessage,
+                    subject: `FWD: ${fwdCdm.subject.trim()}`,
+                    message: fwdCdm.message.trim(),
+                    rawMessage: fwdCdm.rawMessage,
                     recipients: recipients.map(el => ({
                         recipient: el,
                         type: toRecipients.indexOf(el) > -1 ? 'to' : 'cc',
@@ -161,7 +161,7 @@ class CdmStore {
     fwdCdms() {
         const { threads, compose } = this.stores;
         
-        const list = threads.current && this.list.filter(el => el.threadHash === threads.current.threadHash);
+        const list = threads.current && threads.current.cdms;
         const fwdCdmsList = [];
         if (list) {
             for (let i = 0; i < list.length; i += 1) {
@@ -169,11 +169,9 @@ class CdmStore {
             }
             this.fwdCdmsList = fwdCdmsList;
         }
-        
-        for (let i = 0; i < threads.current.members.length; i =+ 1) {
-            compose.addTag('ccRecipients', threads.current.members[i]);
-        }
 
+        compose.toRecipients = compose.toRecipients.concat(threads.current.members)
+        
         this.sendCdm();
     }
 }

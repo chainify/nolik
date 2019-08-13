@@ -28,6 +28,7 @@ class HeartbeatStore {
             this.lastTxId = threads.list[0].cdms[0].txId;
         }
         
+        
         const formData = new FormData();
         formData.append('publicKey', alice.publicKey);
         if (this.lastTxId) {
@@ -42,6 +43,9 @@ class HeartbeatStore {
                     if (listThreads.length > 0) {
                         const lastThreadCdms = listThreads[listThreads.length - 1].cdms;
                         const lastTxId = lastThreadCdms[0].txId;
+
+                        console.log(this.lastTxId, lastTxId);
+                        
 
                         if (this.lastTxId !== lastTxId) {
                             threads.saveList(listThreads);
