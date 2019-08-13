@@ -14,7 +14,8 @@ services:
     depends_on:
       - web
     networks:
-      - internal
+      internal:
+        ipv4_address: 10.7.0.2
     restart: unless-stopped
 
   web:
@@ -32,7 +33,8 @@ services:
       - WS_PORT=3001
     restart: unless-stopped
     networks:
-      - internal
+      internal:
+        ipv4_address: 10.7.0.3
     command: bash -c "npm install -y && npm run dev"
 
   api:
@@ -55,40 +57,10 @@ services:
     tty: true
     stdin_open: true
     networks:
-      - internal
+      internal:
+        ipv4_address: 10.7.0.4
     restart: unless-stopped
     command: bash -c "python3.7 server.py"
-
-  postgres:
-    build: ./postgresql
-    image: chainify/nolik-postgres
-    container_name: nolik-postgres
-    volumes:
-      - ~/.data/nolik/postgres:/var/lib/postgresql/data
-      - ./postgresql/postgresql.conf:/etc/postgresql/postgresql.conf
-    ports:
-      - 5432:5432
-    environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    tty: true
-    stdin_open: true
-    networks:
-      - internal
-    restart: unless-stopped
-
-  redis:
-    build: ./redis
-    image: chainify/nolik-redis
-    container_name: nolik-redis
-    volumes:
-      - ~/.data/nolik/redis:/data
-    tty: true
-    stdin_open: true
-    networks:
-      - internal
-    restart: unless-stopped
 
   parser:
     build: ./parser
@@ -111,9 +83,30 @@ services:
     tty: true
     stdin_open: true
     networks:
-      - internal
+      internal:
+        ipv4_address: 10.7.0.5
     labels:
       - "autoheal=true"
+    restart: unless-stopped
+
+  postgres:
+    build: ./postgresql
+    image: chainify/nolik-postgres
+    container_name: nolik-postgres
+    volumes:
+      - ~/.data/nolik/postgres:/var/lib/postgresql/data
+      - ./postgresql/postgresql.conf:/etc/postgresql/postgresql.conf
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    tty: true
+    stdin_open: true
+    networks:
+      internal:
+        ipv4_address: 10.7.0.6
     restart: unless-stopped
 
   ipfs:
@@ -126,19 +119,33 @@ services:
       - 4001:4001
       - 5001:5001
       - 8080:8080
-    restart: unless-stopped
     networks:
       internal:
         ipv4_address: 10.7.0.7
     tty: true
     stdin_open: true
+    restart: unless-stopped
+
+  redis:
+    build: ./redis
+    image: chainify/nolik-redis
+    container_name: nolik-redis
+    volumes:
+      - ~/.data/nolik/redis:/data
+    tty: true
+    stdin_open: true
+    networks:
+      internal:
+        ipv4_address: 10.7.0.8
+    restart: unless-stopped
 
   autoheal:
     image: willfarrell/autoheal:latest
     container_name: nolik-autoheal
     restart: always
     networks:
-      - internal
+      internal:
+        ipv4_address: 10.7.0.9
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
@@ -150,4 +157,3 @@ networks:
     ipam:
      config:
        - subnet: 10.7.0.0/16
-         gateway: 10.7.0.1

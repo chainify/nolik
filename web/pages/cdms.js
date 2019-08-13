@@ -12,7 +12,7 @@ import { faPen } from '@fortawesome/free-solid-svg-icons';
 import PageHeader from '../components/PageHeader';
 import CdmsList from './cdmsList';
 
-@inject('groups', 'compose')
+@inject('threads', 'compose')
 @observer
 class Cdms extends React.Component {
     constructor(props) {
@@ -20,27 +20,27 @@ class Cdms extends React.Component {
     }
 
     render() {
-        const { groups, compose } = this.props;   
+        const { threads, compose } = this.props;   
         return (
             <div>
                 <div className="container">
-                    {groups.current && (
+                    {threads.current && (
                         <PageHeader
                             goBack={
                                 <Button
                                     type="ghost"
                                     shape="circle"
                                     onClick={_ => {
-                                        groups.resetGroup();
+                                        threads.resetThread();
                                     }}
                                 >
                                     <Icon type="arrow-left" />
                                 </Button>
                             }
-                            title={groups.current.initCdm.subject}
+                            title={threads.current.cdms[threads.current.cdms.length-1].subject}
                             extra={[
                                 <Button
-                                    key="header_write_to_group"
+                                    key="header_write_to_thread"
                                     type="primary"
                                     shape="round"
                                     onClick={compose.toggleComment}
@@ -52,25 +52,25 @@ class Cdms extends React.Component {
                                     key="header_info_button"
                                     type="default"
                                     shape="circle"
-                                    onClick={groups.toggleShowGroupInfo}
-                                    disabled={groups.showGroupInfo}
+                                    onClick={threads.toggleShowThreadInfo}
+                                    disabled={threads.showThreadInfo}
                                 >
                                     <Icon type="info" />
                                 </Button>,
                                 <Button
-                                    key="header_add_group_member_button"
+                                    key="header_add_thread_member_button"
                                     type="default"
                                     shape="circle"
                                     onClick={compose.toggleAddMeber}
                                     disabled={compose.addMemberOn}
                                 >
-                                    <Icon type="usergroup-add" />
+                                    <Icon type="userthread-add" />
                                 </Button>,
                             ]}
                         />
                     )}
-                    <div className={groups.current ? 'listCurrent' : 'listFull'}>
-                        <CdmsList />
+                    <div className={threads.current ? 'listCurrent' : 'listFull'}>
+                        {threads.current && <CdmsList />}
                     </div>
                 </div>
                 <style jsx>{`

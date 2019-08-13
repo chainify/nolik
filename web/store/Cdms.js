@@ -16,20 +16,17 @@ class CdmStore {
     stores = null;
     constructor(stores) {
         this.stores = stores;
-        this.decryptList = this.decryptList.bind(this);
         this.sendCdm = this.sendCdm.bind(this);
         this.fwdCdms = this.fwdCdms.bind(this);
     }
 
-    @observable list = null;
-    @observable sendCdmStatus = 'init';
-
+    
     @observable withCrypto = [];
     @observable fwdCdmsList = [];
+    @observable sendCdmStatus = 'init';
     
     // @observable readCdmDB = null;
-    @observable listDB = null;
-    @observable pendnigDB = null;
+    // @observable pendnigDB = null;
     
     @action
     initLevelDB() {
@@ -37,10 +34,8 @@ class CdmStore {
         const levelup = require('levelup');
         const leveljs = require('level-js');
 
-        // this.readCdmDB = levelup(leveljs(`/root/.leveldb/read_cdms_${alice.publicKey}`));
         if (alice.publicKey) {
-            this.listDB = levelup(leveljs(`/root/.leveldb/list_cdms_${alice.publicKey}`));
-            this.pendnigDB = levelup(leveljs(`/root/.leveldb/pending_cdms_${alice.publicKey}`));
+            // this.readCdmDB = levelup(leveljs(`/root/.leveldb/read_cdms_${alice.publicKey}`));
         }
     }
 
@@ -57,101 +52,11 @@ class CdmStore {
     }
 
     @action
-    readList() {
-        const list = [];
-        this.listDB.createReadStream()
-            .on('data', data => {
-                const k = parseInt(stringFromUTF8Array(data.key));
-                const v = stringFromUTF8Array(data.value);
-                list.push({
-                    key: k,
-                    value: JSON.parse(v)
-                });
-                // this.listDB.del(k);
-            })
-            .on('end', _ => {
-                this.decryptList(list.map(el => el.value));
-            });
-    }
-
-    @action
-    saveList(list) {
-        const records = [];
-        this.listDB.createReadStream()
-            .on('data', data => {
-                const k = parseInt(stringFromUTF8Array(data.key));
-                const v = stringFromUTF8Array(data.value);
-                records.push({
-                    key: k,
-                    value: JSON.parse(v)
-                });
-            })
-            .on('end', _ => {
-                const operations = [];
-                const txIds = records.map(el => el.value.txId);
-                const lastKey = records.length > 0 ? records[records.length - 1].key : 0;
-                for (let i = 0; i < list.length; i += 1) {
-                    if (txIds.indexOf(list[i].txId) < 0) {
-                        operations.push({
-                            type: 'put',
-                            key: lastKey + i + 1,
-                            value: JSON.stringify(list[i])
-                        });
-                    }
-                }
-
-                this.listDB.batch(operations, err => {
-                    if (err) return console.log('Batch insert error', err);
-                    this.readList();
-                });
-            });
-    }
-
-
-    @action
-    decryptList(list) {
-        const { crypto } = this.stores;
-        const decList = [];
-        const promises = [];
-        for (let i = 0; i < list.length; i += 1) {
-            const listEl = list[i];
-            if (listEl.subject) {
-                const subject = crypto.decryptMessage(
-                    listEl.subject,
-                    listEl.direction === 'outgoing' ? listEl.recipient : listEl.logicalSender
-                )
-                .then(res => {
-                    listEl.subject = res.replace(/@[\w]{64}$/gmi, "");
-                });
-                promises.push(subject);
-            }
-
-            const message = crypto.decryptMessage(
-                listEl.message, 
-                listEl.direction === 'outgoing' ? listEl.recipient : listEl.logicalSender
-            )
-            .then(msg => {
-                listEl.rawMessage = msg;
-                listEl.message = msg.replace(/@[\w]{64}$/gmi, "");
-                decList.push(listEl);
-            })
-            promises.push(message);
-        }
-        Promise.all(promises)
-            .then(_ => {
-                this.list = decList.reverse();
-            })
-            .catch(e => {
-                message.error(e.message || e);
-            });
-    }
-
-    @action
     cdmData() {
         const { compose } = this.stores;
         this.sendCdmStatus = 'pending';
         
-        // const grRecipients = groups.current ? groups.current.members : [];
+        // const grRecipients = threads.current ? threads.current.members : [];
         const toRecipients = compose.toRecipients;
         const ccRecipients = compose.ccRecipients;
 
@@ -254,9 +159,9 @@ class CdmStore {
 
     @action
     fwdCdms() {
-        const { groups, compose } = this.stores;
+        const { threads, compose } = this.stores;
         
-        const list = groups.current && this.list.filter(el => el.groupHash === groups.current.groupHash);
+        const list = threads.current && this.list.filter(el => el.threadHash === threads.current.threadHash);
         const fwdCdmsList = [];
         if (list) {
             for (let i = 0; i < list.length; i += 1) {
@@ -265,8 +170,8 @@ class CdmStore {
             this.fwdCdmsList = fwdCdmsList;
         }
         
-        for (let i = 0; i < groups.current.members.length; i =+ 1) {
-            compose.addTag('ccRecipients', groups.current.members[i]);
+        for (let i = 0; i < threads.current.members.length; i =+ 1) {
+            compose.addTag('ccRecipients', threads.current.members[i]);
         }
 
         this.sendCdm();

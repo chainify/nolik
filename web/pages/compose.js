@@ -99,6 +99,19 @@ class Compose extends React.Component {
                     />
                     <div className="body">
                         {!compose.commentIsOn && <ComposeHeader />}
+                        <div className="formField">
+                            <div className="formLabel">Subject:</div>
+                            <div className="formInput">
+                                <TextArea
+                                    style={inputStyle}
+                                    autosize
+                                    value={compose.subject}
+                                    onChange={e => {
+                                        compose.subject = e.target.value;
+                                    }}
+                                />
+                            </div>
+                        </div>
                         <TextArea
                             placeholder="Message"
                             style={messageStyle}
@@ -121,6 +134,25 @@ class Compose extends React.Component {
                     .body {
                         min-height: calc(100vh - 52px);
                         padding: 4em;
+                    }
+
+                    .formField {
+                        width: 100%;
+                        display: flex;
+                        margin-bottom: 20px;
+                    }
+
+                    .formLabel {
+                        padding-right: 20px;
+                        font-size: 18px;
+                        line-height: 36px;
+                        font-weight: 400;
+                        color: #9e9e9e;                      
+                    }
+
+                    .formInput {
+                        flex-grow: 1;
+                        border-bottom: 1px solid #eee;
                     }
                 `}</style>
             </div>

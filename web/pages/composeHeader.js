@@ -133,19 +133,7 @@ class ComposeHeader extends React.Component {
                         </div>
                     </div>
                 )}
-                <div className="formField">
-                    <div className="formLabel">Subject:</div>
-                    <div className="formInput">
-                        <TextArea
-                            style={inputStyle}
-                            autosize
-                            value={compose.subject}
-                            onChange={e => {
-                                compose.subject = e.target.value;
-                            }}
-                        />
-                    </div>
-                </div>
+                
                 <style jsx>{`
                     .container {
                         height: 100vh;

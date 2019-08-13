@@ -12,15 +12,15 @@ import { faUsers } from '@fortawesome/free-solid-svg-icons';
 const { Paragraph } = Typography;
 
 
-@inject('groups', 'alice', 'compose', 'cdms')
+@inject('threads', 'alice', 'compose', 'cdms')
 @observer
-class GroupInfo extends React.Component {
+class ThreadInfo extends React.Component {
     constructor(props) {
         super(props);
     }
 
     render() {
-        const { groups, alice, compose, cdms } = this.props;
+        const { threads, alice, compose, cdms } = this.props;
         const pstyle = {
             margin: 0,
             padding: 0,
@@ -35,7 +35,7 @@ class GroupInfo extends React.Component {
                                 type="ghost"
                                 shape="circle"
                                 onClick={_ => {
-                                    groups.toggleShowGroupInfo();
+                                    threads.toggleShowThreadInfo();
                                 }}
                                 disabled={compose.addMemberOn}
                             >
@@ -46,11 +46,15 @@ class GroupInfo extends React.Component {
                     <div className="info">
                         <h2>Thread</h2>
                         <div className="paper">
-                            {groups.current && groups.current.initCdm.subject}
+                            {threads.current.cdms[threads.current.cdms.length-1].subject 
+                                ? threads.current.cdms[threads.current.cdms.length-1].subject
+                                : threads.current.cdms[threads.current.cdms.length-1].message.length > 140
+                                    ? `${threads.current.cdms[threads.current.cdms.length-1].message.substring(0, 140)}...`
+                                    : threads.current.cdms[threads.current.cdms.length-1].message}
                         </div>
                         <h2>Members</h2>
                         <div className="paper">
-                            {groups.current && [alice.publicKey].concat(groups.current.members).map((el, index)=> (
+                            {[alice.publicKey].concat(threads.current.members).map((el, index)=> (
                                 <Paragraph
                                     ellipsis
                                     style={pstyle}
@@ -59,13 +63,13 @@ class GroupInfo extends React.Component {
                                     {index + 1}. {el === alice.publicKey ? <span className="self">You</span> : el}
                                 </Paragraph>
                             ))}
-                            {groups.current && compose.toRecipients.map((el, index) => (
+                            {compose.toRecipients.map((el, index) => (
                                 <Paragraph
                                     ellipsis
                                     style={pstyle}
                                     key={`member_${el}`}
                                 >
-                                    {groups.current.members.length + 2 + index}. {el}
+                                    {threads.current.members.length + 2 + index}. {el}
                                 </Paragraph>
                             ))}
                             {!compose.composeMode && <Divider />}
@@ -119,7 +123,7 @@ class GroupInfo extends React.Component {
                                         className="addMemberBtn"
                                         onClick={compose.toggleAddMeber}
                                         disabled={
-                                            groups.current === null ||
+                                            threads.current === null ||
                                             compose.composeMode
                                         }
                                     >
@@ -201,8 +205,8 @@ class GroupInfo extends React.Component {
     }
 }
 
-GroupInfo.propTypes = {
+ThreadInfo.propTypes = {
     // index: PropTypes.object,
 };
 
-export default GroupInfo;
+export default ThreadInfo;

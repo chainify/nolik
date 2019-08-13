@@ -1,6 +1,6 @@
 import Index from './Index';
 import Alice from './Alice';
-import Groups from './Groups';
+import Threads from './Threads';
 import Cdms from './Cdms';
 import Utils from './Utils';
 import Crypto from './Crypto';
@@ -14,7 +14,7 @@ import Notifiers from './Notifiers';
 const stores = {};
 
 stores.alice = new Alice(stores);
-stores.groups = new Groups(stores);
+stores.threads = new Threads(stores);
 stores.utils = new Utils(stores);
 stores.crypto = new Crypto(stores);
 stores.wrapper = new Wrapper(stores);

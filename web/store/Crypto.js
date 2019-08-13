@@ -83,7 +83,7 @@ class CryptoStore {
     }
 
     @action
-    message(data, groupHash) {
+    message(data, threadHash) {
         return new Promise((resolve, reject) => {
             let msg = '';            
             const promises = [];
@@ -100,9 +100,9 @@ class CryptoStore {
                     .then(res => {
                         msg += '\r\n<message>';
                         msg += res;
-                        if (groupHash) {
+                        if (threadHash) {
                             msg += '\r\n<extra>';
-                            msg += `\r\n<groupHash>${groupHash}</groupHash>`;
+                            msg += `\r\n<threadHash>${threadHash}</threadHash>`;
                             msg += '\r\n</extra>';
                         }
                         msg += '\r\n</message>';
@@ -121,23 +121,23 @@ class CryptoStore {
     compose(data) {
         return new Promise((resolve, reject) => {
             if (typeof window !== 'undefined') {
-                const { groups, cdms } = this.stores;
+                const { threads, cdms } = this.stores;
 
                 let msg = '';
-                let groupHash = null;
-                if (groups.current) {
+                let threadHash = null;
+                if (threads.current) {
                     if (cdms.fwdCdmsList.length === 0) {
-                        groupHash = groups.current.groupHash;
+                        threadHash = threads.current.threadHash;
                     } else {
                         const initSubjectHash = data[0].subject ? sha256(this.randomize(data[0].subject)) : '';
                         const initMessageHash = data[0].messageHash;
-                        groupHash = sha256([initSubjectHash, initMessageHash].join(''));
+                        threadHash = sha256([initSubjectHash, initMessageHash].join(''));
                     }
                 }
 
                 const promises = [];
                 for (let i = 0; i < data.length; i += 1) {
-                    const message = this.message(data[i], groupHash).then(res => {
+                    const message = this.message(data[i], threadHash).then(res => {
                         msg += res;
                     });
                     promises.push(message);

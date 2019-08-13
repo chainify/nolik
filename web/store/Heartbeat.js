@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, observable, toJS } from 'mobx';
 import axios from 'axios';
 
 import getConfig from 'next/config';
@@ -13,32 +13,40 @@ class HeartbeatStore {
     }
 
     @observable pushStatus = 'init';
-    @observable lastCdmHash = null;
+    @observable lastTxId = null;
 
     @action
     push() {
-        const { utils, groups, cdms, alice } = this.stores;
-        if (this.publicKey === null) { return }
-        
+        const { utils, threads, alice } = this.stores;
         const formConfig = {};
+
+        if (
+            threads.list &&
+            threads.list.length > 0 &&
+            this.lastTxId === null
+        ) {
+            this.lastTxId = threads.list[0].cdms[0].txId;
+        }
+        
         const formData = new FormData();
         formData.append('publicKey', alice.publicKey);
-        if (groups.lastTxId) {
-            formData.append('lastTxId', groups.lastTxId);
+        if (this.lastTxId) {
+            formData.append('lastTxId', this.lastTxId);
         }
         
         utils.sleep(this.pushStatus === 'init' ? 0 : 1000).then(() => {
             this.pushStatus = 'pending';
             axios.post(`${API_HOST}/api/v1/heartbeat`, formData, formConfig)
                 .then(res => {
-                    const listGroups = res.data.groups;
-                    const listCdms = res.data.cdms;
-                    if (
-                        listGroups.length > 0 &&
-                        listGroups[listGroups.length - 1].lastCdm.txId !== groups.lastTxId
-                    ) {
-                        cdms.saveList(listCdms);
-                        groups.saveList(listGroups);
+                    const listThreads = res.data.threads;
+                    if (listThreads.length > 0) {
+                        const lastThreadCdms = listThreads[listThreads.length - 1].cdms;
+                        const lastTxId = lastThreadCdms[0].txId;
+
+                        if (this.lastTxId !== lastTxId) {
+                            threads.saveList(listThreads);
+                            this.lastTxId = lastTxId;
+                        }
                     }
                 })
                 .then(_ => {

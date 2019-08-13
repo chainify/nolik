@@ -6,10 +6,10 @@ import { autorun, toJS } from 'mobx';
 // import { i18n, Link as Tlink, withNamespaces } from '../i18n';
 import { Input, Button, Icon } from 'antd';
 
-import Cdms from './cmds';
+import Cdms from './cdms';
 import Compose from './compose';
 
-@inject('compose', 'groups')
+@inject('compose', 'threads')
 @observer
 class Main extends React.Component {
     constructor(props) {
@@ -17,13 +17,13 @@ class Main extends React.Component {
     }
 
     render() {
-        const { compose, groups } = this.props;
+        const { compose, threads } = this.props;
         return (
             <div>
                 <div className="container">
                     {compose.composeMode
                         ? <Compose />
-                        : groups.current ? <Cdms /> : <div className="empty" />}
+                        : threads.current ? <Cdms /> : <div className="empty" />}
                 </div>
                 <style jsx>{`
                     .container {

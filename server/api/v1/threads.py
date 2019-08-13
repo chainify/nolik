@@ -9,7 +9,7 @@ from .cdms import get_cdms
 from .errors import bad_request
 import configparser
 
-groups = Blueprint('groups_v1', url_prefix='/groups')
+threads = Blueprint('threads_v1', url_prefix='/threads')
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -24,27 +24,27 @@ dsn = {
     "target_session_attrs": config['DB']['target_session_attrs']
 }
 
-class Groups(HTTPMethodView):
+class Threads(HTTPMethodView):
     @staticmethod
     def get(request, alice):
         last_tx_id = request.args['lastTxId'][0] if 'lastTxId' in request.args else None
         data = {
-            'groups': get_groups(alice, last_tx_id)
+            'threads': get_threads(alice, last_tx_id)
         }
         return json(data, status=200)
 
 
-def get_groups(alice, last_tx_id = None):
+def get_threads(alice, last_tx_id = None):
     conn = psycopg2.connect(**dsn)
     try:
         with conn:
             with conn.cursor() as cur:
                 sql = """
                     SELECT DISTINCT
-                        c.group_hash,
+                        c.thread_hash,
                         array(
                             SELECT recipient FROM cdms cc
-                            WHERE c.group_hash = cc.group_hash
+                            WHERE c.thread_hash = cc.thread_hash
                             UNION
                             SELECT tt.sender_public_key FROM transactions tt
                             WHERE c.tx_id = tt.id
@@ -56,7 +56,7 @@ def get_groups(alice, last_tx_id = None):
                     AND c.timestamp IN (
                         SELECT max(timestamp)
                         FROM cdms
-                        WHERE group_hash = c.group_hash
+                        WHERE thread_hash = c.thread_hash
                     )
                 """.format(
                     alice=alice
@@ -69,28 +69,27 @@ def get_groups(alice, last_tx_id = None):
                 cur.execute(sql)
                 records = cur.fetchall()
 
-                groups = []
-                group_hashes = []
+                threads = []
+                thread_hashes = []
                 for record in records:
-                    group_hash = record[0]
-                    if (group_hash in group_hashes):
+                    thread_hash = record[0]
+                    if (thread_hash in thread_hashes):
                         continue
                     members = record[1]
-                    cdms = get_cdms(alice, group_hash, limit=None)
-                    group = {
+                    cdms = get_cdms(alice, thread_hash, limit=None)
+                    thread = {
                         'members': [member for member in members if member != alice],
-                        'groupHash': group_hash,
-                        'initCdm': None if len(cdms) == 0 else cdms[0],
-                        'lastCdm': None if len(cdms) == 0 else cdms[-1]
+                        'threadHash': thread_hash,
+                        'cdms': cdms
                     }
-                    groups.append(group)
+                    threads.append(thread)
 
                 
 
     except Exception as error:
         return bad_request(error)
     
-    return groups
+    return threads
 
 
-groups.add_route(Groups.as_view(), '/<alice>')
+threads.add_route(Threads.as_view(), '/<alice>')

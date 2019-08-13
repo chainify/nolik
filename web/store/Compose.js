@@ -37,12 +37,13 @@ class ComposeStore {
 
     @action
     toggleComment() {
-        const { groups,  alice } = this.stores;
+        const { threads,  alice } = this.stores;
         this.commentIsOn = !this.commentIsOn;
         
         if (this.commentIsOn === true) {
-            this.subject = `Re: ${groups.current.initCdm.subject}`;
-            this.ccRecipients = groups.current.members.length > 0 ? groups.current.members : alice.publicKey;
+            const subject = threads.current.cdms[threads.current.cdms.length-1].subject;
+            this.subject = `Re: ${subject ? subject : ''}`;
+            this.ccRecipients = threads.current.members.length > 0 ? threads.current.members : alice.publicKey;
         }
         
         this.toggleCompose();
@@ -50,10 +51,10 @@ class ComposeStore {
 
     @action
     toggleAddMeber() {
-        const { groups } = this.stores;
+        const { threads } = this.stores;
         this.addMemberOn = !this.addMemberOn;
         if (this.addMemberOn === true) {
-            groups.showGroupInfo = true;
+            threads.showThreadInfo = true;
         } else {
             this.resetCompose();
         }
@@ -75,7 +76,7 @@ class ComposeStore {
 
     @action
     addTag(toArray, tagText) {
-        const { alice, groups } = this.stores;
+        const { alice, threads } = this.stores;
         if (tagText.trim() === '') { return }
         if (
             this.toRecipients.indexOf(tagText) > -1 ||
@@ -85,9 +86,9 @@ class ComposeStore {
             return;
         }
 
-        if (groups.current && toArray === 'toRecipients') {
+        if (threads.current && toArray === 'toRecipients') {
             if (
-                groups.current.members.indexOf(tagText) > -1 ||
+                threads.current.members.indexOf(tagText) > -1 ||
                 alice.publicKey === tagText
             ) {
                 message.info('Recipient is already in the list');

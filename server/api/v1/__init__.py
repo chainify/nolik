@@ -1,13 +1,13 @@
 from sanic import Blueprint
 from .cdms import cdms
 from .ipfs import ipfs
-from .groups import groups
+from .threads import threads
 from .heartbeat import heartbeat
 
 api_v1 = Blueprint.group(
   cdms,
   ipfs,
-  groups,
+  threads,
   heartbeat,
   url_prefix='/v1'
 )

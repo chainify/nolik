@@ -7,21 +7,21 @@ class AliceStore {
     }
 
     @observable fakeHeaders = [0,1,2,3,4,5,6];
-    @observable showGroupInfoModal = false;
-    @observable showNewGroupMembersModal = false;
+    @observable showThreadInfoModal = false;
+    @observable showNewThreadMembersModal = false;
 
     @observable currentStep = 0;
     @observable searchValue = '';
-    @observable newGroupMembers = [];
-    @observable newGroupName = '';
+    @observable newThreadMembers = [];
+    @observable newThreadName = '';
     @observable forwardPreviousMessages = true;
 
     @action
-    resetNewGroupMember() {
+    resetNewThreadMember() {
         const { cdms } = this.stores;
         this.currentStep = 0;
         this.searchValue = '';
-        this.newGroupMembers = [];
+        this.newThreadMembers = [];
         this.forwardPreviousMessages = true;
         cdms.forwardedList = null;
     }

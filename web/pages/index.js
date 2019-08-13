@@ -5,13 +5,13 @@ import { observer, inject } from 'mobx-react';
 import { autorun, toJS } from 'mobx';
 // import { i18n, Link as Tlink, withNamespaces } from '../i18n';
 import Wrapper from './wrapper';
-import GroupInfo from './groupInfo';
+import ThreadInfo from './threadInfo';
 import { Row, Col, Input, Button, Icon } from 'antd';
 
-import Groups from './groups';
+import Threads from './threads';
 import Main from './main';
 
-@inject('alice', 'groups')
+@inject('alice', 'threads')
 @observer
 class Index extends React.Component {
     constructor(props) {
@@ -29,18 +29,18 @@ class Index extends React.Component {
     }
 
     render() {
-        const { groups } = this.props;
+        const { threads } = this.props;
         return (
             <Wrapper>
                 <Row>
                     <Col xs={8} lg={6}>
-                        <Groups />
+                        <Threads />
                     </Col>
-                    <Col xs={16} lg={groups.current && groups.showGroupInfo ? 12 : 18}>
+                    <Col xs={16} lg={threads.current && threads.showThreadInfo ? 12 : 18}>
                         <Main />
                     </Col>
-                    <Col xs={0} lg={groups.current && groups.showGroupInfo ? 6 : 0}>
-                        <GroupInfo />
+                    <Col xs={0} lg={threads.current && threads.showThreadInfo ? 6 : 0}>
+                        {threads.current && <ThreadInfo />}
                     </Col>
                 </Row>
                 <style jsx>{`

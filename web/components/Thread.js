@@ -7,11 +7,11 @@ import { faLevelDownAlt, faLevelUpAlt } from '@fortawesome/free-solid-svg-icons'
 
 const { Paragraph } = Typography;
 
-@inject('groups', 'compose')
+@inject('threads', 'compose')
 @observer
 class Header extends React.Component {
     render() {
-        const { item, groups, compose } = this.props;
+        const { item, threads, compose } = this.props;
         const paragrapStyle = {
             margin: 0,
             padding: 0,
@@ -25,46 +25,47 @@ class Header extends React.Component {
                     className="button"
                     onClick={() => {
                         if (
-                            groups.current === null ||
-                            (groups.current && groups.current.groupHash !== item.groupHash)
+                            threads.current === null ||
+                            (threads.current && threads.current.threadHash !== item.threadHash)
                         ) {
-                            groups.setGroup(item);
+                            threads.setThread(item);
                         }
                     }}
                 >
-                    <div className={`header ${groups.current && groups.current.groupHash === item.groupHash && 'active'}`}>
+                    <div className={`header ${threads.current && threads.current.threadHash === item.threadHash && 'active'}`}>
                         <div className="headerBody">
-                            {item.lastCdm && (
-                                <div className={`arrow ${item.lastCdm && item.lastCdm.direction}`}>
-                                    <FontAwesomeIcon
-                                        icon={
-                                            item.lastCdm && item.lastCdm.direction === 'incoming'
-                                            ? faLevelDownAlt
-                                            : faLevelUpAlt
-                                        }
-                                    />
-                                </div>
-                            )}
-                            {item.lastCdm && (
-                                <div>
-                                    {item.initCdm.subject && (
-                                        <Paragraph ellipsis style={paragrapStyle}>
-                                            <span className={`headerTitle`}>
-                                                {item.initCdm.subject}
-                                            </span>
-                                        </Paragraph>
-                                    )}
-                                    <Paragraph ellipsis={{ rows: item.lastCdm.subject ? 1 : 2 }} style={paragrapStyle}>
-                                        <span className="headerMessage">
-                                            {item.lastCdm ? 
-                                                item.lastCdm.subject 
-                                                    ? <span>{item.lastCdm.message}</span>
-                                                    : item.lastCdm.message
-                                                : 'No messages yet'}
+                            <div className={`arrow ${item.cdms[0] && item.cdms[0].direction}`}>
+                                <FontAwesomeIcon
+                                    icon={
+                                        item.cdms[0].direction === 'incoming'
+                                        ? faLevelDownAlt
+                                        : faLevelUpAlt
+                                    }
+                                />
+                            </div>
+                            <div>
+                                {item.cdms[item.cdms.length-1].subject && (
+                                    <Paragraph ellipsis style={paragrapStyle}>
+                                        <span className={`headerTitle`}>
+                                            {item.cdms[item.cdms.length-1].subject}
                                         </span>
                                     </Paragraph>
-                                </div>
-                            )}
+                                )}
+                                {!item.cdms[item.cdms.length-1].subject && item.cdms[item.cdms.length-1].message && (
+                                    <Paragraph ellipsis style={paragrapStyle}>
+                                        <span className={`headerTitle`}>
+                                            {item.cdms[item.cdms.length-1].message}
+                                        </span>
+                                    </Paragraph>
+                                )}
+                                <Paragraph ellipsis={{ rows: item.cdms[0].subject ? 1 : 2 }} style={paragrapStyle}>
+                                    <span className="headerMessage">
+                                        {item.cdms[0].subject 
+                                            ? <span>{item.cdms[0].message}</span>
+                                            : item.cdms[0].message}
+                                    </span>
+                                </Paragraph>
+                            </div>
                         </div>
                         <div className="badgeDiv">
                             {item.totalCdms - item.readCdms > 0 && (

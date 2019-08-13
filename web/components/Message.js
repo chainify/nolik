@@ -73,13 +73,13 @@ class Message extends React.Component {
                         <div className="members">
                             <div className="sender">
                                 {item.logicalSender === alice.publicKey 
-                                    ? <div className="self">You</div>
+                                    ? <div className="contact self">You</div>
                                     : <Paragraph ellipsis style={pstyle}>{item.logicalSender}</Paragraph>}
                             </div>
-                            <div className="recipient">
+                            <div className="recipients">
                                 <div>
-                                    {toRecipients.length > 0 && <Paragraph ellipsis={{ rows: 1, expandable: true }} style={pstyle}>To: {toRecipients.join(', ')}</Paragraph>}
-                                    {ccRecipients.length > 0 && <Paragraph ellipsis={{ rows: 1, expandable: true }} style={pstyle}>Cc: {ccRecipients.join(', ')}</Paragraph>}
+                                    <div><b>To:</b>{toRecipients.map(el => <span className="contact" key={`contact_${el}`}>{el}</span>)}</div>
+                                    <div><b>Cc:</b>{ccRecipients.map(el => <span className="contact" key={`contact_${el}`}>{el}</span>)}</div>
                                 </div>
                             </div>
                         </div>
@@ -229,12 +229,19 @@ class Message extends React.Component {
                         color: #ddd;
                     }
 
-                    .self {
-                        background: #ba68c8;
-                        color: #fff;
-                        padding: 0 0.4em;
+                    .contact {
+                        background: #eee;
+                        margin: 0 4px 4px 4px;
+                        padding: 0.2em 0.4em;
                         border-radius: 4px;
+                        font-size: 12px;
+                        line-height: 14px;
                         display: inline-block;
+                    }
+
+                    .contact.self {
+                        background: #ba68c8;
+                        color: #fff
                     }
                 `}</style>
             </div>

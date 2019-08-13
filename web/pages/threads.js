@@ -9,14 +9,14 @@ import { faPen, faInbox } from '@fortawesome/free-solid-svg-icons';
 
 import PageHeader from '../components/PageHeader';
 import Skeleton from '../components/Skeleton';
-import Group from '../components/Group';
+import Thread from '../components/Thread';
 
-@inject('groups', 'heartbeat', 'compose', 'cdms', 'alice', 'notifiers')
+@inject('threads', 'heartbeat', 'compose', 'alice', 'notifiers')
 @observer
-class Groups extends React.Component {
+class Threads extends React.Component {
     constructor(props) {
         super(props);
-        const { groups, heartbeat } = props;
+        const { heartbeat } = props;
 
         this.heartbeatPeriodic = autorun(() => {
             if (heartbeat.pushStatus === 'success') {
@@ -25,8 +25,9 @@ class Groups extends React.Component {
         })
 
         this.initialHeartbeat = autorun(() => {
+            const { threads } = this.props;
             if (
-                groups.list !== null &&
+                threads.list !== null &&
                 heartbeat.pushStatus === 'init'
             ) {
                 heartbeat.push();
@@ -35,11 +36,9 @@ class Groups extends React.Component {
     }
 
     componentDidMount() {
-        const { groups, cdms } = this.props;
-        groups.initLevelDB();
-        cdms.initLevelDB();
-        groups.readList();
-        cdms.readList();
+        const { threads } = this.props;
+        threads.initLevelDB();
+        threads.readList();
     }
 
     componentWillUnmount() {
@@ -49,7 +48,7 @@ class Groups extends React.Component {
 
 
     render() {
-        const { groups, compose, cdms, alice, notifiers } = this.props;
+        const { threads, compose, alice, notifiers } = this.props;
         return (
             <div>
                 <div className="container">
@@ -69,10 +68,10 @@ class Groups extends React.Component {
                                 key="header_search_field"
                                 placeholder="Search"
                                 style={{ width: '100%' }}
-                                value={groups.search}
+                                value={threads.search}
                                 onChange={e => {
                                     notifiers.info('Not available yet')
-                                    // groups.search = e.target.value;
+                                    // threads.search = e.target.value;
                                 }}
                             />,
                             <Button
@@ -82,7 +81,7 @@ class Groups extends React.Component {
                                 onClick={compose.toggleCompose}
                                 disabled={
                                     compose.composeMode ||
-                                    groups.current
+                                    threads.current
                                 }
                             >
                                 <FontAwesomeIcon icon={faPen} />
@@ -90,16 +89,16 @@ class Groups extends React.Component {
                         ]}
                     />
                     <div className="list">
-                        {groups.list === null && groups.fakeGroups.map(el => (
+                        {threads.list === null && threads.fakeThreads.map(el => (
                             <Skeleton key={`skeleton_${el}`} />
                         ))}
-                        {groups.list && groups.list.length === 0 && (
+                        {threads.list && threads.list.length === 0 && (
                             <div className="noMessages">
                                 <FontAwesomeIcon icon={faInbox} /> No messages yet
                             </div>
                         )}
-                        {groups.list && cdms.list && groups.list.length > 0 && groups.list.map(el => (
-                            <Group item={el} key={`group_${el.groupHash}`} />
+                        {threads.list && threads.list.length > 0 && threads.list.map(el => (
+                            <Thread item={el} key={`thread_${el.threadHash}`} />
                         ))}
                     </div>
                 </div>
@@ -112,6 +111,7 @@ class Groups extends React.Component {
                     .list {
                         height: calc(100vh - 52px);
                         background: #ddd;
+                        overflow-y: auto;
                     }
 
                     .noMessages {
@@ -129,8 +129,8 @@ class Groups extends React.Component {
     }
 }
 
-Groups.propTypes = {
+Threads.propTypes = {
     index: PropTypes.object,
 };
 
-export default Groups;
+export default Threads;

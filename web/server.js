@@ -24,9 +24,9 @@ app.prepare().then(() => {
     return app.render(req, res, '/index', { publicKey: req.params.publicKey })
   })
 
-  server.get('/gr/:groupHash', (req, res) => {
+  server.get('/gr/:threadHash', (req, res) => {
     res.redirect('/');
-    // return app.render(req, res, '/index', { groupHash: req.params.groupHash })
+    // return app.render(req, res, '/index', { threadHash: req.params.threadHash })
   })
   
   server.get('*', (req, res) => {

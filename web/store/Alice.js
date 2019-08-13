@@ -23,7 +23,7 @@ class AliceStore {
 
     @action
     auth() {
-        const { cdms, groups, index, contacts } = this.stores;
+        const { cdms, threads, index, contacts } = this.stores;
         if (typeof window !== 'undefined') {
             try {
                 window.Waves.auth({
@@ -32,7 +32,7 @@ class AliceStore {
                 }).then(() => {
                     window.Waves.publicState().then(data => {
                         this.publicKey = data.account.publicKey; 
-                        groups.resetGroup();
+                        threads.resetThread();
                     })
                     .catch(e => {
                         console.error(e);
@@ -52,7 +52,7 @@ class AliceStore {
 
     @action
     authCheck() {
-        const { compose, groups } = this.stores;
+        const { compose, threads } = this.stores;
         if (typeof window !== 'undefined') {
             try {
                 window.Waves.publicState().then(res => {   
@@ -60,13 +60,13 @@ class AliceStore {
                         this.publicKey = null;
                     } else {
                         if (this.publicKey !== null && this.publicKey !== res.account.publicKey) {
-                            groups.resetGroup();
+                            threads.resetThread();
                             this.publicKey = null;
                         }
                     }
                 })
                 .catch(e => {
-                    groups.resetGroup();
+                    threads.resetThread();
                     this.publicKey = null;
                     console.log(e);
                 });
@@ -79,7 +79,7 @@ class AliceStore {
             } finally {
                 if (this.publicKey === null) {
                     compose.resetCompose();
-                    groups.demolish();
+                    threads.demolish();
                     Router.push('/login');
                 }
             }

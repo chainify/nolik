@@ -26,19 +26,19 @@ cdms = Blueprint('cdms_v1', url_prefix='/cdms')
 
 class Cdms(HTTPMethodView):
     @staticmethod
-    def get(request, alice, group_hash):
+    def get(request, alice, thread_hash):
         data = {
-            'cdms': get_cdms(alice, group_hash)
+            'cdms': get_cdms(alice, thread_hash)
         }
         return json(data, status=200)
 
-def get_cdms(alice, group_hash=None, limit=None, last_tx_id=None):
+def get_cdms(alice, thread_hash=None, limit=None, last_tx_id=None):
     conn = psycopg2.connect(**dsn)
     try:
         with conn:
             with conn.cursor() as cur:
                 sql = """
-                    SELECT DISTINCT ON (c.group_hash, c.message_hash, min_ts)
+                    SELECT DISTINCT ON (c.thread_hash, c.message_hash, min_ts)
                         c.message,
                         c.message_hash,
                         t.id,
@@ -47,7 +47,7 @@ def get_cdms(alice, group_hash=None, limit=None, last_tx_id=None):
                         t.timestamp,
                         t.sender_public_key,
                         c.recipient,
-                        c.group_hash,
+                        c.thread_hash,
                         s.sender,
                         c.timestamp,
                         (
@@ -72,8 +72,8 @@ def get_cdms(alice, group_hash=None, limit=None, last_tx_id=None):
                     WHERE (c.recipient = '{alice}' or t.sender_public_key = '{alice}')
                     """.format(alice=alice)
 
-                if group_hash not in ['None', None]:
-                    sql += "\nAND c.group_hash='{0}'".format(group_hash)
+                if thread_hash not in ['None', None]:
+                    sql += "\nAND c.thread_hash='{0}'".format(thread_hash)
 
                 if last_tx_id:
                     sql += "\nAND c.timestamp > (SELECT timestamp FROM cdms WHERE tx_id='{0}')".format(last_tx_id)
@@ -82,7 +82,7 @@ def get_cdms(alice, group_hash=None, limit=None, last_tx_id=None):
                     sql += '\nORDER BY min_ts DESC'
                     sql += '\nLIMIT ' + str(limit)
                 else:
-                    sql += 'ORDER BY min_ts ASC'
+                    sql += 'ORDER BY min_ts DESC'
                 
                 cur.execute(sql)
                 records = cur.fetchall()
@@ -116,7 +116,7 @@ def get_cdms(alice, group_hash=None, limit=None, last_tx_id=None):
                         "realSender": record[6],
                         "logicalSender": record[9] or record[6],
                         "recipient": record[7],
-                        "groupHash": record[8],
+                        "threadHash": record[8],
                         "subject": record[12],
                         "subjectHash": record[13],
                         "type": record[14],
@@ -140,4 +140,4 @@ def get_cdms(alice, group_hash=None, limit=None, last_tx_id=None):
     return cdms
 
 cdms.add_route(Cdms.as_view(), '/')
-cdms.add_route(Cdms.as_view(), '/<alice>/<group_hash>')
+cdms.add_route(Cdms.as_view(), '/<alice>/<thread_hash>')

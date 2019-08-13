@@ -5,7 +5,7 @@ from sanic.views import HTTPMethodView
 from sanic.response import json
 import psycopg2
 import configparser
-from .groups import get_groups
+from .threads import get_threads
 from .cdms import get_cdms
 import redis
 
@@ -27,8 +27,7 @@ class HeartBeat(HTTPMethodView):
         pipe.set(public_key, last_tx_id or 'NULL').expire(public_key, 2).execute()
 
         data = {
-            'groups': get_groups(public_key, last_tx_id),
-            'cdms': get_cdms(public_key, group_hash=None, limit=None, last_tx_id=last_tx_id)
+            'threads': get_threads(public_key, last_tx_id)
         }
         return json(data, status=201)
         

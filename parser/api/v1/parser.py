@@ -90,23 +90,6 @@ class Parser:
                         network = root.findall('network')[0].text if len(root.findall('network')) > 0 else None
                         messages = root.findall('messages')[0] if len(root.findall('messages')) > 0 else []
                         
-                        # members = [tx['senderPublicKey']]
-                        # for message in messages:
-                        #     to_public_key = None
-                        #     to = message.findall('to')[0] if len(message.findall('to')) > 0 else None
-                        #     if to:
-                        #         to_public_key = to.findall('publickey')[0].text if len(to.findall('publickey')) > 0 else None
-                        #     if to_public_key and to_public_key not in members:
-                        #         members.append(to_public_key)
-
-                        #     cc_public_key = None
-                        #     cc = message.findall('cc')[0] if len(message.findall('cc')) > 0 else None
-                        #     if cc:
-                        #         cc_public_key = cc.findall('publickey')[0].text if len(cc.findall('publickey')) > 0 else None
-                        #     if cc_public_key and cc_public_key not in members:
-                        #         members.append(cc_public_key)
-
-                        # group_hash = hashlib.sha256(''.join(sorted(members)).encode('utf-8')).hexdigest()
                         for message in messages:
                             to_public_key = None
                             cc_public_key = None
@@ -134,10 +117,10 @@ class Parser:
                             recipient_public_key = to_public_key if to_public_key else cc_public_key
                             recipient_type = 'to' if to_public_key else 'cc'
 
-                            group_hash = hashlib.sha256(''.join([subject_sha256hash or '', body_sha256hash or '']).encode('utf-8')).hexdigest()
+                            thread_hash = hashlib.sha256(''.join([subject_sha256hash or '', body_sha256hash or '']).encode('utf-8')).hexdigest()
                             extra = message.findall('extra')[0] if len(message.findall('extra')) > 0 else None
                             if extra:
-                                group_hash = extra.findall('groupHash')[0].text if len(extra.findall('groupHash')) > 0 else None
+                                thread_hash = extra.findall('threadHash')[0].text if len(extra.findall('threadHash')) > 0 else None
 
                             cdm_id = 'cdm-' + str(uuid.uuid4())
                             self.sql_data_cdms.append((
@@ -148,7 +131,7 @@ class Parser:
                                 subject_sha256hash,
                                 body_ciphertext,
                                 body_sha256hash,
-                                group_hash,
+                                thread_hash,
                                 blockchain,
                                 network,
                                 recipient_type
@@ -179,14 +162,14 @@ class Parser:
                             tx['version'],
                             datetime.fromtimestamp(tx['timestamp'] / 1e3),
                             cnfy_id,
-                            attachment_hash,
-                            attachment
+                            attachment_hash
                         )
                         
                         self.sql_data_transactions.append(tx_data)
 
                         for proof in tx['proofs']:
-                            self.sql_data_proofs.append((tx['id'], proof))
+                            proof_id = 'proof-' + str(uuid.uuid4())
+                            self.sql_data_proofs.append((tx['id'], proof, proof_id))
 
                        
 
@@ -205,16 +188,16 @@ class Parser:
                 with conn.cursor() as cur:
                     if len(self.sql_data_transactions) > 0:
                         sql = """INSERT INTO transactions (id, height, type, sender, sender_public_key, recipient,
-                        amount, asset_id, fee_asset_id, fee_asset, fee, attachment, version, timestamp, cnfy_id, attachment_hash, attachment_text)
+                        amount, asset_id, fee_asset_id, fee_asset, fee, attachment, version, timestamp, cnfy_id, attachment_hash)
                         VALUES %s ON CONFLICT (id) DO UPDATE SET height = EXCLUDED.height"""
                         execute_values(cur, sql, self.sql_data_transactions)
                         if cur.rowcount > 0:
                             self.transactions_inserted += cur.rowcount
 
-                        sql = """INSERT INTO proofs (tx_id, proof) VALUES %s ON CONFLICT DO NOTHING"""
+                        sql = """INSERT INTO proofs (tx_id, proof, id) VALUES %s ON CONFLICT DO NOTHING"""
                         execute_values(cur, sql, self.sql_data_proofs)
 
-                        sql = """INSERT INTO cdms (id, tx_id, recipient, subject, subject_hash, message, message_hash, group_hash, blockchain, network, type)
+                        sql = """INSERT INTO cdms (id, tx_id, recipient, subject, subject_hash, message, message_hash, thread_hash, blockchain, network, type)
                         VALUES %s ON CONFLICT DO NOTHING"""
                         execute_values(cur, sql, self.sql_data_cdms)        
 

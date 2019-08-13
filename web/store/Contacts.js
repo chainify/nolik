@@ -22,7 +22,7 @@ class WrapperStore {
     }
 
     @observable list = [];
-    @observable groupFullName = '';
+    @observable threadFullName = '';
     @observable contactFullName = '';
     @observable searchValue = '';
     @observable contactsDB = null;
@@ -44,10 +44,10 @@ class WrapperStore {
         this.getList();
     }
 
-    saveGroup() {
-        const { groups } = this.stores;
-        this.saveContact(groups.current.groupHash, this.groupFullName);
-        groups.setGroupFullName(this.groupFullName);
+    saveThread() {
+        const { threads } = this.stores;
+        this.saveContact(threads.current.threadHash, this.threadFullName);
+        threads.setThreadFullName(this.threadFullName);
     }
 
     @action

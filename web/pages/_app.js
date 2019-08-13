@@ -3,7 +3,7 @@ import App, { Container } from 'next/app'
 import { Provider } from 'mobx-react';
 import stores from '../store/stores';
 // import { appWithTranslation } from './../i18n';
-import Head from './head';
+import Head from './_head';
 import stylesheet from 'antd/dist/antd.min.css'
 
 class Layout extends React.Component {
