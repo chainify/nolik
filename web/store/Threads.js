@@ -54,7 +54,7 @@ class ThreadsStore {
         this.current = thread;
 
         compose.resetCompose();
-        Router.push(`/index?threadHash=${thread.threadHash}`, `/gr/${thread.threadHash}`);
+        Router.push(`/index?threadHash=${thread.threadHash}`, `/th/${thread.threadHash}`);
     }
 
     @action
@@ -127,7 +127,6 @@ class ThreadsStore {
             })
             .on('end', _ => {
                 Promise.all(promises).then(list => {
-                    console.log('read', list);
                     this.list = list.reverse();
                 })
             });
@@ -164,7 +163,6 @@ class ThreadsStore {
                 this.list.splice(sorted[i], 1);
             }
             const newList = decLIst.reverse().concat(this.list);
-            console.log('decLIst', decLIst);
             
             this.list = newList;
 
