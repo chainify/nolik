@@ -119,8 +119,8 @@ services:
     image: ipfs/go-ipfs:latest
     container_name: nolik-ipfs
     volumes:
-      - ~/.data/nolik/ipfs/data:/data/ipfs
-      - ~/.data/nolik/ipfs/staging:/export
+      - /mnt/volume_fra1_02/.ipfs/data:/data/ipfs
+      - /mnt/volume_fra1_02/.ipfs/staging:/export
     ports:
       - 4001:4001
       - 5001:5001
