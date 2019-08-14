@@ -64,7 +64,7 @@ class Cdms extends React.Component {
                                     onClick={compose.toggleAddMeber}
                                     disabled={compose.addMemberOn}
                                 >
-                                    <Icon type="userthread-add" />
+                                    <Icon type="usergroup-add" />
                                 </Button>,
                             ]}
                         />
