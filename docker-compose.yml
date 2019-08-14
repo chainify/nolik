@@ -7,7 +7,6 @@ services:
     container_name: nolik-nginx
     ports:
       - 80:80
-      - 8090:8090
       - 3001:3001
     volumes:
       - ./nginx/nginx.dev.conf:/etc/nginx/nginx.conf

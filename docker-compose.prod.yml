@@ -9,7 +9,6 @@ services:
     container_name: nolik-nginx
     ports:
       - 80:80
-      - 8090:8090
       - 443:443
     depends_on:
       - web
