@@ -2,7 +2,9 @@ version: "2"
 
 services:
   nginx:
-    build: ./nginx
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile.prod
     image: chainify/nolik-nginx
     container_name: nolik-nginx
     ports:
