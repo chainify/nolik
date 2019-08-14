@@ -1,6 +1,10 @@
 import { action } from 'mobx';
 import { sha256 } from 'js-sha256';
 
+import getConfig from 'next/config';
+const { publicRuntimeConfig } = getConfig();
+const { CDM_VERSION } = publicRuntimeConfig;
+
 class CryptoStore {
     stores = null;
     constructor(stores) {
@@ -13,7 +17,7 @@ class CryptoStore {
     wrapCdm(messages) {          
         let cdm = '<?xml version="1.0"?>';
         cdm += '\r\n<cdm>';
-        cdm += '\r\n<version>5</version>';
+        cdm += `\r\n<version>${CDM_VERSION}</version>`;
         cdm += '\r\n<blockchain>Waves</blockchain>';
         cdm += '\r\n<network>Mainnet</network>';
         cdm += '\r\n<messages>';
@@ -83,12 +87,13 @@ class CryptoStore {
     }
 
     @action
-    message(data, threadHash) {
+    message(data) {
         return new Promise((resolve, reject) => {
             let msg = '';            
             const promises = [];
-
             const text = data.rawMessage ? data.rawMessage : this.randomize(data.message);
+            const reSubjectHash = data.regarding ? data.regarding.reSubjectHash : '';
+            const reMessageHash = data.regarding ? data.regarding.reMessageHash : '';
 
             for (let i = 0; i < data.recipients.length; i += 1) {
                 const block = this.block(
@@ -100,10 +105,11 @@ class CryptoStore {
                     .then(res => {
                         msg += '\r\n<message>';
                         msg += res;
-                        if (threadHash) {
-                            msg += '\r\n<extra>';
-                            msg += `\r\n<threadHash>${threadHash}</threadHash>`;
-                            msg += '\r\n</extra>';
+                        if (data.regarding) {
+                            msg += '\r\n<regarding>';
+                            msg += `\r\n<subjectHash>${reSubjectHash}</subjectHash>`;
+                            msg += `\r\n<messageHash>${reMessageHash}</messageHash>`;
+                            msg += '\r\n</regarding>';
                         }
                         msg += '\r\n</message>';
                     });
@@ -124,20 +130,20 @@ class CryptoStore {
                 const { threads, cdms } = this.stores;
 
                 let msg = '';
-                let threadHash = null;
-                if (threads.current) {
-                    if (cdms.fwdCdmsList.length === 0) {
-                        threadHash = threads.current.threadHash;
-                    } else {
-                        const initSubjectHash = data[0].subject ? sha256(this.randomize(data[0].subject)) : '';
-                        const initMessageHash = data[0].messageHash;
-                        threadHash = sha256([initSubjectHash, initMessageHash].join(''));
-                    }
-                }
+                // let threadHash = null;
+                // if (threads.current) {
+                //     if (cdms.fwdCdmsList.length === 0) {
+                //         threadHash = threads.current.threadHash;
+                //     } else {
+                //         const initSubjectHash = data[0].subject ? sha256(this.randomize(data[0].subject)) : '';
+                //         const initMessageHash = data[0].messageHash;
+                //         threadHash = sha256([initSubjectHash, initMessageHash].join(''));
+                //     }
+                // }
 
                 const promises = [];
                 for (let i = 0; i < data.length; i += 1) {
-                    const message = this.message(data[i], threadHash).then(res => {
+                    const message = this.message(data[i]).then(res => {
                         msg += res;
                     });
                     promises.push(message);

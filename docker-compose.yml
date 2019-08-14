@@ -26,6 +26,7 @@ services:
       - ./web:/opt
       - ./web/next-config.js:/opt/next-config.js
     environment:
+      - CDM_VERSION=${CDM_VERSION}
       - ASSET_ID=${ASSET_ID}
       - KEEPER_SECRET=${KEEPER_SECRET}
       - API_HOST=${API_HOST}
@@ -46,6 +47,7 @@ services:
       - ./server/config.ini:/opt/config.ini
     environment:
       - ENV=${ENV}
+      - CDM_VERSION=${CDM_VERSION}
       - ORIGINS=${ORIGINS}
       - ASSET_ID=${ASSET_ID}
       - POSTGRES_DB=${POSTGRES_DB}
@@ -73,6 +75,7 @@ services:
       - ipfs
     environment:
       - ENV=${ENV}
+      - CDM_VERSION=${CDM_VERSION}
       - ASSET_ID=${ASSET_ID}
       - NODE_URL=${NODE_URL}
       - START_HEIGHT=${START_HEIGHT}

@@ -27,7 +27,8 @@ class HeartBeat(HTTPMethodView):
         pipe.set(public_key, last_tx_id or 'NULL').expire(public_key, 2).execute()
 
         data = {
-            'threads': get_threads(public_key, last_tx_id)
+            'threads': get_threads(public_key, last_tx_id),
+            'cdmVersion': str(os.environ['CDM_VERSION'])
         }
         return json(data, status=201)
         

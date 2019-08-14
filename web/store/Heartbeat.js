@@ -40,12 +40,18 @@ class HeartbeatStore {
             axios.post(`${API_HOST}/api/v1/heartbeat`, formData, formConfig)
                 .then(res => {
                     const listThreads = res.data.threads;
+                    const cdmVersion = res.data.cdmVersion;
+
+                    threads.getAppSettings('cdmVersion').then(currentVersion => {
+                        if (currentVersion !== cdmVersion) {
+                            threads.dropList();
+                            threads.setAppSettings('cdmVersion', cdmVersion);
+                        }
+                    });
+
                     if (listThreads.length > 0) {
                         const lastThreadCdms = listThreads[listThreads.length - 1].cdms;
                         const lastTxId = lastThreadCdms[0].txId;
-
-                        console.log(this.lastTxId, lastTxId);
-                        
 
                         if (this.lastTxId !== lastTxId) {
                             threads.saveList(listThreads);

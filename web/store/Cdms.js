@@ -67,6 +67,10 @@ class CdmStore {
                 subject: compose.subject.trim(),
                 message: compose.message.trim(),
                 rawMessage: null,
+                regarding: compose.reSubjectHash && compose.reMessageHash ? {
+                    reSubjectHash: compose.reSubjectHash,
+                    reMessageHash: compose.reMessageHash,
+                } : null,
                 recipients: recipients.map(el => ({
                     recipient: el,
                     type: toRecipients.indexOf(el) > -1 ? 'to' : 'cc',
@@ -79,6 +83,7 @@ class CdmStore {
                     subject: `FWD: ${fwdCdm.subject.trim()}`,
                     message: fwdCdm.message.trim(),
                     rawMessage: fwdCdm.rawMessage,
+                    regarding: null,
                     recipients: recipients.map(el => ({
                         recipient: el,
                         type: toRecipients.indexOf(el) > -1 ? 'to' : 'cc',
@@ -171,7 +176,7 @@ class CdmStore {
         }
 
         compose.toRecipients = compose.toRecipients.concat(threads.current.members)
-        
+
         this.sendCdm();
     }
 }

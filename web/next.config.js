@@ -9,6 +9,7 @@ module.exports = withCss({
     ASSET_ID: process.env.ASSET_ID,
     API_HOST: process.env.API_HOST,
     NETWORK: process.env.NETWORK,
+    CDM_VERSION: process.env.CDM_VERSION,
   },
   onDemandEntries: {
     maxInactiveAge: 25 * 1000,

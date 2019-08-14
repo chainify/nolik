@@ -18,6 +18,7 @@ class ThreadsStore {
 
     @observable showThreadInfo = true;
 
+    @observable appDB = null;
     @observable listDB = null;
     @observable namesDB = null;
     @observable fakeThreads = [0, 1, 2, 3, 4, 5, 6];
@@ -29,6 +30,7 @@ class ThreadsStore {
         const leveljs = require('level-js');
 
         if (alice.publicKey) {
+            this.appDB = levelup(leveljs(`/root/.leveldb/app_${alice.publicKey}`));
             this.listDB = levelup(leveljs(`/root/.leveldb/list_threads_${alice.publicKey}`));
             this.namesDB = levelup(leveljs(`/root/.leveldb/list_threads_names_${alice.publicKey}`));
         }
@@ -73,13 +75,49 @@ class ThreadsStore {
     }
 
     @action
+    setAppSettings(key, value) {
+        this.appDB.put(key, value);
+    }
+
+    @action
+    getAppSettings(key) {
+        return new Promise((resolve, reject) => {
+            this.appDB.get(key)
+                .then(res => {
+                    resolve(stringFromUTF8Array(res));
+                })
+                .catch(e => {
+                    if (e.name === 'NotFoundError') {
+                        resolve(null);
+                    } else {
+                        reject(e);
+                    }
+                });
+        })
+    }
+
+    @action
+    dropList() {
+        const { notifiers, heartbeat } = this.stores;
+        this.listDB.createReadStream()
+            .on('data', data => {
+                const k = parseInt(stringFromUTF8Array(data.key));
+                this.listDB.del(k);
+            })
+            .on('end', _ => {
+                this.list = [];
+                heartbeat.lastTxId = null;
+                notifiers.info('Cache has been cleared');
+            });
+    }
+    
+    @action
     readList() {
         const promises = [];
         this.listDB.createReadStream()
             .on('data', data => {
                 const k = parseInt(stringFromUTF8Array(data.key));
                 const v = stringFromUTF8Array(data.value);
-                this.listDB.del(k);
 
                 const item = JSON.parse(v);
                 const p = this.decrypItem(item).then(res => {

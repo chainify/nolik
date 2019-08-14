@@ -89,6 +89,9 @@ class Parser:
                         blockchain = root.findall('blockchain')[0].text if len(root.findall('blockchain')) > 0 else None
                         network = root.findall('network')[0].text if len(root.findall('network')) > 0 else None
                         messages = root.findall('messages')[0] if len(root.findall('messages')) > 0 else []
+
+                        if str(version) != str(os.environ['CDM_VERSION']):
+                            continue
                         
                         for message in messages:
                             to_public_key = None
@@ -117,10 +120,14 @@ class Parser:
                             recipient_public_key = to_public_key if to_public_key else cc_public_key
                             recipient_type = 'to' if to_public_key else 'cc'
 
+                            re_subject_hash = None
+                            re_message_hash = None
                             thread_hash = hashlib.sha256(''.join([subject_sha256hash or '', body_sha256hash or '']).encode('utf-8')).hexdigest()
-                            extra = message.findall('extra')[0] if len(message.findall('extra')) > 0 else None
-                            if extra:
-                                thread_hash = extra.findall('threadHash')[0].text if len(extra.findall('threadHash')) > 0 else None
+                            regarding = message.findall('regarding')[0] if len(message.findall('regarding')) > 0 else None
+                            if regarding:
+                                re_subject_hash = regarding.findall('subjectHash')[0].text if len(regarding.findall('subjectHash')) > 0 else None
+                                re_message_hash = regarding.findall('messageHash')[0].text if len(regarding.findall('messageHash')) > 0 else None
+                                thread_hash = hashlib.sha256(''.join([re_subject_hash or '', re_message_hash or '']).encode('utf-8')).hexdigest()
 
                             cdm_id = 'cdm-' + str(uuid.uuid4())
                             self.sql_data_cdms.append((
@@ -134,7 +141,9 @@ class Parser:
                                 thread_hash,
                                 blockchain,
                                 network,
-                                recipient_type
+                                recipient_type,
+                                re_subject_hash,
+                                re_message_hash
                             ))
                             
                             senders = message.findall('from')[0] if len(message.findall('from')) > 0 else None
@@ -187,9 +196,24 @@ class Parser:
             with conn:
                 with conn.cursor() as cur:
                     if len(self.sql_data_transactions) > 0:
-                        sql = """INSERT INTO transactions (id, height, type, sender, sender_public_key, recipient,
-                        amount, asset_id, fee_asset_id, fee_asset, fee, attachment, version, timestamp, cnfy_id, attachment_hash)
-                        VALUES %s ON CONFLICT (id) DO UPDATE SET height = EXCLUDED.height"""
+                        sql = """INSERT INTO transactions (
+                            id,
+                            height,
+                            type,
+                            sender,
+                            sender_public_key,
+                            recipient,
+                            amount,
+                            asset_id,
+                            fee_asset_id,
+                            fee_asset,
+                            fee,
+                            attachment,
+                            version,
+                            timestamp,
+                            cnfy_id,
+                            attachment_hash
+                        ) VALUES %s ON CONFLICT (id) DO UPDATE SET height = EXCLUDED.height"""
                         execute_values(cur, sql, self.sql_data_transactions)
                         if cur.rowcount > 0:
                             self.transactions_inserted += cur.rowcount
@@ -197,8 +221,21 @@ class Parser:
                         sql = """INSERT INTO proofs (tx_id, proof, id) VALUES %s ON CONFLICT DO NOTHING"""
                         execute_values(cur, sql, self.sql_data_proofs)
 
-                        sql = """INSERT INTO cdms (id, tx_id, recipient, subject, subject_hash, message, message_hash, thread_hash, blockchain, network, type)
-                        VALUES %s ON CONFLICT DO NOTHING"""
+                        sql = """INSERT INTO cdms (
+                            id,
+                            tx_id,
+                            recipient,
+                            subject,
+                            subject_hash,
+                            message,
+                            message_hash,
+                            thread_hash,
+                            blockchain,
+                            network,
+                            type,
+                            re_subject_hash,
+                            re_message_hash
+                        ) VALUES %s ON CONFLICT DO NOTHING"""
                         execute_values(cur, sql, self.sql_data_cdms)        
 
                         if len(self.sql_data_senders) > 0:
@@ -322,6 +359,7 @@ controls = Parser()
 def autostart(app, loop):
     loop.create_task(controls.start())
     logger.info('Autostart Success!')
+    logger.info('CDM Version: {0}'.format(os.environ['CDM_VERSION']))
 
 @parser.listener('after_server_stop')
 def gentle_exit(app, loop):

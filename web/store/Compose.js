@@ -26,6 +26,9 @@ class ComposeStore {
     @observable commentIsOn = false;
     @observable addMemberOn = false;
 
+    @observable reSubjectHash = null;
+    @observable reMessageHash = null;
+
     
     @action
     toggleCompose() {
@@ -37,13 +40,17 @@ class ComposeStore {
 
     @action
     toggleComment() {
-        const { threads,  alice } = this.stores;
+        const { threads,  alice, cdms } = this.stores;
         this.commentIsOn = !this.commentIsOn;
         
         if (this.commentIsOn === true) {
-            const subject = threads.current.cdms[threads.current.cdms.length-1].subject;
+            const initCdm = threads.current.cdms[threads.current.cdms.length-1];
+            const subject = initCdm.subject;
             this.subject = `Re: ${subject ? subject : ''}`;
             this.ccRecipients = threads.current.members.length > 0 ? threads.current.members : alice.publicKey;
+
+            this.reSubjectHash = initCdm.subjectHash;
+            this.reMessageHash = initCdm.messageHash;
         }
         
         this.toggleCompose();
@@ -72,6 +79,8 @@ class ComposeStore {
         this.subject = '';
         this.toRecipients = [];
         this.ccRecipients = [];
+        this.reSubjectHash = null;
+        this.reMessageHash = null;
     }
 
     @action

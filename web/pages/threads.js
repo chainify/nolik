@@ -38,6 +38,7 @@ class Threads extends React.Component {
     componentDidMount() {
         const { threads } = this.props;
         threads.initLevelDB();
+        // threads.dropList();
         threads.readList();
     }
 
