@@ -9,9 +9,6 @@ services:
       - 80:80
       - 8090:8090
       - 443:443
-    volumes:
-      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf
-      - ./nginx/ssl:/etc/nginx
     depends_on:
       - web
       - api
