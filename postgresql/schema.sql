@@ -1,4 +1,4 @@
-create table transactions
+create table if not exists transactions
 (
 	id varchar(255) not null
 		constraint transactions_pk
@@ -21,46 +21,50 @@ create table transactions
 	attachment_text text
 );
 
-create index transactions_fee_asset_id_index
+alter table transactions owner to chainify;
+
+create index if not exists transactions_fee_asset_id_index
 	on transactions (fee_asset_id);
 
-create index transactions_recipient_index
+create index if not exists transactions_recipient_index
 	on transactions (recipient);
 
-create index transactions_sender_index
+create index if not exists transactions_sender_index
 	on transactions (sender);
 
-create index transactions_asset_id_index
+create index if not exists transactions_asset_id_index
 	on transactions (asset_id);
 
-create index transactions_tx_id_index
+create index if not exists transactions_tx_id_index
 	on transactions (cnfy_id);
 
-create index transactions_attachment_hash_index
+create index if not exists transactions_attachment_hash_index
 	on transactions (attachment_hash);
 
-create index transactions_attachment_index
+create index if not exists transactions_attachment_index
 	on transactions (attachment);
 
-create index transactions_timestamp_index
+create index if not exists transactions_timestamp_index
 	on transactions (timestamp);
 
-create table proofs
+create table if not exists proofs
 (
 	tx_id varchar(255) not null
 		constraint proofs_transactions_id_fk
 			references transactions
 				on update cascade on delete cascade,
 	proof varchar(255),
-	id integer default nextval('proofs_id_seq'::regclass) not null
+	id serial not null
 		constraint proofs_pk
 			primary key
 );
 
-create unique index proofs_tx_id_proof_uindex
+alter table proofs owner to chainify;
+
+create unique index if not exists proofs_tx_id_proof_uindex
 	on proofs (tx_id, proof);
 
-create table cdms
+create table if not exists cdms
 (
 	id varchar(255) not null
 		constraint cdms_pk
@@ -81,19 +85,21 @@ create table cdms
 	subject_hash varchar(255)
 );
 
-create index cdms_tx_id_index
+alter table cdms owner to chainify;
+
+create index if not exists cdms_tx_id_index
 	on cdms (tx_id);
 
-create index cdms_recipient_index
+create index if not exists cdms_recipient_index
 	on cdms (recipient);
 
-create index cdms_hash_index
+create index if not exists cdms_hash_index
 	on cdms (message_hash);
 
-create unique index cdms_tx_id_recipient_hash_group_hash_uindex
+create unique index if not exists cdms_tx_id_recipient_hash_group_hash_uindex
 	on cdms (tx_id, recipient, message_hash, group_hash);
 
-create table senders
+create table if not exists senders
 (
 	id varchar(255) not null
 		constraint s_pk
@@ -108,9 +114,11 @@ create table senders
 				on update cascade on delete cascade
 );
 
-create index senders_sender_index
+alter table senders owner to chainify;
+
+create index if not exists senders_sender_index
 	on senders (sender);
 
-create unique index senders_sender_signature_uindex
+create unique index if not exists senders_sender_signature_uindex
 	on senders (sender, signature);
 
