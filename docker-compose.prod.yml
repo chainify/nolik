@@ -18,6 +18,9 @@ services:
       - ipfs
       - postgres
       - redis
+    networks:
+      internal:
+        ipv4_address: 10.7.0.2
     restart: always
 
   web:
