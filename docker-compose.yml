@@ -13,6 +13,11 @@ services:
       - ./nginx/nginx.dev.conf:/etc/nginx/nginx.conf
     depends_on:
       - web
+      - api
+      - parser
+      - ipfs
+      - postgres
+      - redis
     networks:
       internal:
         ipv4_address: 10.7.0.2
@@ -24,7 +29,6 @@ services:
     container_name: nolik-web
     volumes:
       - ./web:/opt
-      - ./web/next-config.js:/opt/next-config.js
     environment:
       - CDM_VERSION=${CDM_VERSION}
       - ASSET_ID=${ASSET_ID}
@@ -44,7 +48,6 @@ services:
     container_name: nolik-api
     volumes:
       - ./server:/opt
-      - ./server/config.ini:/opt/config.ini
     environment:
       - ENV=${ENV}
       - CDM_VERSION=${CDM_VERSION}
@@ -56,6 +59,7 @@ services:
     depends_on:
       - ipfs
       - postgres
+      - redis
     tty: true
     stdin_open: true
     networks:
@@ -98,7 +102,6 @@ services:
     container_name: nolik-postgres
     volumes:
       - ~/.data/nolik/postgres:/var/lib/postgresql/data
-      - ./postgresql/postgresql.conf:/etc/postgresql/postgresql.conf
     ports:
       - 5432:5432
     environment:

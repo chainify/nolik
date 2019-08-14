@@ -7,7 +7,11 @@ services:
     container_name: nolik-nginx
     ports:
       - 80:80
+      - 8090:8090
       - 443:443
+    volumes:
+      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf
+      - ./ssl:/etc/nginx/
     depends_on:
       - web
       - api
@@ -21,39 +25,95 @@ services:
     build: ./web
     image: chainify/nolik-web
     container_name: nolik-web
-    depends_on:
-      - api
+    volumes:
+      - ./web:/opt
+    environment:
+      - CDM_VERSION=${CDM_VERSION}
+      - ASSET_ID=${ASSET_ID}
+      - KEEPER_SECRET=${KEEPER_SECRET}
+      - API_HOST=${API_HOST}
+      - NETWORK=${NETWORK}
+      - WS_PORT=3001
     restart: always
+    networks:
+      internal:
+        ipv4_address: 10.7.0.3
     command: bash -c "npm install -y && npm run build && npm run start"
 
   api:
     build: ./server
     image: chainify/nolik-api
     container_name: nolik-api
+    volumes:
+      - ./server:/opt
+    environment:
+      - ENV=${ENV}
+      - CDM_VERSION=${CDM_VERSION}
+      - ORIGINS=${ORIGINS}
+      - ASSET_ID=${ASSET_ID}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     depends_on:
       - ipfs
       - postgres
       - redis
-    command: bash -c "python3.7 server.py"
     tty: true
     stdin_open: true
+    networks:
+      internal:
+        ipv4_address: 10.7.0.4
     restart: always
+    command: bash -c "python3.7 server.py"
 
   parser:
     build: ./parser
     image: chainify/nolik-parser
     container_name: nolik-parser
+    volumes:
+      - ./parser:/opt
+    depends_on:
+      - postgres
+      - ipfs
+    environment:
+      - ENV=${ENV}
+      - CDM_VERSION=${CDM_VERSION}
+      - ASSET_ID=${ASSET_ID}
+      - NODE_URL=${NODE_URL}
+      - START_HEIGHT=${START_HEIGHT}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
     command: bash -c "python3.7 server.py"
     tty: true
     stdin_open: true
-    depends_on:
-      - postgres
+    networks:
+      internal:
+        ipv4_address: 10.7.0.5
     labels:
       - "autoheal=true"
     restart: always
 
+  postgres:
+    build: ./postgresql
+    image: chainify/nolik-postgres
+    container_name: nolik-postgres
+    volumes:
+      - ~/.data/nolik/postgres:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    tty: true
+    stdin_open: true
+    networks:
+      internal:
+        ipv4_address: 10.7.0.6
+    restart: always
+
   ipfs:
-    build: ./ipfs
     image: ipfs/go-ipfs:latest
     container_name: nolik-ipfs
     volumes:
@@ -63,23 +123,9 @@ services:
       - 4001:4001
       - 5001:5001
       - 8080:8080
-    tty: true
-    stdin_open: true
-    restart: always
-
-  postgres:
-    build: ./postgresql
-    image: chainify/nolik-postgres
-    container_name: nolik-postgres
-    volumes:
-      - ~/.data/nolik/postgres:/var/lib/postgresql/data
-      - ./postgresql/postgresql.conf:/etc/postgresql/postgresql.conf
-    ports:
-      - 5432:5432
-    environment:
-      - POSTGRES_DB=chainify
-      - POSTGRES_USER=chainify
-      - POSTGRES_PASSWORD=chainify
+    networks:
+      internal:
+        ipv4_address: 10.7.0.7
     tty: true
     stdin_open: true
     restart: always
@@ -92,13 +138,26 @@ services:
       - ~/.data/nolik/redis:/data
     tty: true
     stdin_open: true
+    networks:
+      internal:
+        ipv4_address: 10.7.0.8
     restart: always
 
   autoheal:
     image: willfarrell/autoheal:latest
     container_name: nolik-autoheal
     restart: always
+    networks:
+      internal:
+        ipv4_address: 10.7.0.9
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - AUTOHEAL_CONTAINER_LABEL=autoheal
+
+networks:
+  internal:
+    driver: bridge
+    ipam:
+     config:
+       - subnet: 10.7.0.0/16
