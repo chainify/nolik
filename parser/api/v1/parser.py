@@ -119,16 +119,27 @@ class Parser:
 
                             recipient_public_key = to_public_key if to_public_key else cc_public_key
                             recipient_type = 'to' if to_public_key else 'cc'
+                            
+                            thread_hash = hashlib.sha256(''.join([subject_sha256hash or '', body_sha256hash or '']).encode('utf-8')).hexdigest()
 
                             re_subject_hash = None
                             re_message_hash = None
                             thread_hash = hashlib.sha256(''.join([subject_sha256hash or '', body_sha256hash or '']).encode('utf-8')).hexdigest()
                             regarding = message.findall('regarding')[0] if len(message.findall('regarding')) > 0 else None
                             if regarding:
-                                re_subject_hash = regarding.findall('subjectHash')[0].text if len(regarding.findall('subjectHash')) > 0 else None
-                                re_message_hash = regarding.findall('messageHash')[0].text if len(regarding.findall('messageHash')) > 0 else None
+                                re_subject_hash = regarding.findall('subjecthash')[0].text if len(regarding.findall('subjecthash')) > 0 else None
+                                re_message_hash = regarding.findall('messagehash')[0].text if len(regarding.findall('messagehash')) > 0 else None
+
                                 thread_hash = hashlib.sha256(''.join([re_subject_hash or '', re_message_hash or '']).encode('utf-8')).hexdigest()
 
+                            fwd_subject_hash = None
+                            fwd_message_hash = None
+                            forwarded = message.findall('forwarded')[0] if len(message.findall('forwarded')) > 0 else None
+                            if forwarded:
+                                fwd_subject_hash = forwarded.findall('subjecthash')[0].text if len(forwarded.findall('subjecthash')) > 0 else None
+                                fwd_message_hash = forwarded.findall('messagehash')[0].text if len(forwarded.findall('messagehash')) > 0 else None
+            
+                            
                             cdm_id = 'cdm-' + str(uuid.uuid4())
                             self.sql_data_cdms.append((
                                 cdm_id,
@@ -143,7 +154,10 @@ class Parser:
                                 network,
                                 recipient_type,
                                 re_subject_hash,
-                                re_message_hash
+                                re_message_hash,
+                                fwd_subject_hash,
+                                fwd_message_hash,
+                                datetime.fromtimestamp(tx['timestamp'] / 1e3),
                             ))
                             
                             senders = message.findall('from')[0] if len(message.findall('from')) > 0 else None
@@ -234,7 +248,10 @@ class Parser:
                             network,
                             type,
                             re_subject_hash,
-                            re_message_hash
+                            re_message_hash,
+                            fwd_subject_hash,
+                            fwd_message_hash,
+                            timestamp
                         ) VALUES %s ON CONFLICT DO NOTHING"""
                         execute_values(cur, sql, self.sql_data_cdms)        
 

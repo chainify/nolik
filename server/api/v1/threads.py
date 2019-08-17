@@ -1,15 +1,10 @@
-from sanic import Sanic
 import os
 import time
-from sanic import Blueprint
-from sanic.views import HTTPMethodView
-from sanic.response import json
 import psycopg2
 from .cdms import get_cdms
 from .errors import bad_request
 import configparser
 
-threads = Blueprint('threads_v1', url_prefix='/threads')
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -23,16 +18,6 @@ dsn = {
     "sslmode": config['DB']['sslmode'],
     "target_session_attrs": config['DB']['target_session_attrs']
 }
-
-class Threads(HTTPMethodView):
-    @staticmethod
-    def get(request, alice):
-        last_tx_id = request.args['lastTxId'][0] if 'lastTxId' in request.args else None
-        data = {
-            'threads': get_threads(alice, last_tx_id)
-        }
-        return json(data, status=200)
-
 
 def get_threads(alice, last_tx_id = None):
     conn = psycopg2.connect(**dsn)
@@ -76,7 +61,7 @@ def get_threads(alice, last_tx_id = None):
                     if (thread_hash in thread_hashes):
                         continue
                     members = record[1]
-                    cdms = get_cdms(alice, thread_hash, limit=None)
+                    cdms = get_cdms(alice, thread_hash)
                     thread = {
                         'members': [member for member in members if member != alice],
                         'threadHash': thread_hash,
@@ -90,6 +75,3 @@ def get_threads(alice, last_tx_id = None):
         return bad_request(error)
     
     return threads
-
-
-threads.add_route(Threads.as_view(), '/<alice>')

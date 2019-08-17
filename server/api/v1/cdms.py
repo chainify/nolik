@@ -1,8 +1,4 @@
-from sanic import Sanic
 import os
-from sanic import Blueprint
-from sanic.views import HTTPMethodView
-from sanic.response import json
 import psycopg2
 from .errors import bad_request
 import configparser
@@ -20,17 +16,6 @@ dsn = {
     "sslmode": config['DB']['sslmode'],
     "target_session_attrs": config['DB']['target_session_attrs']
 }
-
-cdms = Blueprint('cdms_v1', url_prefix='/cdms')
-
-
-class Cdms(HTTPMethodView):
-    @staticmethod
-    def get(request, alice, thread_hash):
-        data = {
-            'cdms': get_cdms(alice, thread_hash)
-        }
-        return json(data, status=200)
 
 def get_cdms(alice, thread_hash=None, limit=None, last_tx_id=None):
     conn = psycopg2.connect(**dsn)
@@ -65,24 +50,33 @@ def get_cdms(alice, thread_hash=None, limit=None, last_tx_id=None):
                             SELECT p.proof
                             FROM proofs p
                             WHERE p.tx_id = t.id
-                        ) as proofs
+                        ) as proofs,
+                        c.re_subject_hash,
+                        c.re_message_hash,
+                        c.fwd_subject_hash,
+                        c.fwd_message_hash
                     FROM cdms c
                     LEFT JOIN transactions t on c.tx_id = t.id
                     LEFT JOIN senders s on c.id = s.cdm_id
                     WHERE (c.recipient = '{alice}' or t.sender_public_key = '{alice}')
-                    """.format(alice=alice)
+                    AND c.thread_hash='{thread_hash}'
+                    ORDER BY min_ts DESC
+                    """.format(
+                        alice=alice,
+                        thread_hash=thread_hash
+                    )
 
-                if thread_hash not in ['None', None]:
-                    sql += "\nAND c.thread_hash='{0}'".format(thread_hash)
+                # if thread_hash not in ['None', None]:
+                #     sql += "\nAND c.thread_hash='{0}'".format(thread_hash)
 
-                if last_tx_id:
-                    sql += "\nAND c.timestamp > (SELECT timestamp FROM cdms WHERE tx_id='{0}')".format(last_tx_id)
+                # if last_tx_id:
+                #     sql += "\nAND c.timestamp > (SELECT timestamp FROM cdms WHERE tx_id='{0}')".format(last_tx_id)
 
-                if limit:
-                    sql += '\nORDER BY min_ts DESC'
-                    sql += '\nLIMIT ' + str(limit)
-                else:
-                    sql += 'ORDER BY min_ts DESC'
+                # if limit:
+                #     sql += '\nORDER BY min_ts DESC'
+                #     sql += '\nLIMIT ' + str(limit)
+                # else:
+                #     sql += 'ORDER BY min_ts DESC'
                 
                 cur.execute(sql)
                 records = cur.fetchall()
@@ -122,7 +116,11 @@ def get_cdms(alice, thread_hash=None, limit=None, last_tx_id=None):
                         "type": record[14],
                         "sharedWith": shared_with,
                         "ipfsHash": base58.b58decode(record[15]).decode('utf-8'),
-                        "signature": record[16] or record[17][0]
+                        "signature": record[16] or record[17][0],
+                        "reSubjectHash": record[18],
+                        "reMessageHash": record[19],
+                        "fwdSubjectHash": record[20],
+                        "fwdMessageHash": record[21],
                     }
 
                     sender = record[9] or record[6]
@@ -138,6 +136,3 @@ def get_cdms(alice, thread_hash=None, limit=None, last_tx_id=None):
         return bad_request(error)
     
     return cdms
-
-cdms.add_route(Cdms.as_view(), '/')
-cdms.add_route(Cdms.as_view(), '/<alice>/<thread_hash>')

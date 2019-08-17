@@ -8,6 +8,7 @@ import stringFromUTF8Array from '../utils/batostr';
 import { crypto } from '@waves/ts-lib-crypto';
 const { address } = crypto({output: 'Base58'});
 
+
 import getConfig from 'next/config';
 const { publicRuntimeConfig } = getConfig();
 const { NETWORK, ASSET_ID, API_HOST } = publicRuntimeConfig;
@@ -52,43 +53,62 @@ class CdmStore {
     }
 
     @action
+    messageData(recipients, toRecipients, item) {
+        const data = {
+            subject: item.subject.trim(),
+            message: item.message.trim(),
+            rawSubject: null,
+            rawMessage: null,
+            regarding: item.reMessageHash ? {
+                reSubjectHash: item.reSubjectHash || '',
+                reMessageHash: item.reMessageHash || '',
+            } : null,
+            recipients: recipients.map(el => ({
+                recipient: el,
+                type: toRecipients.indexOf(el) > -1 ? 'to' : 'cc',
+            }))
+        };
+        return data
+    }
+
+    @action
     cdmData() {
-        const { compose, threads } = this.stores;
-        this.sendCdmStatus = 'pending';
-        
-        // const grRecipients = threads.current ? threads.current.members : [];
+        const { compose, threads, crypto } = this.stores;
         const toRecipients = compose.toRecipients;
         const ccRecipients = compose.ccRecipients;
 
         const recipients = toRecipients.concat(ccRecipients);
         const data = [];
         if (this.fwdCdmsList.length === 0) {
-            data.push({
-                subject: compose.subject.trim(),
-                message: compose.message.trim(),
-                rawMessage: null,
-                regarding: compose.reSubjectHash && compose.reMessageHash ? {
-                    reSubjectHash: compose.reSubjectHash,
-                    reMessageHash: compose.reMessageHash,
-                } : null,
-                recipients: recipients.map(el => ({
-                    recipient: el,
-                    type: toRecipients.indexOf(el) > -1 ? 'to' : 'cc',
-                }))
-            });
+            data.push(this.messageData(recipients, toRecipients, compose));
         } else {
-            for (let i = 0; i < this.fwdCdmsList.length; i += 1) {
-                const fwdCdm = threads.current.cdms.filter(el => el.messageHash === this.fwdCdmsList[i])[0];
-                data.push({
-                    subject: `FWD: ${fwdCdm.subject.trim()}`,
-                    message: fwdCdm.message.trim(),
-                    rawMessage: fwdCdm.rawMessage,
-                    regarding: null,
-                    recipients: recipients.map(el => ({
-                        recipient: el,
-                        type: toRecipients.indexOf(el) > -1 ? 'to' : 'cc',
-                    }))
-                })
+            const fwdCdmsList = this.fwdCdmsList.reverse();
+            const initCdm = fwdCdmsList[0];
+
+            const initRawSubject = crypto.randomize(initCdm.subject);
+            const shaInitRawSubject = sha256(initRawSubject);
+            
+            for (let i = 0; i < fwdCdmsList.length; i += 1) {
+                const fwdCdm = threads.current.cdms[i];
+                const messageData = this.messageData(recipients, toRecipients, fwdCdm);
+                messageData.subject = `FWD: ${messageData.subject}`;
+
+                messageData.rawMessage = fwdCdm.rawMessage;
+                if (fwdCdm.reSubjectHash && fwdCdm.reMessageHash) {
+                    messageData.regarding = {
+                        reSubjectHash: fwdCdm.reSubjectHash ? shaInitRawSubject : null,
+                        reMessageHash: fwdCdm.reMessageHash,
+                    }
+                } else {
+                    messageData.rawSubject = initRawSubject;
+                }
+                
+                messageData.forwarded = {
+                    fwdSubjectHash: fwdCdm.subjectHash || '',
+                    fwdMessageHash: fwdCdm.messageHash || '',
+                },
+                
+                data.push(messageData);
             }
         }
         
@@ -166,15 +186,16 @@ class CdmStore {
     fwdCdms() {
         const { threads, compose } = this.stores;
         
-        const list = threads.current && threads.current.cdms;
-        const fwdCdmsList = [];
-        if (list) {
-            for (let i = 0; i < list.length; i += 1) {
-                fwdCdmsList.push(list[i].messageHash);
-            }
-            this.fwdCdmsList = fwdCdmsList;
-        }
+        // const list = threads.current && threads.current.cdms;
+        // const fwdCdmsList = [];
+        // if (list) {
+        //     for (let i = 0; i < list.length; i += 1) {
+        //         fwdCdmsList.push(list[i].messageHash);
+        //     }
+        //     this.fwdCdmsList = fwdCdmsList;
+        // }
 
+        this.fwdCdmsList = threads.current.cdms;
         compose.toRecipients = compose.toRecipients.concat(threads.current.members)
 
         this.sendCdm();

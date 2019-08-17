@@ -26,6 +26,7 @@ class ComposeStore {
     @observable commentIsOn = false;
     @observable addMemberOn = false;
 
+    @observable reTransaction = null;
     @observable reSubjectHash = null;
     @observable reMessageHash = null;
 
@@ -49,6 +50,7 @@ class ComposeStore {
             this.subject = `Re: ${subject ? subject : ''}`;
             this.ccRecipients = threads.current.members.length > 0 ? threads.current.members : alice.publicKey;
 
+            this.reTransaction = initCdm.txId;
             this.reSubjectHash = initCdm.subjectHash;
             this.reMessageHash = initCdm.messageHash;
         }

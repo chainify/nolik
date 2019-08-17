@@ -32,6 +32,7 @@ services:
       - CDM_VERSION=${CDM_VERSION}
       - ASSET_ID=${ASSET_ID}
       - KEEPER_SECRET=${KEEPER_SECRET}
+      - KEEPER_PREFIX=${KEEPER_PREFIX}
       - API_HOST=${API_HOST}
       - NETWORK=${NETWORK}
       - WS_PORT=3001
@@ -50,6 +51,7 @@ services:
     environment:
       - ENV=${ENV}
       - CDM_VERSION=${CDM_VERSION}
+      - API_VERSION=${API_VERSION}
       - ORIGINS=${ORIGINS}
       - ASSET_ID=${ASSET_ID}
       - POSTGRES_DB=${POSTGRES_DB}

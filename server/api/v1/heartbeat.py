@@ -28,7 +28,8 @@ class HeartBeat(HTTPMethodView):
 
         data = {
             'threads': get_threads(public_key, last_tx_id),
-            'cdmVersion': str(os.environ['CDM_VERSION'])
+            'cdmVersion': str(os.environ['CDM_VERSION']),
+            'apiVersion': str(os.environ['API_VERSION'])
         }
         return json(data, status=201)
         

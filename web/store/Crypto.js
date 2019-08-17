@@ -3,7 +3,7 @@ import { sha256 } from 'js-sha256';
 
 import getConfig from 'next/config';
 const { publicRuntimeConfig } = getConfig();
-const { CDM_VERSION } = publicRuntimeConfig;
+const { CDM_VERSION, KEEPER_PREFIX } = publicRuntimeConfig;
 
 class CryptoStore {
     stores = null;
@@ -40,7 +40,7 @@ class CryptoStore {
             let msg = '';
             const messageHash = sha256(text);
             window.Waves
-                .encryptMessage(text, recipient, 'chainify')
+                .encryptMessage(text, recipient, KEEPER_PREFIX)
                 .then(cipherText => {
                     msg += `\r\n<ciphertext>${cipherText}</ciphertext>`;
                     msg += `\r\n<sha256>${messageHash}</sha256>`;
@@ -54,7 +54,7 @@ class CryptoStore {
     }
 
     @action
-    block(subject, text, recipient, type) {
+    block(subject, message, recipient, type) {
         return new Promise((resolve, reject) => {
             let msg = '';
             const promises = [];
@@ -68,7 +68,7 @@ class CryptoStore {
                 promises.push(sbj);
             }
 
-            const body = this.encrypt(recipient, text)
+            const body = this.encrypt(recipient, message)
                 .then(res => {
                     msg += `\r\n<${type}>`;
                     msg += `\r\n<publickey>${recipient}</publickey>`;
@@ -91,14 +91,19 @@ class CryptoStore {
         return new Promise((resolve, reject) => {
             let msg = '';            
             const promises = [];
-            const text = data.rawMessage ? data.rawMessage : this.randomize(data.message);
-            const reSubjectHash = data.regarding ? data.regarding.reSubjectHash : '';
-            const reMessageHash = data.regarding ? data.regarding.reMessageHash : '';
+            
+            const subject = data.rawSubject ? data.rawSubject : this.randomize(data.subject);
+            const message = data.rawMessage ? data.rawMessage : this.randomize(data.message);
+            const reSubjectHash = data.regarding ? data.regarding.reSubjectHash : null;
+            const reMessageHash = data.regarding ? data.regarding.reMessageHash : null;
+
+            const fwdSubjectHash = data.forwarded ? data.forwarded.fwdSubjectHash : null;
+            const fwdMessageHash = data.forwarded ? data.forwarded.fwdMessageHash : null;
 
             for (let i = 0; i < data.recipients.length; i += 1) {
                 const block = this.block(
-                        data.subject,
-                        text,
+                        subject,
+                        message,
                         data.recipients[i].recipient, 
                         data.recipients[i].type
                     )
@@ -106,10 +111,16 @@ class CryptoStore {
                         msg += '\r\n<message>';
                         msg += res;
                         if (data.regarding) {
-                            msg += '\r\n<regarding>';
-                            msg += `\r\n<subjectHash>${reSubjectHash}</subjectHash>`;
-                            msg += `\r\n<messageHash>${reMessageHash}</messageHash>`;
-                            msg += '\r\n</regarding>';
+                            msg += `\r\n<regarding>`;
+                            if (reSubjectHash) { msg += `\r\n<subjecthash>${reSubjectHash}</subjecthash>`}
+                            if (reMessageHash) { msg += `\r\n<messagehash>${reMessageHash}</messagehash>`}
+                            msg += `\r\n</regarding>>`;
+                        }
+                        if (data.forwarded) {
+                            msg += `\r\n<forwarded>`;
+                            if (fwdSubjectHash) { msg += `\r\n<subjecthash>${fwdSubjectHash}</subjecthash>`}
+                            if (fwdMessageHash) { msg += `\r\n<messagehash>${fwdMessageHash}</messagehash>`}
+                            msg += `\r\n</forwarded>`;
                         }
                         msg += '\r\n</message>';
                     });
@@ -127,20 +138,7 @@ class CryptoStore {
     compose(data) {
         return new Promise((resolve, reject) => {
             if (typeof window !== 'undefined') {
-                const { threads, cdms } = this.stores;
-
                 let msg = '';
-                // let threadHash = null;
-                // if (threads.current) {
-                //     if (cdms.fwdCdmsList.length === 0) {
-                //         threadHash = threads.current.threadHash;
-                //     } else {
-                //         const initSubjectHash = data[0].subject ? sha256(this.randomize(data[0].subject)) : '';
-                //         const initMessageHash = data[0].messageHash;
-                //         threadHash = sha256([initSubjectHash, initMessageHash].join(''));
-                //     }
-                // }
-
                 const promises = [];
                 for (let i = 0; i < data.length; i += 1) {
                     const message = this.message(data[i]).then(res => {
@@ -164,7 +162,7 @@ class CryptoStore {
         return new Promise((resolve, reject) => {
             if (typeof window !== 'undefined') {
                 window.Waves
-                    .decryptMessage(cipherText, publicKey, 'chainify')
+                    .decryptMessage(cipherText, publicKey, KEEPER_PREFIX)
                     .then(res => {
                         resolve(res);
                     })

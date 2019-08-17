@@ -16,6 +16,19 @@ class HeartbeatStore {
     @observable lastTxId = null;
 
     @action
+    dropList(key, value) {
+        const { threads } = this.stores;
+        threads.getAppSettings(key).then(currentVersion => {
+            if (currentVersion !== value) {
+                if (currentVersion !== null) {
+                    threads.dropList();
+                }
+                threads.setAppSettings(key, value);
+            }
+        });
+    }
+
+    @action
     push() {
         const { utils, threads, alice } = this.stores;
         const formConfig = {};
@@ -40,14 +53,9 @@ class HeartbeatStore {
             axios.post(`${API_HOST}/api/v1/heartbeat`, formData, formConfig)
                 .then(res => {
                     const listThreads = res.data.threads;
-                    const cdmVersion = res.data.cdmVersion;
 
-                    threads.getAppSettings('cdmVersion').then(currentVersion => {
-                        if (currentVersion !== cdmVersion) {
-                            threads.dropList();
-                            threads.setAppSettings('cdmVersion', cdmVersion);
-                        }
-                    });
+                    this.dropList('cdmVersion', res.data.cdmVersion);
+                    this.dropList('apiVersion', res.data.apiVersion);
 
                     if (listThreads.length > 0) {
                         const lastThreadCdms = listThreads[listThreads.length - 1].cdms;
@@ -57,7 +65,7 @@ class HeartbeatStore {
                             threads.saveList(listThreads);
                             this.lastTxId = lastTxId;
                         }
-                    }
+                    }                    
                 })
                 .then(_ => {
                     this.pushStatus = 'success';
