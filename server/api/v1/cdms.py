@@ -37,6 +37,7 @@ def get_cdms(alice, thread_hash):
                         c.fwd_message_hash,
                         c.type,
                         c.thread_hash,
+                        c.timestamp,
                         t.id,
                         t.attachment,
                         t.attachment_hash,
@@ -73,7 +74,7 @@ def get_cdms(alice, thread_hash):
                         FROM cdms c
                         WHERE c.message_hash='{hash}'
                     """.format(
-                        hash=record[1]
+                        hash=record[6]
                     ))
                     recipients = cur.fetchall()
                     shared_with = []
@@ -99,10 +100,11 @@ def get_cdms(alice, thread_hash):
                         "fwdMessageHash": record[10],
                         "type": record[11],
                         "threadHash": record[12],
-                        "txId": record[13],
-                        "ipfsHash": base58.b58decode(record[14]).decode('utf-8'),
-                        "attachmentHash": record[15],
-                        "signature": record[16] or record[17][0],
+                        "timestamp": record[13],
+                        "txId": record[14],
+                        "ipfsHash": base58.b58decode(record[15]).decode('utf-8'),
+                        "attachmentHash": record[16],
+                        "signature": record[17] or record[18][0],
                         "sharedWith": shared_with
                     }
 
