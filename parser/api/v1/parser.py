@@ -124,12 +124,11 @@ class Parser:
 
                             re_subject_hash = None
                             re_message_hash = None
-                            thread_hash = hashlib.sha256(''.join([subject_sha256hash or '', body_sha256hash or '']).encode('utf-8')).hexdigest()
                             regarding = message.findall('regarding')[0] if len(message.findall('regarding')) > 0 else None
                             if regarding:
                                 re_subject_hash = regarding.findall('subjecthash')[0].text if len(regarding.findall('subjecthash')) > 0 else None
                                 re_message_hash = regarding.findall('messagehash')[0].text if len(regarding.findall('messagehash')) > 0 else None
-
+                                
                                 thread_hash = hashlib.sha256(''.join([re_subject_hash or '', re_message_hash or '']).encode('utf-8')).hexdigest()
 
                             fwd_subject_hash = None

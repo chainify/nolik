@@ -25,6 +25,7 @@ class CdmStore {
     @observable withCrypto = [];
     @observable fwdCdmsList = [];
     @observable sendCdmStatus = 'init';
+    @observable fwdRecipients = null;
     
     // @observable readCdmDB = null;
     // @observable pendnigDB = null;
@@ -53,7 +54,9 @@ class CdmStore {
     }
 
     @action
-    messageData(recipients, toRecipients, item) {
+    messageData(item, recipients) {
+        const { compose } = this.stores;
+        const toRecipients = compose.toRecipients;
         const data = {
             subject: item.subject.trim(),
             message: item.message.trim(),
@@ -74,29 +77,23 @@ class CdmStore {
     @action
     cdmData() {
         const { compose, threads, crypto } = this.stores;
-        const toRecipients = compose.toRecipients;
-        const ccRecipients = compose.ccRecipients;
 
-        const recipients = toRecipients.concat(ccRecipients);
         const data = [];
-        if (this.fwdCdmsList.length === 0) {
-            data.push(this.messageData(recipients, toRecipients, compose));
-        } else {
-            const fwdCdmsList = this.fwdCdmsList.reverse();
+        if (this.fwdRecipients) {
+            const cdms = threads.current.cdms;
+            const fwdCdmsList = cdms.reverse();
             const initCdm = fwdCdmsList[0];
 
             const initRawSubject = crypto.randomize(`FWD: ${initCdm.subject}`);
-            const shaInitRawSubject = sha256(initRawSubject);
             
             for (let i = 0; i < fwdCdmsList.length; i += 1) {
                 const fwdCdm = threads.current.cdms[i];
-                const messageData = this.messageData(recipients, toRecipients, fwdCdm);
+                const messageData = this.messageData(fwdCdm, this.fwdRecipients);
                 messageData.subject = `FWD: ${messageData.subject}`;
-
                 messageData.rawMessage = fwdCdm.rawMessage;
                 if (fwdCdm.reSubjectHash && fwdCdm.reMessageHash) {
                     messageData.regarding = {
-                        reSubjectHash: fwdCdm.reSubjectHash ? shaInitRawSubject : null,
+                        reSubjectHash: fwdCdm.reSubjectHash ? sha256(initRawSubject) : null,
                         reMessageHash: fwdCdm.reMessageHash,
                     }
                 } else {
@@ -110,6 +107,8 @@ class CdmStore {
                 
                 data.push(messageData);
             }
+        } else {
+            data.push(this.messageData(compose, compose.toRecipients.concat(compose.ccRecipients)));
         }
         
         return toJS(data);
@@ -172,6 +171,7 @@ class CdmStore {
                 notifiers.success('Message has been sent');
             }
             compose.resetCompose();
+            this.fwdRecipients = null;
             this.sendCdmStatus = 'success';
         })
         .catch(e => {
@@ -185,19 +185,7 @@ class CdmStore {
     @action
     fwdCdms() {
         const { threads, compose } = this.stores;
-        
-        // const list = threads.current && threads.current.cdms;
-        // const fwdCdmsList = [];
-        // if (list) {
-        //     for (let i = 0; i < list.length; i += 1) {
-        //         fwdCdmsList.push(list[i].messageHash);
-        //     }
-        //     this.fwdCdmsList = fwdCdmsList;
-        // }
-
-        this.fwdCdmsList = threads.current.cdms;
-        compose.toRecipients = compose.toRecipients.concat(threads.current.members)
-
+        this.fwdRecipients = compose.toRecipients.concat(threads.current.members);
         this.sendCdm();
     }
 }
