@@ -85,7 +85,7 @@ class CdmStore {
             const fwdCdmsList = this.fwdCdmsList.reverse();
             const initCdm = fwdCdmsList[0];
 
-            const initRawSubject = crypto.randomize(initCdm.subject);
+            const initRawSubject = crypto.randomize(`FWD: ${initCdm.subject}`);
             const shaInitRawSubject = sha256(initRawSubject);
             
             for (let i = 0; i < fwdCdmsList.length; i += 1) {

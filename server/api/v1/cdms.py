@@ -17,44 +17,41 @@ dsn = {
     "target_session_attrs": config['DB']['target_session_attrs']
 }
 
-def get_cdms(alice, thread_hash=None, limit=None, last_tx_id=None):
+def get_cdms(alice, thread_hash):
     conn = psycopg2.connect(**dsn)
     try:
         with conn:
             with conn.cursor() as cur:
                 sql = """
                     SELECT DISTINCT ON (c.thread_hash, c.message_hash, min_ts)
+                        c.recipient,
+                        s.sender,
+                        t.sender_public_key,
+                        c.subject,
                         c.message,
                         c.message_hash,
-                        t.id,
-                        c.id,
-                        t.attachment_hash,
-                        t.timestamp,
-                        t.sender_public_key,
-                        c.recipient,
-                        c.thread_hash,
-                        s.sender,
-                        c.timestamp,
-                        (
-                            SELECT min(tt.timestamp)
-                            FROM cdms cc
-                            LEFT JOIN transactions tt on cc.tx_id = tt.id
-                            WHERE cc.message_hash = c.message_hash
-                        ) as min_ts,
-                        c.subject,
                         c.subject_hash,
+                        c.re_subject_hash,
+                        c.re_message_hash,
+                        c.fwd_subject_hash,
+                        c.fwd_message_hash,
                         c.type,
+                        c.thread_hash,
+                        t.id,
                         t.attachment,
+                        t.attachment_hash,
                         s.signature,
                         array(
                             SELECT p.proof
                             FROM proofs p
                             WHERE p.tx_id = t.id
                         ) as proofs,
-                        c.re_subject_hash,
-                        c.re_message_hash,
-                        c.fwd_subject_hash,
-                        c.fwd_message_hash
+                        (
+                            SELECT min(tt.timestamp)
+                            FROM cdms cc
+                            LEFT JOIN transactions tt on cc.tx_id = tt.id
+                            WHERE cc.message_hash = c.message_hash
+                        ) as min_ts
                     FROM cdms c
                     LEFT JOIN transactions t on c.tx_id = t.id
                     LEFT JOIN senders s on c.id = s.cdm_id
@@ -65,18 +62,6 @@ def get_cdms(alice, thread_hash=None, limit=None, last_tx_id=None):
                         alice=alice,
                         thread_hash=thread_hash
                     )
-
-                # if thread_hash not in ['None', None]:
-                #     sql += "\nAND c.thread_hash='{0}'".format(thread_hash)
-
-                # if last_tx_id:
-                #     sql += "\nAND c.timestamp > (SELECT timestamp FROM cdms WHERE tx_id='{0}')".format(last_tx_id)
-
-                # if limit:
-                #     sql += '\nORDER BY min_ts DESC'
-                #     sql += '\nLIMIT ' + str(limit)
-                # else:
-                #     sql += 'ORDER BY min_ts DESC'
                 
                 cur.execute(sql)
                 records = cur.fetchall()
@@ -101,29 +86,27 @@ def get_cdms(alice, thread_hash=None, limit=None, last_tx_id=None):
                         })
 
                     data = {
-                        "message": record[0],
-                        "messageHash": record[1],
-                        "txId": record[2],
-                        "id": record[3],
-                        "attachmentHash": record[4],
-                        "timestamp": record[5],
-                        "realSender": record[6],
-                        "logicalSender": record[9] or record[6],
-                        "recipient": record[7],
-                        "threadHash": record[8],
-                        "subject": record[12],
-                        "subjectHash": record[13],
-                        "type": record[14],
-                        "sharedWith": shared_with,
-                        "ipfsHash": base58.b58decode(record[15]).decode('utf-8'),
+                        "recipient": record[0],
+                        "logicalSender": record[1] or record[2],
+                        "realSender": record[2],
+                        "subject": record[3],
+                        "message": record[4],
+                        "subjectHash": record[5],
+                        "messageHash": record[6],
+                        "reSubjectHash": record[7],
+                        "reMessageHash": record[8],
+                        "fwdSubjectHash": record[9],
+                        "fwdMessageHash": record[10],
+                        "type": record[11],
+                        "threadHash": record[12],
+                        "txId": record[13],
+                        "ipfsHash": base58.b58decode(record[14]).decode('utf-8'),
+                        "attachmentHash": record[15],
                         "signature": record[16] or record[17][0],
-                        "reSubjectHash": record[18],
-                        "reMessageHash": record[19],
-                        "fwdSubjectHash": record[20],
-                        "fwdMessageHash": record[21],
+                        "sharedWith": shared_with
                     }
 
-                    sender = record[9] or record[6]
+                    sender = record[1] or record[2]
                     if alice == sender:
                         data['direction'] = 'outgoing'
                     else:
