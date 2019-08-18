@@ -35,7 +35,7 @@ services:
       - KEEPER_PREFIX=${KEEPER_PREFIX}
       - API_HOST=${API_HOST}
       - NETWORK=${NETWORK}
-      - WS_PORT=3001
+      - WS_PORT=${WS_PORT}
     restart: unless-stopped
     networks:
       internal:
