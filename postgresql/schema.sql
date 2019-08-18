@@ -1,3 +1,9 @@
+create schema public;
+
+comment on schema public is 'standard public schema';
+
+alter schema public owner to chainify;
+
 create table if not exists transactions
 (
 	id varchar(255) not null
@@ -15,10 +21,9 @@ create table if not exists transactions
 	fee bigint,
 	attachment varchar(255),
 	version integer not null,
-	timestamp timestamp not null,
+	timestamp timestamp default CURRENT_TIMESTAMP not null,
 	cnfy_id varchar(255),
-	attachment_hash varchar(255) not null,
-	attachment_text text
+	attachment_hash varchar(255) not null
 );
 
 alter table transactions owner to chainify;
@@ -54,7 +59,7 @@ create table if not exists proofs
 			references transactions
 				on update cascade on delete cascade,
 	proof varchar(255),
-	id serial not null
+	id varchar(255) not null
 		constraint proofs_pk
 			primary key
 );
@@ -77,12 +82,16 @@ create table if not exists cdms
 	message text not null,
 	message_hash varchar(255),
 	timestamp timestamp default CURRENT_TIMESTAMP,
-	group_hash varchar(255) not null,
+	thread_hash varchar(255) not null,
 	blockchain varchar(255),
 	network varchar(255),
 	type varchar(2),
 	subject text,
-	subject_hash varchar(255)
+	subject_hash varchar(255),
+	re_subject_hash varchar(255),
+	re_message_hash varchar(255),
+	fwd_subject_hash varchar(255),
+	fwd_message_hash varchar(255)
 );
 
 alter table cdms owner to chainify;
@@ -96,8 +105,8 @@ create index if not exists cdms_recipient_index
 create index if not exists cdms_hash_index
 	on cdms (message_hash);
 
-create unique index if not exists cdms_tx_id_recipient_hash_group_hash_uindex
-	on cdms (tx_id, recipient, message_hash, group_hash);
+create unique index if not exists cdms_tx_id_recipient_hash_thread_hash_uindex
+	on cdms (tx_id, recipient, message_hash, thread_hash);
 
 create table if not exists senders
 (
