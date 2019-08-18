@@ -23,6 +23,7 @@ class CdmStore {
 
     
     @observable withCrypto = [];
+    @observable withRecipients = [];
     @observable fwdCdmsList = [];
     @observable sendCdmStatus = 'init';
     @observable fwdRecipients = null;
@@ -51,6 +52,18 @@ class CdmStore {
             withCrypto.splice(index, 1);
         }
         this.withCrypto = withCrypto;
+    }
+
+    @action
+    toggleWithRecipients(txId) {
+        const withRecipients = this.withRecipients;
+        const index = withRecipients.indexOf(txId);
+        if (index < 0) {
+            withRecipients.push(txId);
+        } else {
+            withRecipients.splice(index, 1);
+        }
+        this.withRecipients = withRecipients;
     }
 
     @action

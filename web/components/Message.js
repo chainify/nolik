@@ -1,7 +1,7 @@
 import React from 'react';
 import { observer, inject } from 'mobx-react';
 import * as moment from 'moment';
-import { Menu, Typography, Dropdown, Icon } from 'antd';
+import { Menu, Typography, Dropdown, Icon, Divider } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEllipsisV, faKey, faReply, faShare, faReplyAll, faArchive } from '@fortawesome/free-solid-svg-icons'
 import { sha256 } from 'js-sha256';
@@ -36,17 +36,18 @@ class Message extends React.Component {
             <Menu
                 onClick={e => {
                     if (e.key === 'crypto') {
-                        cdms.toggleWithCrypto(item.txId);
+                        cdms.toggleWithCrypto(item.id);
                     }
                 }}
+                key={`menu_${item.txId}`}
             >
                 <Menu.Item key="forward" disabled>
                     <FontAwesomeIcon icon={faShare} /> Forward
                 </Menu.Item>
-                <Menu.Item key="forward" disabled>
+                <Menu.Item key="reply" disabled>
                     <FontAwesomeIcon icon={faReply} /> Reply (New Thread)
                 </Menu.Item>
-                <Menu.Item key="forward" disabled>
+                <Menu.Item key="replyAlls" disabled>
                     <FontAwesomeIcon icon={faReplyAll} /> Reply All
                 </Menu.Item>
                 <Menu.Divider />
@@ -70,13 +71,21 @@ class Message extends React.Component {
             <div>
                 <div className="message">
                     <div className="header">
+                        <div className="toggleRecipietns">
+                            <button
+                                className="menuBtn"
+                                onClick={_ => cdms.toggleWithRecipients(item.id)}
+                            >
+                                <Icon type={cdms.withRecipients.indexOf(item.id) > -1 ? 'down' : 'right'} />
+                            </button>
+                        </div>
                         <div className="members">
                             <div className="sender">
                                 {item.logicalSender === alice.publicKey 
                                     ? <div className="contact self">You</div>
                                     : <Paragraph ellipsis style={pstyle}>{item.logicalSender}</Paragraph>}
                             </div>
-                            <div className="recipients">
+                            <div className={`recipients ${cdms.withRecipients.indexOf(item.id) > -1 && 'active'}`}>
                                 <div>
                                     <div><b>To:</b> {toRecipients.length > 0 ? toRecipients.map(el => <span className="contact" key={`contact_${el}`}>{el === alice.publicKey ? 'You' : el}</span>) : '-'}</div>
                                     <div><b>Cc:</b> {ccRecipients.length > 0 ? ccRecipients.map(el => <span className="contact" key={`contact_${el}`}>{el === alice.publicKey ? 'You' : el}</span>) : '-'}</div>
@@ -96,12 +105,12 @@ class Message extends React.Component {
                             </div>
                         </div>
                     </div>
-                    <div className={`crypto ${cdms.withCrypto.indexOf(item.txId) > -1 && 'active'}`}>
+                    <div className={`crypto ${cdms.withCrypto.indexOf(item.id) > -1 && 'active'}`}>
                         <div className="close">
                             <button
                                 className="menuBtn"
                                 onClick={_ => {
-                                    cdms.toggleWithCrypto(item.txId);
+                                    cdms.toggleWithCrypto(item.id);
                                 }}
                             >
                                 <Icon type="close" />
@@ -109,11 +118,15 @@ class Message extends React.Component {
                         </div>
                         <p><b>Blockchain transaction ID:</b> <a href={`https://wavesexplorer.com/${NETWORK === 'testnet' ? 'testnet/' : ''}tx/${item.txId}`} target="_blank">{item.txId}</a></p>
                         <p><b>IPFS Hash:</b> <a href={`${API_HOST}/ipfs/${item.ipfsHash}`} target="_blank">{item.ipfsHash}</a></p>
-                        <p>--</p>
+                        <Divider />
+                        <p><b>Raw subject:</b> {item.rawSubject}</p>
+                        <p><b>Subject SHA256 hash:</b> {item.subjectHash}</p>
+                        <p><b>Hash is valid:</b> {sha256(item.rawSubject) === item.subjectHash ? 'TRUE' : 'FALSE'}</p>
+                        <Divider />
                         <p><b>Raw message:</b> {item.rawMessage}</p>
                         <p><b>Message SHA256 hash:</b> {item.messageHash}</p>
                         <p><b>Hash is valid:</b> {sha256(item.rawMessage) === item.messageHash ? 'TRUE' : 'FALSE'}</p>
-                        <p>--</p>
+                        <Divider />
                         <p><b>CDM type:</b> {item.logicalSender === item.realSender ? 'Direct (Blockchain proof)' : 'Sponsored (CDM proof)'}</p>
                         <p><b>Signed by:</b> {item.logicalSender}</p>
                         <p><b>Signature:</b> {item.signature}</p>
@@ -135,13 +148,14 @@ class Message extends React.Component {
 
                     .header {
                         display: flex;
+                        position: relative;
                     }
 
                     .members {
                         flex-grow: 1;
                         overflow-x: hidden;
                         padding-right: 1em;
-                        margin-bottom: 2em;
+                        margin-bottom: 1em;
                     }
 
                     .info {
@@ -197,7 +211,8 @@ class Message extends React.Component {
                     
                     .subject {
                         font-weight: 700;
-                        margin-bottom: 1em;
+                        margin-bottom: 0em;
+                        font-size: 12px;
                     }
 
                     .body {
@@ -242,6 +257,28 @@ class Message extends React.Component {
                     .contact.self {
                         background: #ba68c8;
                         color: #fff
+                    }
+
+                    .toggleRecipietns {
+                        position: absolute;
+                        top: 0px;
+                        left: -20px;
+                        color: #999;
+                        font-size: 12px;
+                    }
+
+                    .sender {
+                        color: #999;
+                        font-size: 12px;
+                    }
+
+                    .recipients {
+                        display: none;
+                        font-size: 12px;
+                    }
+
+                    .recipients.active {
+                        display: block;
                     }
                 `}</style>
             </div>

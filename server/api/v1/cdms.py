@@ -47,6 +47,7 @@ def get_cdms(alice, thread_hash):
                             FROM proofs p
                             WHERE p.tx_id = t.id
                         ) as proofs,
+                        c.id,
                         (
                             SELECT min(tt.timestamp)
                             FROM cdms cc
@@ -105,6 +106,7 @@ def get_cdms(alice, thread_hash):
                         "ipfsHash": base58.b58decode(record[15]).decode('utf-8'),
                         "attachmentHash": record[16],
                         "signature": record[17] or record[18][0],
+                        "id": record[19],
                         "sharedWith": shared_with
                     }
 
