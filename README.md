@@ -301,4 +301,4 @@ a146de0ae78c        willfarrell/autoheal:latest   "/docker-entrypoint …"   5 d
 ```
 
 ## Licence
-This project is licensed under the MIT license, Copyright (c) 2019 Amir Boziev. For more information see LICENSE.md.
+This project is licensed under the MIT license, Copyright (c) 2019 Chainify. For more information see LICENSE.md.
