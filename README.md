@@ -89,6 +89,134 @@ If everithong installed correclry you sould see something like this
 
 You can visit your Nolik client and send your first message.
 
+## CDM protocol
+
+CDM (Chainify Decentralized Messaging) protocol is designed for privacy-first communicatoins.
+
+The protocol allows:
+
+1. To deliver messages with 100% guarantee as to delivery with no central server involved.
+2. To use end-to-end encryption without a central server.
+3. Validate the sender with the digital signature.
+3. To store messages securely forever and for free.
+for anyone to verify that a message (i) was dispatched by a particular user, (ii) was actually delivered.
+4. Access to messages only for sender and recipient (no third-parties involvement).
+5. Access to messaging through an unlimited number of interfaces or clients from various vendors.
+
+### How it works
+
+1. Alice and Bob are going to have a conversation using Nolik. Each of them already installed the [Waves Keeper](https://wavesplatform.com/products-keeper) browser extension and created accounts. To use Nolik Alice and Bob simply log in with Waves Keeper and get personalized content without any registration.
+2. Alice needs to know Bob's public key, which she can get directly from Bob or public sources.
+3. Alice wrights a message and encrypts it with Bob's public key. To do that Alice creates a shared key based on Diffie Hellman algorithm.
+4. Alice creates a CDM file of a certain structure (an example is below).
+5. Alice saves that file to IPFS network and gets the IPFS hash (a unique hash based on file content). That hash is also used to read file content in IPFS network.
+6. That IPFS hash is attached to the blockchain transaction and broadcasts to the blockchain network. That transaction is *colored* with a custom token (at Chainify we use [CNFY token](https://wavesexplorer.com/tx/6U3wmEJQzoeeYmCLvwCEWwQY17HwXLRYiMnST9wKBSL5)). Coloring allows to pick relevant transactions, parse them and save them to the database.
+7. Bob receives the transaction, which is delivered by API and decodes it with Waves Keeper extension.
+
+### CDM file sample
+
+CDM file is a regular XML file with a certain structure. The file is saved to IPFS network and can be reached with a unique address which is generated based on the file content. The same file content will generate the same address (IPFS Hash).
+
+CDM file example: [https://nolik.im/ipfs/QmYLWaaWKesqGTdRjggLkRa25xgBZVqWi56tyfKqpD3pU6](https://nolik.im/ipfs/QmYLWaaWKesqGTdRjggLkRa25xgBZVqWi56tyfKqpD3pU6)
+
+
+```
+<?xml version="1.0"?>
+<cdm>
+    <version>0.7</version>
+    <blockchain>Waves</blockchain>
+    <network>Mainnet</network>
+    <messages>
+        <message>
+            <subject>
+                <ciphertext>
+                  f43y5Mc88CS7cE8AXWGU7h9RbgqnUWwJW1j1w9RYDGKJgTk1pgq99VSHiyev2hd5QtrDKtj6AktCnH5njCPrGWqpmZZubdviqNCEsMGNGrFAjVEwRm4WCVwHoqjXRjsMaBafcYWfBddxc22q6Rhfbe1ioXPWnv9mPLBPmptLyu5nU8yMXFMBBURSS87QuZyoX8iWGkswzCNtaiMBeJ8LXfw21WcV5PH4eT2UEFreooHY1shejC25ZjzWTuK4uj2jYrgF7dGkUBWG72rZUocpcaAztJYt3sRKFrWK1AY8JUhocmQSMUFXWDy5ebbLb
+                </ciphertext>
+                <sha256>
+                  32a5ffa09db0d79f5c688bd7873872f63e1c83554459ee4212833378700263c5
+                </sha256>
+            </subject>
+            <cc>
+                <publickey>
+                  cEdRrkTRMkd61UdQHvs1c2pwLfuCXVTA4GaABmiEqrP
+                </publickey>
+            </cc>
+            <body>
+                <ciphertext>
+                  ZTxLXhXZfKvybjxMqj1kQkkyt8RYtVkXTGNCQm3PS84cyMoDSCjRGczGJPtAnzC1EYhT7Doaw7r3CvaSz1prP9jEjuxJRrh8csWYdx2MSw59htUhdQEc3K4MPkbQJDPUp2vFzWwaF1xPFWcexstv34tMa29XNNafesN93jeMoejcVFXrcw8nV8qKHmdxPUXmeSBwnC2YXKn3zFUYXRU8iYKe4YnLsgdjLzdmR1RVnMEm5ntSSH56dkgZztFWTW3SHgWNMZ6Ndb4L2giE6csTXz3y7qMFNiEXgZMxoC4j6NBD7Wmaqiw7Xx7aK7sBwa3dujsQkFHMF7ni
+                </ciphertext>
+                <sha256>
+                  42664969222d1c0d3f0c39d456085598baf1a9a92945e6a6c07dd281ce8d9603
+                </sha256>
+            </body>
+            <regarding>
+                <subjecthash>
+                  195a2c235dbf2e810351e2bd7854d932c9f4e9af594141770f37a7a6ba2b8009
+                </subjecthash>
+                <messagehash>
+                  4f82a327abe79be67dfa128efe275b8f49dbb6392385fd658bebcb1e6be60f25
+                </messagehash>
+            </regarding>>
+            <forwarded>
+                <subjecthash>
+                  d39c9c8b36aec904cd11b7608d19a531bae328c0759bd93c9a9246c8cccd70ec
+                </subjecthash>
+                <messagehash>
+                  42664969222d1c0d3f0c39d456085598baf1a9a92945e6a6c07dd281ce8d9603
+                </messagehash>
+            </forwarded>
+        </message>
+    </messages>
+</cdm>
+```
+
+#### Desctiption
+
+* **version** - a version of CDM protocol.
+* **blockchain** - a blockchain provider. CDM protocol is blockchain-agnostic.
+* **network** - a network type `mainnet`, `testnet` or `private`.
+* **messges** - list of messages to send. CDM protocol allows having `one-to-one`, `one-to-many`, `many-to-many` conversation.
+* **message** - a block which will be stored a separate message.
+* **subject** - a subject of a message. 
+  * **ciphertext** - the subject encrypted with recipient's public key.
+  * **sha256** - the SHA256 hash of original unencrypted subject. Can be used for validating that the sent information was not modified. It can also be used for making sure that every recipient received the same subject.
+* **body** - a subject of a message.
+  * **ciphertext** - the message text encrypted with recipient's public key. 
+  * **sha256** - the SHA256 hash of original unencrypted message text. Can be used for validating that the sent information was not modified. It can also be used for making sure that every recipient received the same message text.
+* **to** - a `direct` recipient of a message.
+  * **publickey** - the public key of the recipient.
+* **cc** - a recipient that is informed with a `carbon copy`.
+  * **publickey** - the public key of the recipient.
+* **regarding** - the message that is `replied` with the current message.
+  * **subjecthash** - the SHA256 of the subject.
+  * **messagehash** - the SHA256 of the message text.
+* **forwarded** - the message that is `forwarded` with the current message.
+  * **subjecthash** - the SHA256 of the subject.
+  * **messagehash** - the SHA256 of the message text.
+
+
+It is important to mention that `subject` and `message text` are salted with a random SHA256 hash, which is attached at the end of the text.
+
+For example
+```
+This is a sample message@135b1943bf9f50622d0b6ac8dd924f897447c4d894c405386966d0e5ee6e469a
+```
+That is done for better security. Without salt, it would be possible to hack the conversation with brute-forcing, because hash of the phrase `Hello, how are you?` will always be the same.
+
+### Proofs
+
+With CDM protocol it is possible to cryptographically prove that:
+1. That Nolik (or anybody else) has access to the content of messages. Every CDM file is public and can be reviewed by anyone. The content of `subject` and `body` fields is encrypted. Nolik as a service provider did not generate and distribute encryption keys and does not store any encryption keys as well. Alice can double-check that Nolik did not modify data by validating the signature. Also, Alice and Bob can deploy a personal version of Nolik.
+2. The message was sent by Alice and only Alice. The IPFS hash is attached to the blockchain transaction which is signed by Alice. It means that anyone can validate the signature knowing the transaction data, the signature and Alice's public key. All that information is publicly available. Example: [https://wavesexplorer.com/tx/5e9Vj6hqpQxmzkDBSMW9WN8uz16U6jRNXSAkLDnvDCKJ](https://wavesexplorer.com/tx/5e9Vj6hqpQxmzkDBSMW9WN8uz16U6jRNXSAkLDnvDCKJ)
+3. The message was sent on a particular date. Every transaction is part of a particular block with a particular height (serial number). Each block is generated periodically based on blockchain architecture and consensus algorithm. It is publicly known when each block isgenerated and added to the distributed ledger. Example: [https://wavesexplorer.com/blocks/1666988](https://wavesexplorer.com/blocks/1666988)
+4. The message was not modified. The blockchain transaction is stored forever on every blockchain node, and cannot be deleted or modified.
+5. The message was sent by Alice and received by Bob. The CDM file is attached to the blockchain transaction, which can be reviewed by anyone. If the CDM file is publicly available it means that anyone can see it, which proves:
+  * that the message that was sent by Alice
+  * that the message that was sent to Bob or Bob, Carol, and Dave
+  * that the message has a particular content (can be checked with SHA256 algorithm)
+6. The message was replied or forwarded. Each message is salted and has a unique hash. If the message is replied or forwarded, the same hash will appear in the CDM file, that is attached to a new blockchain transaction.
+
+
 ## Microservices architecture
 
 Nolik uses a microservice architecture which means that each service runs in a separate container. The structure of microservises is build in `docker-compose` files. Feel free to modify microservices and update the code base. Here is the list of available microservices from `nolik` directory:
@@ -125,7 +253,7 @@ In the current architecture, all microservices run on the same node. That is don
 
 * **parser** - is a tool for finding your transactions in the blockchain and saving them to the database. The message is encrypted and Nolik does not know the decryption keys (only Alice and Bob know them and store them in Waves Keeper extension). Parser saves the blockchain transaction only to increasing productivity.
 
-* **ipfs** - is an IPFS node that allows saving and storing files based on IPFS protocol. After successful saving IPFS endpoint returns a unique hash - the file address that is generated based on file content (same file => same hash). That address is used for reading the file content. For example [https://nolik.im/ipfs/QmYLWaaWKesqGTdRjggLkRa25xgBZVqWi56tyfKqpD3pU6](https://nolik.im/ipfs/QmYLWaaWKesqGTdRjggLkRa25xgBZVqWi56tyfKqpD3pU6). The IPFS hash is attached to blockchain transaction that is broadcasted to the blockchain network.
+* **ipfs** - is an IPFS node that allows saving and storing files based on IPFS protocol. After successful saving IPFS endpoint returns a unique hash - the file address that is generated based on file content (same file => same hash). That address is used for reading the file content. The IPFS hash is attached to blockchain transaction that is broadcasted to the blockchain network.
 
 * **postgresql** - is a Postgresql database that is used for storing parsed blockchain transactions. Blockchain allows not to worry about replication. In case of a database failure, the parser will recover the same information from the blockchain.
 
