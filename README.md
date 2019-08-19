@@ -16,6 +16,12 @@ Perfect use cases:
 
 You can use the public version of Nolik a [https://nolik.im](https://nolik.im) or deploy private messenger in your environment.
 
+## Content
+* [Quick Start](https://github.com/chainify/nolik#quick-start)
+* [Microservices architecture](https://github.com/chainify/nolik#microservices-architecture)
+* [Development and Production modes](https://github.com/chainify/nolik#development-and-production-modes)
+* [License](https://github.com/chainify/nolik#licence)
+
 ## Quick start
 
 Current architecture needs [Docker](https://docker.com) to be installed on your machine. Docker will be used for running microservices in separate containers. It is also a great tool to make sure that the application works on every platform.
@@ -83,9 +89,9 @@ If everithong installed correclry you sould see something like this
 
 You can visit your Nolik client and send your first message.
 
-## Closer look
+## Microservices architecture
 
-Inside `nolik` directory you will see:
+Nolik uses a microservice architecture which means that each service runs in a separate container. The structure of microservises is build in `docker-compose` files. Feel free to modify microservices and update the code base. Here is the list of available microservices from `nolik` directory:
 ```
 drwxr-xr-x 10 root root 4096 Aug 15 08:22 .
 drwxr-xr-x  5 root root 4096 Aug 14 09:38 ..
@@ -104,10 +110,6 @@ drwxr-xr-x  4 root root 4096 Aug 14 09:43 server
 drwxr-xr-x  9 root root 4096 Aug 14 10:08 web
 ```
 
-### Microservises
-
-Nolik uses a microservice architecture which means that each service runs in a separate container. The structure of microservises is build in `docker-compose` files.
-
 In the current architecture, all microservices run on the same node. That is done for easy and quick launch, however, the better option is to separate microservices in different nodes. For example, a bit complicated architecture would look like:
 
 * **Node A**: Containers `nginx`, `web`
@@ -115,7 +117,25 @@ In the current architecture, all microservices run on the same node. That is don
 * **Nodes C, D, E**: Containers `ipfs` with replication
 * **Hosting provider**: Services for `postgres`,  `redis` databases
 
-#### Structure of a microservice
+### Microservices description
+
+* **web** - is a web client for Nolik. It is built with Next.js and Mobx frameworks. In development mode this container uses web sockets, and as a default uses 3001 port for that. It can be configured in `.env` file. In development mode, web-client will run a local server and auto-refresh a page on code update. In production mode, web-client will build and run the static files, which is much faster option. To use Nolik, each user has to install Waves Keeper - a browser extension that securely stores private keys. The incoming and outgoing messages are encrypted and decrypted on a client-side. For better performance, Nolik has a built-in caching layer based on LevelDB. Currently, users broadcast transaction directly from Nolik client.
+
+* **server** - is an API endpoint for Nolik. It allows getting structured information about incoming and outgoing messages. API is also can be used for dropping client cache. In order to do that just update the `API_VERSION` parameter from `.env` file.
+
+* **parser** - is a tool for finding your transactions in the blockchain and saving them to the database. The message is encrypted and Nolik does not know the decryption keys (only Alice and Bob know them and store them in Waves Keeper extension). Parser saves the blockchain transaction only to increasing productivity.
+
+* **ipfs** - is an IPFS node that allows saving and storing files based on IPFS protocol. After successful saving IPFS endpoint returns a unique hash - the file address that is generated based on file content (same file => same hash). That address is used for reading the file content. For example [https://nolik.im/ipfs/QmYLWaaWKesqGTdRjggLkRa25xgBZVqWi56tyfKqpD3pU6](https://nolik.im/ipfs/QmYLWaaWKesqGTdRjggLkRa25xgBZVqWi56tyfKqpD3pU6). The IPFS hash is attached to blockchain transaction that is broadcasted to the blockchain network.
+
+* **postgresql** - is a Postgresql database that is used for storing parsed blockchain transactions. Blockchain allows not to worry about replication. In case of a database failure, the parser will recover the same information from the blockchain.
+
+* **redis** - is a Redis database container, which is used for storing a set of online users.
+
+* **nginx** is a proxy that allows accessing Nolik web client and IPFS node from outside of docker network. Inproduction mode nginx requires SSL certificates.
+
+* **autoheal** is a container that checks the health of parser every 10 seconds and restarts it if something is wrong.
+
+### Configuration of a microservice
 
 In `docker-compose` file, each service has more or less the same structure. For example, this is a structure of a `web` container:
 
@@ -210,7 +230,7 @@ KEEPER_PREFIX=chainify
 KEEPER_SECRET=nolik_dev_secret
 ```
 
-##### Description
+#### Description
 
 * **ENV** defines your environment to be `development` or `production`.
 * **API_HOST** is a URL of your API endpoint.
@@ -230,6 +250,18 @@ KEEPER_SECRET=nolik_dev_secret
 
 * **KEEPER_PREFIX** is a prefix for encryption and decryption of your messages.
 * **KEEPER_SECRET** is a random string that is used for authentication in Waves Keeper.
+
+After updating `.env` file changes will take effect only after restarting related containers. You can easily do that with the following commands:
+* For development mode:
+```
+cd ./nolik
+docker-compose up -d
+```
+* For production mode:
+```
+cd ./nolik
+docker-compose -f docker-compose.prod.yml up -d
+```
 
 
 <!-- *  **web** - a container for Nolik web-client. In development mode will run a local server and auto-refresh a page on code update. In production mode will build and run static invironment, which is much faster to use.
