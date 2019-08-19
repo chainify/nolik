@@ -199,9 +199,9 @@ It is important to mention that `subject` and `message text` are salted with a r
 
 For example
 ```
-This is a sample message@135b1943bf9f50622d0b6ac8dd924f897447c4d894c405386966d0e5ee6e469a
+Hello, how are you?@135b1943bf9f50622d0b6ac8dd924f897447c4d894c405386966d0e5ee6e469a
 ```
-That is done for better security. Without salt, it would be possible to hack the conversation with brute-forcing, because hash of the phrase `Hello, how are you?` will always be the same.
+That is done for better security. Without salt, it would be possible to hack the conversation with brute-forcing, because hash of the phrase `Hello, how are you?` will always be the same. The `@135b1943bf9f50622d0b6ac8dd924f897447c4d894c405386966d0e5ee6e469a` part can be easily removed on the client side.
 
 ### Proofs
 
