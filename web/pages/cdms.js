@@ -46,7 +46,7 @@ class Cdms extends React.Component {
                                     onClick={compose.toggleComment}
                                     disabled={compose.addMemberOn}
                                 >
-                                     Cc: To all
+                                     Reply to All
                                 </Button>,
                                 <Button
                                     key="header_info_button"

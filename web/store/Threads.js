@@ -167,7 +167,8 @@ class ThreadsStore {
             this.list = newList;
 
             if (current) {
-                this.setThread(current);
+                this.current = current;
+                // this.setThread(current);
             }
         });
     }
