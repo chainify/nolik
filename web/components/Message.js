@@ -48,7 +48,7 @@ class Message extends React.Component {
                     <FontAwesomeIcon icon={faReply} /> Reply (New Thread)
                 </Menu.Item>
                 <Menu.Item key="replyAlls" disabled>
-                    <FontAwesomeIcon icon={faReplyAll} /> Reply All (New Thread)
+                    <FontAwesomeIcon icon={faReplyAll} /> Reply to All (New Thread)
                 </Menu.Item>
                 <Menu.Divider />
                 <Menu.Item key="crypto">
