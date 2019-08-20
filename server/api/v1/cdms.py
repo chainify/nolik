@@ -110,9 +110,9 @@ def get_cdms(alice, thread_hash):
                         "sharedWith": shared_with
                     }
 
-                    sender = record[1] or record[2]
+                    sender, recipient = record[1] or record[2], record[0]
                     if alice == sender:
-                        data['direction'] = 'outgoing'
+                        data['direction'] = 'self' if sender == recipient else 'outgoing'
                     else:
                         data['direction'] = 'incoming'
                         

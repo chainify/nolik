@@ -3,7 +3,7 @@ import { observer, inject } from 'mobx-react';
 import { Badge, Icon, Typography, Progress } from 'antd';
 import { toJS } from 'mobx';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faLevelDownAlt, faLevelUpAlt } from '@fortawesome/free-solid-svg-icons';
+import { faLevelDownAlt, faLevelUpAlt, faBookmark } from '@fortawesome/free-solid-svg-icons';
 
 const { Paragraph } = Typography;
 
@@ -37,9 +37,11 @@ class Header extends React.Component {
                             <div className={`arrow ${item.cdms[0] && item.cdms[0].direction}`}>
                                 <FontAwesomeIcon
                                     icon={
-                                        item.cdms[0].direction === 'incoming'
-                                        ? faLevelDownAlt
-                                        : faLevelUpAlt
+                                        item.cdms[0].direction === 'self'
+                                        ? faBookmark :
+                                            item.cdms[0].direction === 'incoming'
+                                            ? faLevelDownAlt
+                                            : faLevelUpAlt
                                     }
                                 />
                             </div>
