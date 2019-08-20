@@ -52,7 +52,7 @@ class Message extends React.Component {
                 </Menu.Item>
                 <Menu.Divider />
                 <Menu.Item key="crypto">
-                    <FontAwesomeIcon icon={faKey} /> Proofs
+                    <FontAwesomeIcon icon={faKey} /> CDM Details
                 </Menu.Item>
             </Menu>
         );
