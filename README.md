@@ -257,9 +257,8 @@ drwxr-xr-x  9 root root 4096 Aug 14 10:08 web
 
 In the current architecture, all microservices run on the same node. That is done for easy and quick launch, however, the better option is to separate microservices in different nodes. For example, a bit complicated architecture would look like:
 
-* **Node A**: Containers `nginx`, `web`
-* **Nodes B, C**: Containers `parser`, `server`, `healthcheck` (from docker-compose files)
-* **Nodes C, D, E**: Containers `ipfs` with replication
+* **Node A**: Load balancer
+* **Nodes B, C, D**: Containers `nginx`, `web`, `parser`, `server`, `ipfs` with replication, `healthcheck` (from docker-compose files)
 * **Hosting provider**: Services for `postgres`,  `redis` databases
 
 ### Microservices description
