@@ -58,7 +58,7 @@ class Header extends React.Component {
                                 )}
                                 {!item.cdms[item.cdms.length-1].subject && item.cdms[item.cdms.length-1].message && (
                                     <Paragraph ellipsis style={paragrapStyle}>
-                                        <span className={`arrow ${item.cdms[0] && item.cdms[0].direction}`}>
+                                        {/* <span className={`arrow ${item.cdms[0] && item.cdms[0].direction}`}>
                                             <FontAwesomeIcon
                                                 icon={
                                                     item.cdms[0].direction === 'self'
@@ -68,14 +68,14 @@ class Header extends React.Component {
                                                         : faLevelUpAlt
                                                 }
                                             />
-                                        </span>
+                                        </span> */}
                                         <span className={`headerTitle`}>
                                             {item.cdms[item.cdms.length-1].message}
                                         </span>
                                     </Paragraph>
                                 )}
                                 <Paragraph ellipsis={{ rows: item.cdms[0].subject ? 1 : 2 }} style={paragrapStyle}>
-                                    <span className={`arrow ${item.cdms[0] && item.cdms[0].direction}`}>
+                                    {/* <span className={`arrow ${item.cdms[0] && item.cdms[0].direction}`}>
                                         <FontAwesomeIcon
                                             icon={
                                                 item.cdms[0].direction === 'self'
@@ -85,7 +85,7 @@ class Header extends React.Component {
                                                     : faLevelUpAlt
                                             }
                                         />
-                                    </span>
+                                    </span> */}
                                     <span className="headerMessage">
                                         {striptags(md.render(item.cdms[0].message))}
                                     </span>
@@ -159,7 +159,7 @@ class Header extends React.Component {
                         margin-right: 4px;
                     }
                     .arrow.incoming {
-                        color: #64b5f6;
+                        color: #ef9a9a;
                     }
 
                     .arrow.outgoing {
