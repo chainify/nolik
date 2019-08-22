@@ -55,7 +55,24 @@ To issue tokens you  will need to pay 1 WAVES.
 
 ### Configure the environment
 1. Replace `nolik.loc` with your host is needed.
-2. Update `.env` file. Make sure to change `AHI_HOST`, `ASSET_ID`, and `POSTGRES_PASSWORD`. You can find a complete `.env` file description below.
+2. Update `.env` file. Make sure to change `API_HOST`, `ASSET_ID`, and `POSTGRES_PASSWORD`. You can find a complete `.env` file description below.
+3. Create local foldersfor IPFS storage
+```
+cd ~
+mkdir .data && cd .data
+mkdir nolik && cd nolik
+mkdir ipfs && cd ipfs
+mkdir data staging
+```
+If you chouse another location make sure to update `docker-compose.yml` file and change IPFS volumes parameters:
+```
+ipfs:
+    image: ipfs/go-ipfs:latest
+    container_name: nolik-ipfs
+    volumes:
+      - ~/.data/nolik/ipfs/data:/data/ipfs
+      - ~/.data/nolik/ipfs/staging:/export
+```
 
 ### Start containers in development mode
 ```
@@ -395,7 +412,7 @@ docker-compose -f docker-compose.prod.yml up -d
 <!-- *  **web** - a container for Nolik web-client. In development mode will run a local server and auto-refresh a page on code update. In production mode will build and run static invironment, which is much faster to use.
 * **nginx** - a proxy -->
 
-## Production modes
+## Production mode
 
 There are two options to run Nolik - `development` and `production` mode. To run Nolik in a particular environment you should configure `.env` file and run the proper `docker-compose` file.
 
@@ -436,6 +453,19 @@ Issue SSL certificates and copy `domain.com.crt` and `domain.com.key` files to `
 cd ./nolik/nginx/ssl
 nano domain.com.crt
 nano domain.com.key
+```
+
+### IPFS configuration
+It is a good practice to mount external volume to your server. That will allow to resize and add extra size to IPFS storage without stopping the container (depends on hosting provider).
+
+In `docker-compose.prod.yml` file **REPLACE** `/mnt/volume_fra1_02/.ipfs/data` and `/mnt/volume_fra1_02/.ipfs/staging` with your actual volumes location.
+```
+ipfs:
+    image: ipfs/go-ipfs:latest
+    container_name: nolik-ipfs
+    volumes:
+      - /mnt/volume_fra1_02/.ipfs/data:/data/ipfs
+      - /mnt/volume_fra1_02/.ipfs/staging:/export
 ```
 
 ### PostgreSQL configuration
