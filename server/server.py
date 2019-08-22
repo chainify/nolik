@@ -2,7 +2,7 @@ import os
 from sanic import Sanic
 from api import api_v1
 import configparser
-from sanic_cors import CORS, cross_origin
+from sanic_cors import CORS
 
 config = configparser.ConfigParser()
 config.read('config.ini')
