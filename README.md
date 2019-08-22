@@ -395,12 +395,13 @@ docker-compose -f docker-compose.prod.yml up -d
 <!-- *  **web** - a container for Nolik web-client. In development mode will run a local server and auto-refresh a page on code update. In production mode will build and run static invironment, which is much faster to use.
 * **nginx** - a proxy -->
 
-## Development and Production modes
+## Production modes
 
- There are two options to run Nolik - `development` and `production` mode. To run Nolik in a particular environment you should configure `.env` file and run the proper `docker-compose` file.
+There are two options to run Nolik - `development` and `production` mode. To run Nolik in a particular environment you should configure `.env` file and run the proper `docker-compose` file.
 
+Depending on your environment configuration you might need to update `server/config.ini` and `parser/congig.ini` files as well.
 
-### Running in production
+### SSL setup
 The production environment is preconfigured to use SSL certificates with additional Diffie Hellman Ephemeral Parameters, which is a [recommended practice](https://raymii.org/s/tutorials/Strong_SSL_Security_On_nginx.html) for stronger security.
 
 You can see the list of required files in `nolik/nginx/Dockerfile.prod`:
@@ -429,7 +430,7 @@ openssl dhparam -out dhparam.pem 4096
 Please keep in mind that this procedure is time-concuming.
 
 
-#### Using SSL certificates
+#### Copy SSL certificates
 Issue SSL certificates and copy `domain.com.crt` and `domain.com.key` files to `ssl` directory
 ```
 cd ./nolik/nginx/ssl
@@ -437,7 +438,33 @@ nano domain.com.crt
 nano domain.com.key
 ```
 
-#### Start production environment
+### PostgreSQL configuration
+If your environment uses centralized database engine, which is a good idea if you have a cluster of nodes, make sure to confugure `server/config.ini` and `parser/config.ini` files.
+
+```
+[DB]
+host = YOUR_POSTGRESQL_DB_HOST
+port = YOUR_POSTGRESQL_DB_PORT
+sslmode = require
+target_session_attrs = read-write
+
+[app]
+host = 0.0.0.0
+port = 8080
+
+[ipfs]
+host = 10.7.0.7
+port = 5001
+```
+
+In production mode it is preconfigured to copy `ca-certificate.crt` file into `server` and `parser` containers. You can change or disable that by updating or mommenting folowing lines in `server/Dockerfile.prod` and `parser/Dockerfile.prod`:
+
+```
+RUN mkdir /root/.postgresql
+COPY ./.postgresql/ca-certificate.crt.crt /root/.postgresql/root.crt
+```
+
+### Start production environment
 In `nolik` directory build docker images and start containers in production mode
 ```
 docker-compose -f docker-compose.prod.yml build

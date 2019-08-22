@@ -7,7 +7,5 @@ pycharm
 
 config.prod.ini
 
-.postgresql
-
 *.pyc
 sql.py

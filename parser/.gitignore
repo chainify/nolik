@@ -1,9 +1,7 @@
 .idea
-.postgresql
 .pycharm_helpers
 .vscode
-project
-ca-certificate.crt
+projects
 
 pycharm
 

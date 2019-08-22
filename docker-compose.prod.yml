@@ -43,7 +43,9 @@ services:
     command: bash -c "npm install -y && npm run build && npm run start"
 
   api:
-    build: ./server
+    build:
+      context: ./server
+      dockerfile: Dockerfile.prod
     image: chainify/nolik-api
     container_name: nolik-api
     volumes:
@@ -69,7 +71,9 @@ services:
     command: bash -c "python3.7 server.py"
 
   parser:
-    build: ./parser
+    build:
+      context: ./parser
+      dockerfile: Dockerfile.prod
     image: chainify/nolik-parser
     container_name: nolik-parser
     volumes:
