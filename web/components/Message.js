@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {Fragment} from 'react';
 import { observer, inject } from 'mobx-react';
 import * as moment from 'moment';
 import { Menu, Typography, Dropdown, Icon, Divider } from 'antd';
@@ -9,24 +9,25 @@ import { sha256 } from 'js-sha256';
 import getConfig from 'next/config';
 const { publicRuntimeConfig } = getConfig();
 const { NETWORK, API_HOST } = publicRuntimeConfig;
-
-const ReactMarkdown = require('react-markdown');
 const { Paragraph } = Typography;
 
-// const MarkdownIt = require('markdown-it');
-// const md = new MarkdownIt();
+import mdcss from '../styles/MarkDown.css';
 
-@inject('cdms', 'alice')
+const md = require('markdown-it')({
+    html: true,
+    linkify: true,
+    typographer: true,
+    breaks: true,
+});
+
+@inject('cdms', 'alice', 'compose')
 @observer
 class Message extends React.Component {
-    render() {
-        const { item, cdms, alice } = this.props;
-        const message = <ReactMarkdown
-            source={item.message}
-            linkTarget="_blank"
-            className="md"
-        />;
 
+    render() {
+        const { item, cdms, alice, compose } = this.props;
+        const css = `<style>${mdcss}</style>`
+        const message = `${css}${md.render(item.message)}`;
         const pstyle = {
             margin: 0,
             padding: 0,
@@ -35,23 +36,35 @@ class Message extends React.Component {
         const menu = (
             <Menu
                 onClick={e => {
-                    if (e.key === 'crypto') {
+                    if (e.key === 'forward') {
+                        compose.toggleForwardMessage(item);
+                    }
+
+                    if (e.key  === 'reply') {
+                        compose.toggleReplyToMessage(item);
+                    }
+
+                    if (e.key  === 'replyToAll') {
+                        compose.toggleReplyMessageToAll(item);
+                    }
+
+                    if (e.key === 'cdmDetails') {
                         cdms.toggleWithCrypto(item.id);
                     }
                 }}
                 key={`menu_${item.txId}`}
             >
-                <Menu.Item key="forward" disabled>
+                <Menu.Item key="forward">
                     <FontAwesomeIcon icon={faShare} /> Forward
                 </Menu.Item>
-                <Menu.Item key="reply" disabled>
+                <Menu.Item key="reply">
                     <FontAwesomeIcon icon={faReply} /> Reply (New Thread)
                 </Menu.Item>
-                <Menu.Item key="replyAlls" disabled>
+                <Menu.Item key="replyToAll">
                     <FontAwesomeIcon icon={faReplyAll} /> Reply to All (New Thread)
                 </Menu.Item>
                 <Menu.Divider />
-                <Menu.Item key="crypto">
+                <Menu.Item key="cdmDetails">
                     <FontAwesomeIcon icon={faKey} /> CDM Details
                 </Menu.Item>
             </Menu>
@@ -132,8 +145,7 @@ class Message extends React.Component {
                         <p><b>Signature:</b> {item.signature}</p>
                     </div>
                     {item.subject && <div className="subject">{item.subject}</div>}
-                    <div className="body">{message}</div>
-                    <div className="footer"></div>
+                    <div className="body markdown" dangerouslySetInnerHTML={{__html: message}}></div>
                 </div>
                 <style jsx>{`
                     .message {
@@ -217,8 +229,7 @@ class Message extends React.Component {
 
                     .body {
                         padding-top: 0em;
-                        word-wrap: break-word;
-                        white-space: pre-wrap;
+                        
                     }
 
                     .footer {

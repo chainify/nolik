@@ -1,11 +1,17 @@
 import React from 'react';
 import { observer, inject } from 'mobx-react';
-import { Badge, Icon, Typography, Progress } from 'antd';
+import { Badge, Icon, Typography } from 'antd';
 import { toJS } from 'mobx';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faLevelDownAlt, faLevelUpAlt, faBookmark } from '@fortawesome/free-solid-svg-icons';
+const striptags = require('striptags');
 
 const { Paragraph } = Typography;
+const md = require('markdown-it')({
+    html: false,
+    linkify: false,
+    typographer: false,
+});
 
 @inject('threads', 'compose')
 @observer
@@ -34,16 +40,13 @@ class Header extends React.Component {
                 >
                     <div className={`header ${threads.current && threads.current.threadHash === item.threadHash && 'active'}`}>
                         <div className="headerBody">
-                            <div className={`arrow ${item.cdms[0] && item.cdms[0].direction}`}>
-                                <FontAwesomeIcon
-                                    icon={
-                                        item.cdms[0].direction === 'self'
-                                        ? faBookmark :
-                                            item.cdms[0].direction === 'incoming'
-                                            ? faLevelDownAlt
-                                            : faLevelUpAlt
-                                    }
-                                />
+                            <div className={`users`}>
+                                {item.members.length > 1 && (
+                                    <Icon type="team" />
+                                )}
+                            </div>
+                            <div className={`uersCount`}>
+                                {item.members.length > 1 && item.members.length + 1}
                             </div>
                             <div>
                                 {item.cdms[item.cdms.length-1].subject && (
@@ -55,16 +58,36 @@ class Header extends React.Component {
                                 )}
                                 {!item.cdms[item.cdms.length-1].subject && item.cdms[item.cdms.length-1].message && (
                                     <Paragraph ellipsis style={paragrapStyle}>
+                                        <span className={`arrow ${item.cdms[0] && item.cdms[0].direction}`}>
+                                            <FontAwesomeIcon
+                                                icon={
+                                                    item.cdms[0].direction === 'self'
+                                                    ? faBookmark :
+                                                        item.cdms[0].direction === 'incoming'
+                                                        ? faLevelDownAlt
+                                                        : faLevelUpAlt
+                                                }
+                                            />
+                                        </span>
                                         <span className={`headerTitle`}>
                                             {item.cdms[item.cdms.length-1].message}
                                         </span>
                                     </Paragraph>
                                 )}
                                 <Paragraph ellipsis={{ rows: item.cdms[0].subject ? 1 : 2 }} style={paragrapStyle}>
+                                    <span className={`arrow ${item.cdms[0] && item.cdms[0].direction}`}>
+                                        <FontAwesomeIcon
+                                            icon={
+                                                item.cdms[0].direction === 'self'
+                                                ? faBookmark :
+                                                    item.cdms[0].direction === 'incoming'
+                                                    ? faLevelDownAlt
+                                                    : faLevelUpAlt
+                                            }
+                                        />
+                                    </span>
                                     <span className="headerMessage">
-                                        {item.cdms[0].subject 
-                                            ? <span>{item.cdms[0].message}</span>
-                                            : item.cdms[0].message}
+                                        {striptags(md.render(item.cdms[0].message))}
                                     </span>
                                 </Paragraph>
                             </div>
@@ -119,12 +142,22 @@ class Header extends React.Component {
                         position: relative;
                     }
 
-                    .arrow {
+                    .users {
                         position: absolute;
-                        top: 0px;
-                        left: 24px;
+                        top: 4px;
+                        left: 14px;
                     }
 
+                    .uersCount {
+                        position: absolute;
+                        top: 18px;
+                        left: 18px;
+                    }
+
+                    .arrow {
+                        font-size: 12px;
+                        margin-right: 4px;
+                    }
                     .arrow.incoming {
                         color: #66bb6a;
                     }
@@ -137,7 +170,11 @@ class Header extends React.Component {
                         color: #333;
                     }
 
-                    .headerMessage {}
+                    .headerMessage {
+                        white-space: nowrap;
+                        overflow: hidden;
+                        text-overflow: ellipsis;
+                    }
 
                     .badgeDiv {
                         flex-basis: 40px;

@@ -158,7 +158,8 @@ class ThreadsStore {
         }
 
         Promise.all(promises).then(decLIst => {
-            const sorted = indexesToDelete.sort().reverse();
+            const sorted = indexesToDelete.sort(function(a, b){return b-a});
+            
             for (let i = 0; i < sorted.length; i += 1) {
                 this.list.splice(sorted[i], 1);
             }
@@ -179,6 +180,7 @@ class ThreadsStore {
         return new Promise((resolve, reject) => {
             const promises = [];
             const cdms = [];
+
             for (let j = 0; j < item.cdms.length; j += 1) {
                 const p = this.decryptCdm(item.cdms[j]).then(cdm => {
                     cdms.push(cdm);
@@ -208,7 +210,7 @@ class ThreadsStore {
                 )
                 .then(res => {
                     cdm.rawSubject = res;
-                    cdm.subject = res.replace(/@[\w]{64}$/gmi, "").replace(/[`*]/gm, '');
+                    cdm.subject = res.replace(/@[\w]{64}$/gmi, "", '');
                 });
                 promises.push(subject);
             }
@@ -220,7 +222,7 @@ class ThreadsStore {
                 )
                 .then(res => {
                     cdm.rawMessage = res;
-                    cdm.message = res.replace(/@[\w]{64}$/gmi, "").replace(/[`*]/gm, '');
+                    cdm.message = res.replace(/@[\w]{64}$/gmi, "", '');
                 });
                 promises.push(message);
             }

@@ -47,9 +47,8 @@ class HeartbeatStore {
         if (this.lastTxId) {
             formData.append('lastTxId', this.lastTxId);
         }
-        
+        this.pushStatus = 'pending';
         utils.sleep(this.pushStatus === 'init' ? 0 : 1000).then(() => {
-            this.pushStatus = 'pending';
             axios.post(`${API_HOST}/api/v1/heartbeat`, formData, formConfig)
                 .then(res => {
                     const listThreads = res.data.threads;

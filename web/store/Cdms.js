@@ -18,7 +18,7 @@ class CdmStore {
     constructor(stores) {
         this.stores = stores;
         this.sendCdm = this.sendCdm.bind(this);
-        this.fwdCdms = this.fwdCdms.bind(this);
+        this.forwardAllMessagesToNewMembers = this.forwardAllMessagesToNewMembers.bind(this);
     }
 
     
@@ -27,6 +27,8 @@ class CdmStore {
     @observable fwdCdmsList = [];
     @observable sendCdmStatus = 'init';
     @observable fwdRecipients = null;
+
+    @observable cdmData = null;
     
     // @observable readCdmDB = null;
     // @observable pendnigDB = null;
@@ -67,67 +69,6 @@ class CdmStore {
     }
 
     @action
-    messageData(item, recipients) {
-        const { compose } = this.stores;
-        const toRecipients = compose.toRecipients;
-        const data = {
-            subject: item.subject.trim(),
-            message: item.message.trim(),
-            rawSubject: null,
-            rawMessage: null,
-            regarding: item.reMessageHash ? {
-                reSubjectHash: item.reSubjectHash || '',
-                reMessageHash: item.reMessageHash || '',
-            } : null,
-            recipients: recipients.map(el => ({
-                recipient: el,
-                type: toRecipients.indexOf(el) > -1 ? 'to' : 'cc',
-            }))
-        };
-        return data
-    }
-
-    @action
-    cdmData() {
-        const { compose, threads, crypto } = this.stores;
-
-        const data = [];
-        if (this.fwdRecipients) {
-            const cdms = threads.current.cdms;
-            const fwdCdmsList = cdms.reverse();
-            const initCdm = fwdCdmsList[0];
-
-            const initRawSubject = crypto.randomize(`FWD: ${initCdm.subject}`);
-            
-            for (let i = 0; i < fwdCdmsList.length; i += 1) {
-                const fwdCdm = threads.current.cdms[i];
-                const messageData = this.messageData(fwdCdm, this.fwdRecipients);
-                messageData.subject = `FWD: ${messageData.subject}`;
-                messageData.rawMessage = fwdCdm.rawMessage;
-                if (fwdCdm.reSubjectHash && fwdCdm.reMessageHash) {
-                    messageData.regarding = {
-                        reSubjectHash: fwdCdm.reSubjectHash ? sha256(initRawSubject) : null,
-                        reMessageHash: fwdCdm.reMessageHash,
-                    }
-                } else {
-                    messageData.rawSubject = initRawSubject;
-                }
-                
-                messageData.forwarded = {
-                    fwdSubjectHash: fwdCdm.subjectHash || '',
-                    fwdMessageHash: fwdCdm.messageHash || '',
-                },
-                
-                data.push(messageData);
-            }
-        } else {
-            data.push(this.messageData(compose, compose.toRecipients.concat(compose.ccRecipients)));
-        }
-        
-        return toJS(data);
-    }
-
-    @action
     generateTxData(attachment) {
         const { alice } = this.stores;
         const recipient = NETWORK === 'testnet' ? address(alice.publicKey, 'T') : address(alice.publicKey);
@@ -153,12 +94,37 @@ class CdmStore {
     sendCdm() {
         const { notifiers, crypto, compose } = this.stores;
         this.sendCdmStatus = 'pending';
-        const cdmData = this.cdmData();
-        // crypto.compose(cdmData).then(cdm => {
+
+        switch(compose.cdmType) {
+            case 'replyToThread':
+                this.replyToThread();
+                break;
+            case 'replyToMessage':
+                this.replyToMessage();
+                break;
+            case 'replyMessageToAll':
+                this.replyMessageToAll();
+                break;
+            case 'forwardMessage':
+                this.forwardMessage();
+                break;
+            case 'forwardAllMessagesToNewMembers':
+                this.forwardAllMessagesToNewMembers();
+                break;
+            default:
+                this.newCdm();
+                break;
+        }
+
+        // console.log('cdmData', toJS(this.cdmData));
+        
+        if (this.cdmData === null) { return }
+
+        // crypto.compose(this.cdmData).then(cdm => {
         //     console.log(cdm);
         // })
         // return;
-        crypto.compose(cdmData).then(cdm => {
+        crypto.compose(this.cdmData).then(cdm => {
             const formConfig = {};
             const formData = new FormData();
             formData.append('data', cdm);
@@ -182,9 +148,11 @@ class CdmStore {
         .then(data => {
             if (data) {
                 notifiers.success('Message has been sent');
+                compose.resetCompose();
             }
-            compose.resetCompose();
-            this.fwdRecipients = null;
+            
+            this.cdmData = null;
+            this.newRecipients = null;
             this.sendCdmStatus = 'success';
         })
         .catch(e => {
@@ -194,12 +162,218 @@ class CdmStore {
         });
     }
 
+    @action
+    newCdm() {
+        const { compose } = this.stores;
+        const cdm = {
+            subject: compose.subject,
+            message: compose.message,
+            rawSubject: null,
+            rawMessage: null,
+            regarding: null,
+            forwarded: null,
+            recipients: compose.toRecipients.map(el => ({
+                recipient: el,
+                type: 'to',
+            })).concat(compose.ccRecipients.map(el => ({
+                recipient: el,
+                type: 'cc',
+            }))),
+        };
+
+        this.cdmData = [cdm];
+    }
 
     @action
-    fwdCdms() {
-        const { threads, compose } = this.stores;
-        this.fwdRecipients = compose.toRecipients.concat(threads.current.members);
-        this.sendCdm();
+    replyToThread() {
+        const { compose, threads } = this.stores;
+        const re = {
+            subject: compose.subject,
+            message: compose.message,
+            rawSubject: null,
+            rawMessage: null,
+            regarding: {
+                reSubjectHash: compose.reSubjectHash,
+                reMessageHash: compose.reMessageHash
+            },
+            forwarded: null,
+            recipients: threads.current.members.map(el => ({
+                recipient: el,
+                type: 'cc',
+            })),
+        };
+
+        this.cdmData = [re];
+    }
+
+    @action
+    replyToMessage() {
+        const { compose, crypto } = this.stores;
+        const rawSubject = crypto.randomize(compose.fwdItem.subject);
+
+        const fwd = {
+            subject: compose.fwdItem.subject,
+            message: compose.fwdItem.message,
+            rawSubject: rawSubject,
+            rawMessage: compose.fwdItem.rawMessage,
+            regarding: null,
+            forwarded: {
+                fwdSubjectHash: compose.fwdItem.subjectHash,
+                fwdMessageHash: compose.fwdItem.messageHash
+            },
+            recipients: compose.toRecipients.map(el => ({
+                recipient: el,
+                type: 'to',
+            })),
+        };
+
+        const re = {
+            subject: compose.subject,
+            message: compose.message,
+            rawSubject: null,
+            rawMessage: null,
+            regarding: {
+                reSubjectHash: sha256(rawSubject),
+                reMessageHash: compose.fwdItem.messageHash
+            },
+            forwarded: null,
+            recipients: compose.toRecipients.map(el => ({
+                recipient: el,
+                type: 'to',
+            })),
+        };
+
+        this.cdmData = [fwd, re];
+    }
+
+    @action
+    replyMessageToAll() {
+        const { threads, compose, crypto } = this.stores;
+
+        const rawSubject = crypto.randomize(compose.fwdItem.subject);
+        const fwd = {
+            subject: compose.fwdItem.subject,
+            message: compose.fwdItem.message,
+            rawSubject: rawSubject,
+            rawMessage: compose.fwdItem.rawMessage,
+            regarding: null,
+            forwarded: {
+                fwdSubjectHash: compose.fwdItem.subjectHash,
+                fwdMessageHash: compose.fwdItem.messageHash
+            },
+            recipients: threads.current.members.map(el => ({
+                recipient: el,
+                type: 'to',
+            })),
+        };
+
+        const re = {
+            subject: compose.subject,
+            message: compose.message,
+            rawSubject: null,
+            rawMessage: null,
+            regarding: {
+                reSubjectHash: sha256(rawSubject),
+                reMessageHash: compose.fwdItem.messageHash
+            },
+            forwarded: null,
+            recipients: threads.current.members.map(el => ({
+                recipient: el,
+                type: 'to',
+            })),
+        };
+
+        this.cdmData = [fwd, re];
+    }
+
+    @action
+    forwardMessage() {
+        const { compose, crypto } = this.stores;
+
+        const subject = compose.subject;
+        const message = compose.message;
+
+        const rawSubject = crypto.randomize(subject);
+        const rawMessage = crypto.randomize(message);
+
+        const cdm = {
+            subject: subject,
+            message: message,
+            rawSubject: rawSubject,
+            rawMessage: rawMessage,
+            regarding: null,
+            forwarded: null,
+            recipients: compose.toRecipients.map(el => ({
+                recipient: el,
+                type: 'to',
+            })).concat(compose.ccRecipients.map(el => ({
+                recipient: el,
+                type: 'cc',
+            }))),
+        };
+
+        const fwd = {
+            subject: `Fwd: ${compose.fwdItem.subject}`,
+            message: compose.fwdItem.message,
+            rawSubject: null,
+            rawMessage: compose.fwdItem.rawMessage,
+            regarding: {
+                reSubjectHash: sha256(rawSubject),
+                reMessageHash: sha256(rawMessage)
+            },
+            forwarded: {
+                fwdSubjectHash: compose.fwdItem.subjectHash,
+                fwdMessageHash: compose.fwdItem.messageHash
+            },
+            recipients: compose.toRecipients.map(el => ({
+                recipient: el,
+                type: 'to',
+            })).concat(compose.ccRecipients.map(el => ({
+                recipient: el,
+                type: 'cc',
+            }))),
+        };
+
+        this.cdmData = [cdm, fwd];
+    }
+
+    @action
+    forwardAllMessagesToNewMembers() {
+        const { threads, compose, crypto } = this.stores;
+
+        const cdms = threads.current.cdms;
+        const cdmData = [];
+        const initCdm = cdms[cdms.length - 1];
+
+        const initRawSubject = crypto.randomize(initCdm.subject);
+
+        for (let i = 0; i < cdms.length; i += 1) {
+            const fwd = {
+                subject: cdms[i].subject,
+                message: cdms[i].message,
+                rawSubject: cdms[i].id === initCdm.id ? initRawSubject : null,
+                rawMessage: cdms[i].rawMessage,
+                regarding: cdms[i].id !== initCdm.id ? {
+                    reSubjectHash: sha256(initRawSubject),
+                    reMessageHash: initCdm.messageHash
+                } : null,
+                forwarded: {
+                    fwdSubjectHash: cdms[i].subjectHash,
+                    fwdMessageHash: cdms[i].messageHash
+                },
+                recipients: threads.current.members.map(el => ({
+                    recipient: el,
+                    type: 'to',
+                })).concat(compose.newRecipients.map(el => ({
+                    recipient: el,
+                    type: 'to',
+                }))),
+            };
+            
+            cdmData.push(fwd);
+        }
+
+        this.cdmData = cdmData;
     }
 }
 

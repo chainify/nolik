@@ -23,7 +23,7 @@ def get_cdms(alice, thread_hash):
         with conn:
             with conn.cursor() as cur:
                 sql = """
-                    SELECT DISTINCT ON (c.thread_hash, c.message_hash, min_ts)
+                    SELECT DISTINCT ON (c.thread_hash, c.message_hash, c.timestamp, init_cdm_imestamp)
                         c.recipient,
                         s.sender,
                         t.sender_public_key,
@@ -49,17 +49,16 @@ def get_cdms(alice, thread_hash):
                         ) as proofs,
                         c.id,
                         (
-                            SELECT min(tt.timestamp)
+                            SELECT min(cc.timestamp)
                             FROM cdms cc
-                            LEFT JOIN transactions tt on cc.tx_id = tt.id
-                            WHERE cc.message_hash = c.message_hash
-                        ) as min_ts
+                            WHERE cc.message_hash = c.fwd_message_hash
+                        ) as init_cdm_imestamp
                     FROM cdms c
-                    LEFT JOIN transactions t on c.tx_id = t.id
-                    LEFT JOIN senders s on c.id = s.cdm_id
+                    LEFT JOIN transactions t ON c.tx_id = t.id
+                    LEFT JOIN senders s ON c.id = s.cdm_id
                     WHERE (c.recipient = '{alice}' or t.sender_public_key = '{alice}')
                     AND c.thread_hash='{thread_hash}'
-                    ORDER BY min_ts DESC
+                    ORDER BY c.timestamp DESC, init_cdm_imestamp DESC
                     """.format(
                         alice=alice,
                         thread_hash=thread_hash

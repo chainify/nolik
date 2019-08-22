@@ -63,7 +63,7 @@ class ThreadInfo extends React.Component {
                                     {index + 1}. {el === alice.publicKey ? <span className="self">You</span> : el}
                                 </Paragraph>
                             ))}
-                            {compose.toRecipients.map((el, index) => (
+                            {compose.newRecipients.map((el, index) => (
                                 <Paragraph
                                     ellipsis
                                     style={pstyle}
@@ -77,16 +77,16 @@ class ThreadInfo extends React.Component {
                                 <Input
                                     placeholder="Public key"
                                     autoFocus
-                                    value={compose.inputTo}
+                                    value={compose.inputFwd}
                                     onChange={e => {
-                                        compose.inputTo = e.target.value;
+                                        compose.inputFwd = e.target.value;
                                     }}
                                     onPressEnter={e => {
                                         e.preventDefault();
-                                        compose.addTag('toRecipients', compose.inputTo);
+                                        compose.addTag('fwdRecipients', compose.inputFwd);
                                     }}
                                     onBlur={_ => {
-                                        compose.addTag('toRecipients', compose.inputTo);
+                                        compose.addTag('fwdRecipients', compose.inputFwd);
                                     }}
                                     style={{ marginBottom: '1em' }}
                                     disabled={cdms.sendCdmStatus === 'pending'}
@@ -110,8 +110,11 @@ class ThreadInfo extends React.Component {
                                         <Button
                                             size="default"
                                             type="primary"
-                                            disabled={compose.toRecipients.length === 0}
-                                            onClick={cdms.fwdCdms}
+                                            disabled={compose.newRecipients.length === 0}
+                                            onClick={_ => {
+                                                compose.cdmType = 'forwardAllMessagesToNewMembers';
+                                                cdms.sendCdm();
+                                            }}
                                             loading={cdms.sendCdmStatus === 'pending'}
                                         >
                                             FWD messages

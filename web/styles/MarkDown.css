@@ -1,0 +1,14 @@
+
+.markdown code {
+  background: #eee;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 0.2em 0.4em;
+  display: inline-block;
+}
+
+.markdown blockquote {
+  padding: 0.2em 1em;
+  border-Left: 2px solid #ddd;
+  max-width: 600px;
+}

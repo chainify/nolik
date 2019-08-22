@@ -4,6 +4,7 @@ import { withRouter } from 'next/router';
 import { observer, inject } from 'mobx-react';
 import { autorun, toJS } from 'mobx';
 import mouseTrap from 'react-mousetrap';
+import * as moment from 'moment';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
@@ -13,7 +14,7 @@ import { AutoComplete, Input, Button, Icon, Tag } from 'antd';
 const { TextArea } = Input;
 
 import PageHeader from '../components/PageHeader';
-import ComposeHeader from './composeHeader';
+import ComposeInputs from './composeInputs';
 
 @inject('compose', 'cdms')
 @observer
@@ -89,7 +90,7 @@ class Compose extends React.Component {
                                 onClick={cdms.sendCdm}
                                 loading={cdms.sendCdmStatus === 'pending'}
                                 disabled={
-                                    compose.message === '' ||
+                                    compose.message.trim() === '' ||
                                     compose.toRecipients.concat(compose.ccRecipients).length === 0
                                 }
                             >
@@ -98,13 +99,14 @@ class Compose extends React.Component {
                         ]}
                     />
                     <div className="body">
-                        {!compose.commentIsOn && <ComposeHeader />}
+                        {compose.showComposeInputs && <ComposeInputs />}
                         <div className="formField">
                             <div className="formLabel">Subject:</div>
                             <div className="formInput">
                                 <TextArea
                                     style={inputStyle}
                                     autosize
+                                    className="mousetrap"
                                     value={compose.subject}
                                     onChange={e => {
                                         compose.subject = e.target.value;
@@ -123,6 +125,16 @@ class Compose extends React.Component {
                                 compose.message = e.target.value;
                             }}
                         />
+                        {compose.cdmType === 'forwardMessage' && (
+                            <div>
+                                <div>{`-----Forwarded Message-----`}</div>
+                                <div><b>Date:</b> {moment.unix(compose.fwdItem.timestamp).format('LLLL')}</div>
+                                <div><b>Subject:</b> {compose.fwdItem.subject}</div>
+                                <div>
+                                    {compose.fwdItem.message}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
                 <style jsx>{`

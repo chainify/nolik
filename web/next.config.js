@@ -4,6 +4,7 @@ if (typeof require !== 'undefined') {
 }
 
 module.exports = withCss({
+  cssModules: true,
   publicRuntimeConfig: {
     KEEPER_SECRET: process.env.KEEPER_SECRET,
     KEEPER_PREFIX: process.env.KEEPER_PREFIX,

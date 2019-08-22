@@ -43,7 +43,7 @@ class Cdms extends React.Component {
                                     key="header_write_to_thread"
                                     type="primary"
                                     shape="round"
-                                    onClick={compose.toggleComment}
+                                    onClick={compose.toggleReplyToThread}
                                     disabled={compose.addMemberOn}
                                 >
                                      Reply to All
