@@ -159,11 +159,11 @@ class Header extends React.Component {
                         margin-right: 4px;
                     }
                     .arrow.incoming {
-                        color: #66bb6a;
+                        color: #64b5f6;
                     }
 
                     .arrow.outgoing {
-                        color: #e57373;
+                        color: #66bb6a;
                     }
                     
                     .headerTitle {
