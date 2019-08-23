@@ -27,7 +27,7 @@ class HeartBeat(HTTPMethodView):
         r = redis.Redis(connection_pool=client.connection_pool)
         pipe = r.pipeline()
         pipe.set(public_key, 'True').expire(public_key, 4).execute()
-
+    
         data = {
             'threads': get_threads(public_key, last_tx_id),
             'cdmVersion': str(os.environ['CDM_VERSION']),
