@@ -382,10 +382,13 @@ NODE_URL=https://testnodes.wavesnodes.com
 ASSET_ID=3E81de4KGhDaAja8pvgxSoyr1JCSmu1xTReVpeo4EFA9
 START_HEIGHT=636570
 
-## DATABASE
+## POSTGRESQL DB
 POSTGRES_DB=chainify
 POSTGRES_USER=chainify
 POSTGRES_PASSWORD=chainify
+
+## REDIS DB
+REDIS_URL=redis://redis
 
 ## CLIENT
 KEEPER_PREFIX=chainify
@@ -409,6 +412,8 @@ KEEPER_SECRET=nolik_dev_secret
 * **POSTGRES_DB** the name of your Postgresql database.
 * **POSTGRES_USER** your Postgresql user.
 * **POSTGRES_PASSWORD** your Postgresql password.
+
+* **REDIS_URL** your Redis database connection string.
 
 * **KEEPER_PREFIX** is a prefix for encryption and decryption of your messages.
 * **KEEPER_SECRET** is a random string that is used for authentication in Waves Keeper.
