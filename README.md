@@ -4,9 +4,10 @@ Nolik is a decentralized P2P messegnger.
 
 Unlike email or Slack, can:
 * guarantee the sending and receiving of messages
-* ensure that the content of messages is not accessed by third parties, even by the application developers teem 
+* ensure that the content of messages is not accessed by third parties, even by the application developers team
 * ensure that the sending time and content of the message will not be modified in the future
 * accompany each message with a digital signature
+* create a local copy of your encrypted files
 
 Perfect use cases:
 * corporate messaging
