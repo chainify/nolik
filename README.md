@@ -22,8 +22,20 @@ You can use the public version of Nolik a [https://nolik.im](https://nolik.im) o
 
 ## Content
 * [Quick Start](https://github.com/chainify/nolik#quick-start)
+* [CDM Protocol](https://github.com/chainify/nolik#cdm-protocol)
+  * [How it works](https://github.com/chainify/nolik#how-it-works)
+  * [CDM file sample](https://github.com/chainify/nolik#cdm-file-sample)
+  * [CDM file structure](https://github.com/chainify/nolik#cdm-file-structure)
+  * [Proofs](https://github.com/chainify/nolik#proofs)
 * [Microservices architecture](https://github.com/chainify/nolik#microservices-architecture)
-* [Development and Production modes](https://github.com/chainify/nolik#development-and-production-modes)
+  * [Microservices description](https://github.com/chainify/nolik#microservices-description)
+  * [Configuration of a microservice](https://github.com/chainify/nolik#configuration-of-a-microservice)
+
+* [Production modes](https://github.com/chainify/nolik#production-modes)
+  * [SSL Setup](https://github.com/chainify/nolik#ssl-setup)
+  * [IPFS Configuration](https://github.com/chainify/nolik#ipfs-configuration)
+  * [PostgreSQL configuration](https://github.com/chainify/nolik#postgresql-configuration)
+  * [Start production environment](https://github.com/chainify/nolik#start-production-environment)
 * [License](https://github.com/chainify/nolik#licence)
 
 ## Quick start
@@ -191,7 +203,7 @@ CDM file example: [https://nolik.im/ipfs/QmYLWaaWKesqGTdRjggLkRa25xgBZVqWi56tyfK
 </cdm>
 ```
 
-#### Desctiption
+#### CDM file structure
 
 * **version** - a version of CDM protocol.
 * **blockchain** - a blockchain provider. CDM protocol is blockchain-agnostic.
@@ -378,7 +390,7 @@ KEEPER_PREFIX=chainify
 KEEPER_SECRET=nolik_dev_secret
 ```
 
-#### Description
+#### Stucture of .env file
 
 * **ENV** defines your environment to be `development` or `production`.
 * **API_HOST** is a URL of your API endpoint.
