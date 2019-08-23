@@ -459,7 +459,7 @@ nano domain.com.key
 ```
 
 ### IPFS configuration
-It is a good practice to mount external volume to your server. That will allow to resize and add extra size to IPFS storage without stopping the container (depends on hosting provider).
+It is a good practice to mount an external volume to your server. That will allow to resize and add an extra size to IPFS storage without stopping the container (depends on hosting provider).
 
 In `docker-compose.prod.yml` file **REPLACE** `/mnt/volume_fra1_02/.ipfs/data` and `/mnt/volume_fra1_02/.ipfs/staging` with your actual volumes location.
 ```
@@ -547,7 +547,7 @@ You have connected IPFS Node A to IPFS Node B.
 
 
 ### PostgreSQL configuration
-If your environment uses centralized database engine, which is a good idea if you have a cluster of nodes, make sure to confugure `server/config.ini` and `parser/config.ini` files.
+If your environment uses a centralized database engine, which is a good idea if you have a cluster of nodes, make sure to configure `server/config.ini` and `parser/config.ini` files.
 
 ```
 [DB]
