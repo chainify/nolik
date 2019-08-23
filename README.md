@@ -31,7 +31,7 @@ You can use the public version of Nolik a [https://nolik.im](https://nolik.im) o
   * [Microservices description](https://github.com/chainify/nolik#microservices-description)
   * [Configuration of a microservice](https://github.com/chainify/nolik#configuration-of-a-microservice)
 
-* [Production modes](https://github.com/chainify/nolik#production-modes)
+* [Production mode](https://github.com/chainify/nolik#production-mode)
   * [SSL Setup](https://github.com/chainify/nolik#ssl-setup)
   * [IPFS Configuration](https://github.com/chainify/nolik#ipfs-configuration)
   * [PostgreSQL configuration](https://github.com/chainify/nolik#postgresql-configuration)
