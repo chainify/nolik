@@ -16,6 +16,8 @@ WORKDIR /tmp/Python3.7/Python-3.7.2
 RUN ./configure --enable-optimizations
 RUN make altinstall
 
+RUN RUN pip install --upgrade pip
+
 RUN mkdir /root/.data
 RUN mkdir /root/.data/leveldb
 RUN mkdir /root/.data/leveldb/messenger
