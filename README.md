@@ -16,6 +16,10 @@ Perfect use cases:
 
 You can use the public version of Nolik a [https://nolik.im](https://nolik.im) or deploy private messenger in your environment.
 
+### Chainify IPFS nodes:
+* /ip4/165.22.150.171/tcp/4001/ipfs/QmUTByvwDUfbPbrvNs7PGRkitvwsUbtpGxE8XFSdUYdcw2
+* /ip4/206.81.23.202/tcp/4001/ipfs/QmZwT8BebHoQFjcBLMR6Y3novMqD9Q8bz13oC5v3yfUBGx
+
 ## Content
 * [Quick Start](https://github.com/chainify/nolik#quick-start)
 * [Microservices architecture](https://github.com/chainify/nolik#microservices-architecture)
@@ -466,6 +470,81 @@ ipfs:
       - /mnt/volume_fra1_02/.ipfs/data:/data/ipfs
       - /mnt/volume_fra1_02/.ipfs/staging:/export
 ```
+
+In multi-node configuration IPFS nodes should be connected to each other and replicate saved data. Let's assume that we have two nodes: **Node A** nd **Node B**
+
+#### Data replication
+
+1. Get current IPFS node credentials by running
+```
+docker exec -it nolik-ipfs ipfs id
+```
+You should see similar output:
+```
+{
+	"ID": "QmZwT8BebHoQFjcBLMR6Y3novMqD9Q8bz13oC5v3yfUBGx",
+	"PublicKey": "CAASpgIwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDVMe1zPouKfgYU/5wEDJMUl78YcJXH8N8nQpz2MdEHSXpi24BX2Y62rvaJ8wmEaKtlQahx1p916JTA83aLxfYT1OEOQg9vCdNhD5fCaLfnlk99K6JYbpaCwt9UVy/vpxCPp6Iaekj+Tle3mC6CxGrg4gJstX/f7AofZtvJmepTegiwtpIGQO/dgjop/6lbE1Lm4Lh5f0x1P5mQ5qgRON6i5uB8VnEq+b2KXH4vWgSIFVBf4p+WmWykaCCgfWR/12SLTD48XIn6xHRElc/gOxIUXZ3BBMo7UmIPLTINVIFOHItfUAQKGk6fn71yXCTC5aGQJ66C73WcbBQ86wof9SCrAgMBAAE=",
+	"Addresses": [
+		"/ip4/127.0.0.1/tcp/4001/ipfs/QmZwT8BebHoQFjcBLMR6Y3novMqD9Q8bz13oC5v3yfUBGx",
+		"/ip4/10.7.0.7/tcp/4001/ipfs/QmZwT8BebHoQFjcBLMR6Y3novMqD9Q8bz13oC5v3yfUBGx",
+		"/ip4/206.81.23.202/tcp/4001/ipfs/QmZwT8BebHoQFjcBLMR6Y3novMqD9Q8bz13oC5v3yfUBGx"
+	],
+	"AgentVersion": "go-ipfs/0.4.22/",
+	"ProtocolVersion": "ipfs/0.1.0"
+}
+```
+
+Copy the following line:
+```
+/ip4/206.81.23.202/tcp/4001/ipfs/QmZwT8BebHoQFjcBLMR6Y3novMqD9Q8bz13oC5v3yfUBGx
+```
+
+Now connect to the Node B and connect to Node A:
+```
+docker exec -it nolik-ipfs ipfs bootstrap add /ip4/206.81.23.202/tcp/4001/ipfs/QmZwT8BebHoQFjcBLMR6Y3novMqD9Q8bz13oC5v3yfUBGx
+docker exec -it nolik-ipfs ipfs swarm connect /ip4/206.81.23.202/tcp/4001/ipfs/QmZwT8BebHoQFjcBLMR6Y3novMqD9Q8bz13oC5v3yfUBGx
+```
+You should see the output:
+```
+connect QmZwT8BebHoQFjcBLMR6Y3novMqD9Q8bz13oC5v3yfUBGx success
+```
+
+2. Get IPFS node credentials for Node B
+```
+docker exec -it nolik-ipfs ipfs id
+```
+You will see the output with different node ID:
+```
+{
+	"ID": "QmUTByvwDUfbPbrvNs7PGRkitvwsUbtpGxE8XFSdUYdcw2",
+	"PublicKey": "CAASpgIwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQC6Tm75aUX9DYXq8Z9tpXVuIwOLWs91vyLrGUfQY+F4kwIqDZOD/D8JlnWbv84pFGjZj/VqZbF5UcaY7ybCYT+fOlO2Gz87pESxnZhBBFOCP5UXuLtUVpihaR9bzKCTHjshfSFk74yhV6S/BUiv0pl/9gMn18Y91scPJDRvhn4j+0AXk/XDrNZQl1e0SlgCmQRrO8R4Cv1Fichx7pPhakWDVXfWQEKBt9CuFk90cnPMdCaETKlbcno6UhS9BCweI/9VJLvWSUtkOye5MEFnWDG5imz1TYVTT13tn5KOISC08O917k9a1VTQv6PUfxlbFFYeDncGqxwf7DdL4x5xkSNjAgMBAAE=",
+	"Addresses": [
+		"/ip4/127.0.0.1/tcp/4001/ipfs/QmUTByvwDUfbPbrvNs7PGRkitvwsUbtpGxE8XFSdUYdcw2",
+		"/ip4/10.7.0.7/tcp/4001/ipfs/QmUTByvwDUfbPbrvNs7PGRkitvwsUbtpGxE8XFSdUYdcw2",
+		"/ip4/165.22.150.171/tcp/4001/ipfs/QmUTByvwDUfbPbrvNs7PGRkitvwsUbtpGxE8XFSdUYdcw2"
+	],
+	"AgentVersion": "go-ipfs/0.4.22/",
+	"ProtocolVersion": "ipfs/0.1.0"
+}
+```
+Copy the folowing line
+```
+/ip4/165.22.150.171/tcp/4001/ipfs/QmUTByvwDUfbPbrvNs7PGRkitvwsUbtpGxE8XFSdUYdcw2
+```
+3. Return to Node A and connect to Node B:
+```
+docker exec -it nolik-ipfs ipfs bootstrap add /ip4/165.22.150.171/tcp/4001/ipfs/QmUTByvwDUfbPbrvNs7PGRkitvwsUbtpGxE8XFSdUYdcw2
+docker exec -it nolik-ipfs ipfs swarm connect /ip4/165.22.150.171/tcp/4001/ipfs/QmUTByvwDUfbPbrvNs7PGRkitvwsUbtpGxE8XFSdUYdcw2
+```
+You should see the output:
+```
+connect QmUTByvwDUfbPbrvNs7PGRkitvwsUbtpGxE8XFSdUYdcw2 success
+```
+
+You have connected IPFS Node A to IPFS Node B.
+
+**IMPORTANT:** Every node should have a running `nolik-parser` container which will replicate data between nodes. For example, If the data initially will be saved to Node A, the parser on Node B will pull the IPFS file from Node A to Node B
+
 
 ### PostgreSQL configuration
 If your environment uses centralized database engine, which is a good idea if you have a cluster of nodes, make sure to confugure `server/config.ini` and `parser/config.ini` files.
