@@ -20,7 +20,11 @@ class HeartBeat(HTTPMethodView):
         public_key = request.form['publicKey'][0]
         last_tx_id = request.form['lastTxId'][0] if 'lastTxId' in request.form else None
         
-        pool = redis.ConnectionPool(host='redis', port=6379, db=0)
+        pool = redis.ConnectionPool(
+            host=os.environ['REDIS_HOST'],
+            port=os.environ['REDIS_PORT'],
+            password=os.environ['REDIS_PASSWORD'] or None,
+            db=0)
         r = redis.Redis(connection_pool=pool)
 
         pipe = r.pipeline()
