@@ -4,6 +4,5 @@ psycopg2-binary
 ipfshttpclient
 configparser
 base58
-sanic-cors
+sanic-cors==0.9.8
 redis
-aiohttp
