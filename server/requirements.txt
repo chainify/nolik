@@ -6,3 +6,4 @@ configparser
 base58
 sanic-cors
 redis
+aiohttp
