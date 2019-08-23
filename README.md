@@ -29,7 +29,8 @@ You can use the public version of Nolik a [https://nolik.im](https://nolik.im) o
   * [Proofs](https://github.com/chainify/nolik#proofs)
 * [Microservices architecture](https://github.com/chainify/nolik#microservices-architecture)
   * [Microservices description](https://github.com/chainify/nolik#microservices-description)
-  * [Configuration of a microservice](https://github.com/chainify/nolik#configuration-of-a-microservice)
+  * [Configuration of a microservice](https://github.com/chainify/nolik#configuration-of-a-microservice
+  * [Stucture of .env file](https://github.com/chainify/nolik#stucture-of-env-file)
 
 * [Production mode](https://github.com/chainify/nolik#production-mode)
   * [SSL Setup](https://github.com/chainify/nolik#ssl-setup)
