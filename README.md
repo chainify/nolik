@@ -565,7 +565,7 @@ host = 10.7.0.7
 port = 5001
 ```
 
-In production mode it is preconfigured to copy `ca-certificate.crt` file into `server` and `parser` containers. You can change or disable that by updating or mommenting folowing lines in `server/Dockerfile.prod` and `parser/Dockerfile.prod`:
+In production mode, it is preconfigured to copy `ca-certificate.crt` file into `server` and `parser` containers. You can change or disable that by updating or commenting following lines in `server/Dockerfile.prod` and `parser/Dockerfile.prod`:
 
 ```
 RUN mkdir /root/.postgresql
