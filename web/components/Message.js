@@ -149,12 +149,12 @@ class Message extends React.Component {
                 </div>
                 <style jsx>{`
                     .message {
-                        background: #fff;
-                        -webkit-box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.1);
-                        -moz-box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.1);
-                        box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.1);
-                        border-radius: 4px;
-                        padding: 1em 1em 1em 2em;
+                        // background: #fff;
+                        // -webkit-box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.1);
+                        // -moz-box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.1);
+                        // box-shadow: 0px 2px 5px 0px rgba(0,0,0,0.1);
+                        // border-radius: 4px;
+                        padding: 1em 1em 0em 2em;
                         font-size: 14px;
                     }
 
@@ -229,7 +229,7 @@ class Message extends React.Component {
 
                     .body {
                         padding-top: 0em;
-                        
+                        font-size: 14px;
                     }
 
                     .footer {

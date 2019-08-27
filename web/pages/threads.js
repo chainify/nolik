@@ -19,7 +19,7 @@ class Threads extends React.Component {
         const { heartbeat } = props;
 
         this.heartbeatPeriodic = autorun(() => {
-            if (heartbeat.pushStatus === 'success') {
+            if (heartbeat.heartbeatStatus === 'success') {
                 heartbeat.push();
             }
         })
@@ -28,7 +28,7 @@ class Threads extends React.Component {
             const { threads } = this.props;
             if (
                 threads.list !== null &&
-                heartbeat.pushStatus === 'init'
+                heartbeat.heartbeatStatus === 'init'
             ) {
                 heartbeat.push();
             }

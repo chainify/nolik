@@ -25,12 +25,12 @@ class CryptoStore {
         cdm += '\r\n</messages>';
         cdm += '\r\n</cdm>';
         return cdm;
-        // cdm += `\r\n-----BEGIN_SIGNATURE ${alice.publicKey}-----\r\n${signature}\r\n-----END_SIGNATURE ${alice.publicKey}-----`;     
     }
 
     @action
     randomize(message) {
-        const { utils } = this.stores;     
+        const { utils } = this.stores;
+        if (!message) return null;
         return message + '@' + sha256(utils.generateRandom(64));
     }
 
@@ -100,6 +100,9 @@ class CryptoStore {
             const fwdSubjectHash = data.forwarded ? data.forwarded.fwdSubjectHash : null;
             const fwdMessageHash = data.forwarded ? data.forwarded.fwdMessageHash : null;
 
+            const senderPublicKey = data.from ? data.from.senderPublicKey : null;
+            const senderSignature = data.from ? data.from.senderSignature : null;
+
             for (let i = 0; i < data.recipients.length; i += 1) {
                 const block = this.block(
                         subject,
@@ -121,6 +124,14 @@ class CryptoStore {
                             if (fwdSubjectHash) { msg += `\r\n<subjecthash>${fwdSubjectHash}</subjecthash>`}
                             if (fwdMessageHash) { msg += `\r\n<messagehash>${fwdMessageHash}</messagehash>`}
                             msg += `\r\n</forwarded>`;
+                        }
+                        if (data.from) {
+                            msg += `\r\n<from>`;
+                            msg += `\r\n<sender>`;
+                            if (senderPublicKey) { msg += `\r\n<publickey>${senderPublicKey}</publickey>`}
+                            if (senderSignature) { msg += `\r\n<signature>${senderSignature}</signature>`}
+                            msg += `\r\n</sender>`;
+                            msg += `\r\n</from>`;
                         }
                         msg += '\r\n</message>';
                     });

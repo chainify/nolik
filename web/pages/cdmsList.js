@@ -34,6 +34,7 @@ class Cdms extends React.Component {
                         height: 100%;
                         overflow-y: auto;
                         padding: 0 1em;
+                        background: #fff;
                     }
 
                     .list {
@@ -50,7 +51,7 @@ class Cdms extends React.Component {
 
                     .messageContainer {
                         padding-left: 0em;
-                        padding-bottom: 2em;
+                        padding-bottom: 1em;
                     }
 
                     .messageContainer:first-child {

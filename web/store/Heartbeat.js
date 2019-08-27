@@ -12,7 +12,7 @@ class HeartbeatStore {
         this.push = this.push.bind(this);
     }
 
-    @observable pushStatus = 'init';
+    @observable heartbeatStatus = 'init';
     @observable lastTxId = null;
 
     @action
@@ -47,8 +47,8 @@ class HeartbeatStore {
         if (this.lastTxId) {
             formData.append('lastTxId', this.lastTxId);
         }
-        this.pushStatus = 'pending';
-        utils.sleep(this.pushStatus === 'init' ? 0 : 1000).then(() => {
+        this.heartbeatStatus = 'pending';
+        utils.sleep(this.heartbeatStatus === 'init' ? 0 : 1000).then(() => {
             axios.post(`${API_HOST}/api/v1/heartbeat`, formData, formConfig)
                 .then(res => {
                     const listThreads = res.data.threads;
@@ -67,12 +67,12 @@ class HeartbeatStore {
                     }                    
                 })
                 .then(_ => {
-                    this.pushStatus = 'success';
+                    this.heartbeatStatus = 'success';
                 })
                 .catch(e => {
-                    this.pushStatus = 'error';
+                    this.heartbeatStatus = 'error';
                 });
-        })
+        });
     }
 
 }

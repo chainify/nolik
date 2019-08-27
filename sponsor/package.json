@@ -1,0 +1,17 @@
+{
+  "name": "nolik_sponsor",
+  "version": "0.1.0",
+  "description": "The container for sending sponsored transactions",
+  "author": "Amir Boziev <aboziev@gmail.com>",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "@waves/ts-lib-crypto": "^1.1.1",
+    "@waves/waves-transactions": "^3.16.3",
+    "cors": "^2.8.5",
+    "express": "^4.16.1",
+    "express-formidable": "^1.2.0"
+  }
+}

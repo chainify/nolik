@@ -10,6 +10,7 @@ import Login from './Login';
 import Heartbeat from './Heartbeat';
 import Compose from './Compose';
 import Notifiers from './Notifiers';
+import Chat from './Chat';
 
 const stores = {};
 
@@ -25,5 +26,6 @@ stores.login = new Login(stores);
 stores.heartbeat = new Heartbeat(stores);
 stores.compose = new Compose(stores);
 stores.notifiers = new Notifiers(stores);
+stores.chat = new Chat(stores);
 
 export default stores;

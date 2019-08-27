@@ -21,7 +21,7 @@ app.prepare().then(() => {
   })
 
   server.get('/pk/:publicKey', (req, res) => {
-    return app.render(req, res, '/index', { publicKey: req.params.publicKey })
+    return app.render(req, res, '/chat', { publicKey: req.params.publicKey })
   })
 
   server.get('/th/:threadHash', (req, res) => {

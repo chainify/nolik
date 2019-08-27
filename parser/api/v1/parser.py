@@ -159,8 +159,9 @@ class Parser:
                                 datetime.fromtimestamp(tx['timestamp'] / 1e3),
                             ))
                             
-                            senders = message.findall('from')[0] if len(message.findall('from')) > 0 else None
-                            if senders:
+                            from_block = message.findall('from')[0] if len(message.findall('from')) > 0 else None
+                            if from_block:
+                                senders = from_block.findall('sender')[0] if len(from_block.findall('sender')) > 0 else Non
                                 for sender in senders:
                                     sender_public_key = sender.findall('publickey')[0].text if len(sender.findall('publickey')) > 0 else None
                                     signature = sender.findall('signature')[0].text if len(sender.findall('signature')) > 0 else None
