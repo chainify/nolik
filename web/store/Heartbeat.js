@@ -59,12 +59,12 @@ class HeartbeatStore {
                     if (listThreads.length > 0) {
                         const lastThreadCdms = listThreads[listThreads.length - 1].cdms;
                         const lastTxId = lastThreadCdms[0].txId;
-
+                        
                         if (this.lastTxId !== lastTxId) {
                             threads.saveList(listThreads);
                             this.lastTxId = lastTxId;
                         }
-                    }                    
+                    }
                 })
                 .then(_ => {
                     this.heartbeatStatus = 'success';

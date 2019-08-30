@@ -161,13 +161,13 @@ class Parser:
                             
                             from_block = message.findall('from')[0] if len(message.findall('from')) > 0 else None
                             if from_block:
-                                senders = from_block.findall('sender')[0] if len(from_block.findall('sender')) > 0 else Non
+                                senders = from_block.findall('sender') if len(from_block.findall('sender')) > 0 else None
                                 for sender in senders:
                                     sender_public_key = sender.findall('publickey')[0].text if len(sender.findall('publickey')) > 0 else None
-                                    signature = sender.findall('signature')[0].text if len(sender.findall('signature')) > 0 else None
+                                    sender_signature = sender.findall('signature')[0].text if len(sender.findall('signature')) > 0 else None
 
                                     sender_id = str(uuid.uuid4())                                    
-                                    self.sql_data_senders.append((sender_id, cdm_id, sender_public_key, signature, True))
+                                    self.sql_data_senders.append((sender_id, cdm_id, sender_public_key, sender_signature, True))
 
                         tx_data = (
                             tx['id'],

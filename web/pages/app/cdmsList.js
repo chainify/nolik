@@ -1,6 +1,6 @@
 import React from 'react';
 import { observer, inject } from 'mobx-react';
-import Message from './../components/Message';
+import Message from '../../components/Message';
 import NoSSR from 'react-no-ssr';
 import { toJS } from 'mobx';
 

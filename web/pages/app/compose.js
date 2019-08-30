@@ -13,7 +13,7 @@ import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import { AutoComplete, Input, Button, Icon, Tag } from 'antd';
 const { TextArea } = Input;
 
-import PageHeader from '../components/PageHeader';
+import PageHeader from '../../components/PageHeader';
 import ComposeInputs from './composeInputs';
 
 @inject('compose', 'cdms')
@@ -111,6 +111,7 @@ class Compose extends React.Component {
                                     onChange={e => {
                                         compose.subject = e.target.value;
                                     }}
+                                    disabled={compose.cdmType === 'removeChatRequest'}
                                 />
                             </div>
                         </div>

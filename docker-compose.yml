@@ -61,6 +61,7 @@ services:
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - REDIS_URL=${REDIS_URL}
+      - SPONSOR_PUBLIC_KEY=${SPONSOR_PUBLIC_KEY}
     depends_on:
       - ipfs
       - postgres

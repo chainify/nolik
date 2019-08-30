@@ -7,7 +7,7 @@ import mouseTrap from 'react-mousetrap';
 
 @inject('login', 'alice')
 @observer
-class Index extends React.Component {
+class Login extends React.Component {
 
     constructor(props) {
         super(props);
@@ -33,7 +33,7 @@ class Index extends React.Component {
             <div className="main">
                 <Row>
                     <Col xs={{ offset: 4, span: 12}}>
-                        <h1>Nolik</h1>
+                        <h1>Nolik INDEX</h1>
                         <h2>
                             Instant Messenger that does not store users' data.<br />
                             No registration needed.
@@ -144,8 +144,8 @@ class Index extends React.Component {
     }
 }
 
-Index.propTypes = {
+Login.propTypes = {
     index: PropTypes.object,
 };
 
-export default withRouter(mouseTrap(Index))
+export default withRouter(mouseTrap(Login))

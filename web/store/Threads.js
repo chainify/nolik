@@ -54,7 +54,7 @@ class ThreadsStore {
         this.current = thread;
 
         compose.resetCompose();
-        Router.push(`/index?threadHash=${thread.threadHash}`, `/th/${thread.threadHash}`);
+        Router.push(`/app/index?threadHash=${thread.threadHash}`, `/app/th/${thread.threadHash}`);
     }
 
     @action
@@ -63,7 +63,7 @@ class ThreadsStore {
         this.current = null;
         this.search = '';
         compose.resetCompose();
-        Router.push('/');
+        Router.push('/app');
     }
 
     @action

@@ -5,11 +5,11 @@ import { autorun, toJS } from 'mobx';
 // import { i18n, Link as Tlink, withNamespaces } from '../i18n';
 import { Input, Button, Icon } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPen, faInbox } from '@fortawesome/free-solid-svg-icons';
+import { faPen, faInbox, faPlus } from '@fortawesome/free-solid-svg-icons';
 
-import PageHeader from '../components/PageHeader';
-import Skeleton from '../components/Skeleton';
-import Thread from '../components/Thread';
+import PageHeader from '../../components/PageHeader';
+import Skeleton from '../../components/Skeleton';
+import Thread from '../../components/Thread';
 
 @inject('threads', 'heartbeat', 'compose', 'alice', 'notifiers')
 @observer
@@ -78,14 +78,11 @@ class Threads extends React.Component {
                             <Button
                                 key="header_compose_button"
                                 type="primary"
-                                shape="circle"
+                                // shape="circle"
                                 onClick={compose.toggleCompose}
-                                disabled={
-                                    compose.composeMode ||
-                                    threads.current
-                                }
+                                disabled={compose.composeMode}
                             >
-                                <FontAwesomeIcon icon={faPen} />
+                                <FontAwesomeIcon icon={faPlus} />&nbsp;New Thread
                             </Button>
                         ]}
                     />

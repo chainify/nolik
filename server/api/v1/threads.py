@@ -33,11 +33,20 @@ def get_threads(alice, last_tx_id = None):
                             UNION
                             SELECT tt.sender_public_key FROM transactions tt
                             WHERE c.tx_id = tt.id
+                            UNION
+                            SELECT ss.sender FROM senders ss
+                            LEFT JOIN cdms cc ON cc.id = ss.cdm_id
+                            WHERE c.thread_hash = cc.thread_hash
                         ),
                         c.timestamp
                     FROM cdms c
                     LEFT JOIN transactions t on c.tx_id = t.id
-                    WHERE (c.recipient = '{alice}' OR t.sender_public_key = '{alice}')
+                    LEFT JOIN senders s on c.id = s.cdm_id
+                    WHERE (
+                        c.recipient = '{alice}' OR 
+                        t.sender_public_key = '{alice}' OR
+                        s.sender = '{alice}'
+                        )
                     AND c.timestamp IN (
                         SELECT max(timestamp)
                         FROM cdms
@@ -54,6 +63,7 @@ def get_threads(alice, last_tx_id = None):
                 cur.execute(sql)
                 records = cur.fetchall()
 
+                sponsor = os.environ['SPONSOR_PUBLIC_KEY']
                 threads = []
                 thread_hashes = []
                 for record in records:
@@ -63,7 +73,7 @@ def get_threads(alice, last_tx_id = None):
                     members = record[1]
                     cdms = get_cdms(alice, thread_hash)
                     thread = {
-                        'members': [member for member in members if member != alice],
+                        'members': [member for member in members if member not in [alice, sponsor]],
                         'threadHash': thread_hash,
                         'cdms': cdms
                     }

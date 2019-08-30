@@ -1,52 +1,39 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { withRouter } from 'next/router';
+import Router, { withRouter } from 'next/router';
 import { observer, inject } from 'mobx-react';
-import { autorun, toJS } from 'mobx';
-// import { i18n, Link as Tlink, withNamespaces } from '../i18n';
-import Wrapper from './wrapper';
-import ThreadInfo from './threadInfo';
-import { Row, Col, Input, Button, Icon } from 'antd';
+import { Row, Col, Input, Button, notification, Icon, Divider } from 'antd';
+import mouseTrap from 'react-mousetrap';
 
-import Threads from './threads';
-import Main from './main';
-
-@inject('alice', 'threads')
+@inject('login', 'alice')
 @observer
 class Index extends React.Component {
+
     constructor(props) {
         super(props);
-        const { alice } = this.props;
-        
-        this.authPeriodicChecker = setInterval(() => {
-            alice.authCheck();
-        }, 200);
     }
 
-
-    componentWillUnmount() {
-        clearInterval(this.authPeriodicChecker);
+    componentDidMount() {
+        const { login } = this.props;
+        // this.openNotification();
     }
 
     render() {
-        const { threads } = this.props;
+        const { login, alice } = this.props;
         return (
-            <Wrapper>
+            <div className="main">
                 <Row>
-                    <Col xs={8} lg={6}>
-                        <Threads />
-                    </Col>
-                    <Col xs={16} lg={threads.current && threads.showThreadInfo ? 12 : 18}>
-                        <Main />
-                    </Col>
-                    <Col xs={0} lg={threads.current && threads.showThreadInfo ? 6 : 0}>
-                        {threads.current && <ThreadInfo />}
+                    <Col xs={{ offset: 4, span: 12}}>
+                        <h1>LANDING PAGE</h1>
                     </Col>
                 </Row>
                 <style jsx>{`
-                    
+                    .main {
+                        height: 100vh;
+                        background: #fff;
+                    }
                 `}</style>
-            </Wrapper>
+            </div>
         );
     }
 }
@@ -55,4 +42,4 @@ Index.propTypes = {
     index: PropTypes.object,
 };
 
-export default withRouter(Index)
+export default withRouter(mouseTrap(Index))

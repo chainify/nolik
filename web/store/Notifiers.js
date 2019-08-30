@@ -1,5 +1,5 @@
 import { action, observable } from 'mobx';
-import { message, notification } from 'antd';
+import { message, notification, Button } from 'antd';
 
 class NotifiersStore {
     stores = null;
@@ -39,6 +39,57 @@ class NotifiersStore {
     @action
     error(e) {
         message.error(e.message || e);
+    }
+
+    selfClearedChat() {
+        notification['info']({
+            duration: null,
+            message: 'Chat has been cleared',
+            description:
+                <div>
+                    <p>
+                        At Nolik we do not store your decryption keys and your messages cannot be recovered.
+                        To start new chat please reload the page.
+                    </p>
+                    <Button
+                        type="primary"
+                        onClick={_ => {
+                            location.reload();
+                        }}
+                    >
+                        Reload page
+                    </Button>
+                </div>
+        });
+    }
+
+    outerClearedChat() {
+        notification['info']({
+            duration: null,
+            message: 'Chat has been cleared',
+            description:
+                <div>
+                    <p>
+                        The chat has been cleared by your interlocutor.
+                        At Nolik we do not store your decryption keys and your messages cannot be recovered.
+                        To start new chat please reload the page.
+                    </p>
+                </div>
+        });
+    }
+
+    encryptionOk() {
+        notification['success']({
+            duration: 3,
+            placement: 'bottomLeft',
+            message: 'Security',
+            description:
+                <div>
+                    <p>
+                        Encryption keys has been successfully generated
+                    </p>
+                </div>
+        });
     }
 }
 

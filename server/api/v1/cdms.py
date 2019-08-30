@@ -56,7 +56,11 @@ def get_cdms(alice, thread_hash):
                     FROM cdms c
                     LEFT JOIN transactions t ON c.tx_id = t.id
                     LEFT JOIN senders s ON c.id = s.cdm_id
-                    WHERE (c.recipient = '{alice}' or t.sender_public_key = '{alice}')
+                    WHERE (
+                        c.recipient = '{alice}' OR
+                        t.sender_public_key = '{alice}' OR
+                        s.sender = '{alice}'
+                        )
                     AND c.thread_hash='{thread_hash}'
                     ORDER BY c.timestamp DESC, init_cdm_imestamp DESC
                     """.format(

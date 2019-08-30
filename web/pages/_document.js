@@ -10,7 +10,7 @@ class MyDocument extends Document {
     return (
       <html lang={this.props.__NEXT_DATA__.props.initialLanguage}>
         <Head>
-          <meta charset="utf-8" />
+          <meta charSet="utf-8" />
           <style>{`body { margin: 0; background: #fff; } /* custom! */`}</style>
         </Head>
         <body className="custom_class">

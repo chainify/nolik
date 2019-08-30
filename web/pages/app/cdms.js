@@ -9,7 +9,7 @@ import { Input, Button, Icon } from 'antd';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPen } from '@fortawesome/free-solid-svg-icons';
 
-import PageHeader from '../components/PageHeader';
+import PageHeader from '../../components/PageHeader';
 import CdmsList from './cdmsList';
 
 @inject('threads', 'compose')
@@ -41,12 +41,12 @@ class Cdms extends React.Component {
                             extra={[
                                 <Button
                                     key="header_write_to_thread"
-                                    type="primary"
+                                    type="default"
                                     shape="round"
                                     onClick={compose.toggleReplyToThread}
                                     disabled={compose.addMemberOn}
                                 >
-                                     Reply to All
+                                    <FontAwesomeIcon icon={faPen} />&nbsp;Write to thread
                                 </Button>,
                                 <Button
                                     key="header_info_button"
@@ -65,6 +65,18 @@ class Cdms extends React.Component {
                                     disabled={compose.addMemberOn}
                                 >
                                     <Icon type="usergroup-add" />
+                                </Button>,
+                                <Button
+                                    key="header_chat_removal_request"
+                                    type="default"
+                                    shape="circle"
+                                    onClick={compose.toggleChatRemove}
+                                    disabled={
+                                        compose.addMemberOn ||
+                                        threads.current.members.length === 0
+                                    }
+                                >
+                                    <Icon type="delete" />
                                 </Button>,
                             ]}
                         />

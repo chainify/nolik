@@ -1,7 +1,8 @@
 'use strict';
 
 const { transfer, broadcast } = require('@waves/waves-transactions')
-const { verifySignature, address }= require('@waves/ts-lib-crypto');
+const { verifySignature, address, base58Encode }= require('@waves/ts-lib-crypto');
+const Base58 = require("base-58");
 
 const express = require('express');
 var cors = require('cors');
@@ -48,7 +49,7 @@ app.post('/sponsor', (req, res) => {
     assetId: process.env.ASSET_ID,
     feeAssetId: process.env.ASSET_ID,
     chainId: process.env.NETWORK === 'testnet' ? 'T' : 'W',
-    attachment: ipfsHash
+    attachment: Base58.encode(Buffer.from(ipfsHash))
   }, process.env.SPONSOR_SEED);
 
   broadcast(signedTranserTx, process.env.NODE_URL)
@@ -60,8 +61,6 @@ app.post('/sponsor', (req, res) => {
       res.status(400)
       res.json({'error': e.message});
     })
-
-  
 });
 
 app.listen(PORT, HOST);

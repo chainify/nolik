@@ -5,7 +5,7 @@ import { observer, inject } from 'mobx-react';
 import { autorun, toJS } from 'mobx';
 // import { i18n, Link as Tlink, withNamespaces } from '../i18n';
 import { Typography, Button, Icon, Input, Divider } from 'antd';
-import PageHeader from '../components/PageHeader';
+import PageHeader from '../../components/PageHeader';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUsers } from '@fortawesome/free-solid-svg-icons';
 

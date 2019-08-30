@@ -111,6 +111,9 @@ class CdmStore {
             case 'forwardAllMessagesToNewMembers':
                 this.forwardAllMessagesToNewMembers();
                 break;
+            case 'removeChatRequest':
+                this.removeChatRequest();
+                break;
             default:
                 this.newCdm();
                 break;
@@ -374,6 +377,28 @@ class CdmStore {
         }
 
         this.cdmData = cdmData;
+    }
+
+    @action
+    removeChatRequest() {
+        const { compose, threads } = this.stores;
+        const cdm = {
+            subject: compose.subject,
+            message: compose.message,
+            rawSubject: compose.subject, // bdb08804137f8c6b2374b0fd68dfeb6ff38471e221119e59f38c3d5f3f8cc521
+            rawMessage: null,
+            regarding: {
+                reSubjectHash: compose.reSubjectHash,
+                reMessageHash: compose.reMessageHash
+            },
+            forwarded: null,
+            recipients: threads.current.members.map(el => ({
+                recipient: el,
+                type: 'cc',
+            })),
+        };
+
+        this.cdmData = [cdm];
     }
 }
 

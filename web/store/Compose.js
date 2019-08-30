@@ -14,6 +14,7 @@ class ComposeStore {
         this.toggleReplyToMessage = this.toggleReplyToMessage.bind(this);
         this.toggleReplyMessageToAll = this.toggleReplyMessageToAll.bind(this);
         this.toggleAddMeber = this.toggleAddMeber.bind(this);
+        this.toggleChatRemove = this.toggleChatRemove.bind(this);
     }
 
     @observable inputTo = '';
@@ -110,6 +111,24 @@ class ComposeStore {
             threads.showThreadInfo = true;
         } else {
             this.resetCompose();
+        }
+    }
+
+    @action
+    toggleChatRemove() {
+        const { threads } = this.stores;
+        this.toggleCompose();
+        if (this.composeMode === true) {
+            const initCdm = threads.current.cdms[threads.current.cdms.length-1];
+            this.subject = `Chat removal request`;
+            this.message = 'Removal description';
+            this.ccRecipients = threads.current.members;
+
+            this.reSubjectHash = initCdm.subjectHash;
+            this.reMessageHash = initCdm.messageHash;
+
+            this.showComposeInputs = false;
+            this.cdmType = 'removeChatRequest';
         }
     }
 

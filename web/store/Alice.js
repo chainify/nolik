@@ -29,7 +29,7 @@ class AliceStore {
                 window.Waves.auth({
                     name: 'Nolik',
                     data: KEEPER_SECRET,
-                }).then(() => {
+                }).then(_ => {
                     window.Waves.publicState().then(data => {
                         this.publicKey = data.account.publicKey; 
                         threads.resetThread();

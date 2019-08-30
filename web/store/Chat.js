@@ -14,26 +14,30 @@ class ChatStore {
     constructor(stores) {
         this.stores = stores;
         this.sendSponsoredCdm = this.sendSponsoredCdm.bind(this);
+        this.chatDestroy = this.chatDestroy.bind(this);
+        this.selfClearChat = this.selfClearChat.bind(this);
     }
-
+    
     @observable list = null;
+    @observable thread = null
     @observable seed = null;
-    @observable publicKey = null;
+    @observable recipient = null;
     @observable lastTxId = null;
     @observable heartbeatStatus = 'init';
-
-    @observable subject = 'subject';
-    @observable message = 'message';
-    @observable recipient = null;
+    @observable sendCdmStatus = 'init';
+    @observable subject = '';
+    @observable message = '';
     @observable cdmData = null;
-    @observable list = null;
+    @observable goodByeCdm = null;
 
     @action
     heartbeat() {
         const { utils, threads, alice } = this.stores;
+        if (this.seed === null) { return }
+        const keys = keyPair(this.seed);
         const formConfig = {};
         const formData = new FormData();
-        formData.append('publicKey', this.publicKey);
+        formData.append('publicKey', keys.publicKey);
         if (this.lastTxId) {
             formData.append('lastTxId', this.lastTxId);
         }
@@ -43,18 +47,30 @@ class ChatStore {
             axios.post(`${API_HOST}/api/v1/heartbeat`, formData, formConfig)
                 .then(res => {
                     const listThreads = res.data.threads;
+                    this.list = listThreads;
 
                     if (listThreads.length > 0) {
-                        const lastThreadCdms = listThreads[listThreads.length - 1].cdms;
+                        // const lastThreadCdms = this.thread
+                        //     ? listThreads.filter(el => el.threadHash === thread.threadHash)[0].cdms
+                        //     : listThreads[0].cdms;
+                        const lastThreadCdms = listThreads[0].cdms;
                         const lastTxId = lastThreadCdms[0].txId;
 
                         if (this.lastTxId !== lastTxId) {
-                            console.log('listThreads', listThreads);
-                            
-                            // threads.saveList(listThreads);
+                            this.decrypItem(listThreads[0])
+                                .then(res => {
+                                    const lastCdm = res.cdms[res.cdms.length - 1];
+
+                                    if (lastCdm.subjectHash === 'bdb08804137f8c6b2374b0fd68dfeb6ff38471e221119e59f38c3d5f3f8cc521') {
+                                        this.outerClearChat();
+                                    } else {
+                                        this.sendCdmStatus = 'success';
+                                        this.thread = res;
+                                    }
+                                })
                             this.lastTxId = lastTxId;
                         }
-                    }                    
+                    }             
                 })
                 .then(_ => {
                     this.heartbeatStatus = 'success';
@@ -73,7 +89,7 @@ class ChatStore {
         const signature = signBytes(keys, bytes);
 
         const cdm = {
-            subject: this.subject === '' ? null : this.subject,
+            subject: 'One-time request',
             message: this.message,
             rawSubject: null,
             rawMessage: null,
@@ -99,14 +115,16 @@ class ChatStore {
         const bytes = Uint8Array.from(sha256(text));
         const signature = signBytes(keys, bytes);
 
+        const initCdm = this.thread.cdms[0];
+
         const re = {
-            subject: this.subject === '' ? null : this.subject,
+            subject: `Re: ${initCdm.subject}`,
             message: this.message,
             rawSubject: null,
             rawMessage: null,
             regarding: {
-                reSubjectHash: this.list ? this.list[0].reSubjectHash : null,
-                reMessageHash: this.list ? this.list[0].reMessageHash : null,
+                reSubjectHash: initCdm.subjectHash,
+                reMessageHash: initCdm.messageHash,
             },
             forwarded: null,
             from: {
@@ -125,9 +143,8 @@ class ChatStore {
 
     @action
     sendSponsoredCdm() {
-        const { crypto } = this.stores;
-
-        if (this.list && this.list.length > 0) {
+        const { notifiers } = this.stores;
+        if (this.thread) {
             this.replyToThread();
         } else {
             this.newCdm();
@@ -135,15 +152,15 @@ class ChatStore {
 
         if (this.cdmData === null) { return }
 
-        console.log(toJS(this.cdmData));
-        
+        // this.compose(this.cdmData).then(cdm => {
+        //     console.log(cdm);
+        // })
+        // return;
 
+        this.subject = '';
+        this.message = '';
+        this.sendCdmStatus = 'pending';
         this.compose(this.cdmData).then(cdm => {
-            console.log(cdm);
-        })
-        return;
-
-        crypto.compose(this.cdmData).then(cdm => {
             const formConfig = {};
             const formData = new FormData();
             formData.append('data', cdm);
@@ -163,19 +180,51 @@ class ChatStore {
             const formConfig = {};
             axios.post(`${SPONSOR_HOST}/sponsor`, formData, formConfig)
                 .then(res => {
-                    console.log(res);
+                    notifiers.success('Message has been sent');
+                    this.sendCdmStatus = 'success';
                 })
                 .catch(e => {
                     console.log('err', e);
+                    this.sendCdmStatus = 'error';
                 });
-        })
-
-        
+        })        
     }
 
     @action
-    generateSeed() {
-        this.seed = randomSeed()
+    chatInit() {
+        const newSeed = randomSeed();
+        const seedPhrase = sessionStorage.getItem('seedPhrase');
+        
+        if (seedPhrase) {
+            this.seed = seedPhrase;
+        } else {
+            sessionStorage.setItem('seedPhrase', newSeed);
+            this.seed = newSeed;
+        }
+    }
+
+    @action
+    chatDestroy() {
+        sessionStorage.removeItem('seedPhrase');
+        this.seed = null;
+        this.list = null;
+        this.thread = null;
+        this.message = null;
+        this.subject = null;
+        this.lastTxId = null;
+    }
+
+    selfClearChat() {
+        // const { notifiers } = this.stores;
+        // notifiers.selfClearedChat();
+        this.chatDestroy();
+        location.reload();
+    }
+
+    outerClearChat() {
+        const { notifiers } = this.stores;
+        this.chatDestroy();
+        // notifiers.outerClearedChat();
     }
 
 
@@ -206,6 +255,7 @@ class ChatStore {
             let msg = '';
             const keys = keyPair(this.seed);
             const messageHash = sha256(text);
+            
             const cipherBytes = messageEncrypt(sharedKey(keys.privateKey, recipient, KEEPER_PREFIX), text);
             const cipherText = base58Encode(cipherBytes);
 
@@ -221,6 +271,10 @@ class ChatStore {
         return new Promise((resolve, reject) => {
             let msg = '';
             const promises = [];
+
+            console.log('subject', subject);
+            console.log('message', message);
+            
             
             if (subject) {
                 const sbj = this.encrypt(recipient, subject)
@@ -338,8 +392,74 @@ class ChatStore {
             } catch (err) {
                 decryptedMessage = '⚠️ Decoding error';
             }
-            return decryptedMessage.replace(/@[\w]{64}$/gmi, "");
+            resolve(decryptedMessage.replace(/@[\w]{64}$/gmi, ""));
         })
+    }
+
+    @action
+    decrypItem(item) {
+        return new Promise((resolve, reject) => {
+            const promises = [];
+            const cdms = [];
+
+            for (let j = 0; j < item.cdms.length; j += 1) {
+                const p = this.decryptCdm(item.cdms[j]).then(cdm => {
+                    cdms.push(cdm);
+                })
+                .catch(e => {
+                    console.log('e', e);
+                });
+                promises.push(p);
+            }
+
+            Promise.all(promises).then(_ => {
+                item.cdms = cdms.reverse();
+                resolve(item);
+            });
+        });
+    }
+
+
+    @action
+    decryptCdm(cdm) {
+        return new Promise((resolve, reject) =>  {
+            const promises = [];
+            
+            if (cdm.subject) {
+                const subject = this.decryptMessage(
+                    cdm.subject,
+                    cdm.direction === 'outgoing' ? cdm.recipient : cdm.logicalSender
+                )
+                .then(res => {
+                    cdm.rawSubject = res;
+                    cdm.subject = res.replace(/@[\w]{64}$/gmi, "", '');
+                })
+                .catch(e => {
+                    console.log('subject err', e);
+                });;
+                promises.push(subject);
+            }
+
+            if (cdm.message) {
+                const message = this.decryptMessage(
+                    cdm.message,
+                    cdm.direction === 'outgoing' ? cdm.recipient : cdm.logicalSender
+                )
+                .then(res => {
+                    cdm.rawMessage = res;
+                    cdm.message = res.replace(/@[\w]{64}$/gmi, "", '');
+                })
+                .catch(e  => {
+                    console.log('message err', e);
+                });
+                promises.push(message);
+            }
+    
+            Promise.all(promises)
+                .then(_ => resolve(cdm))
+                .catch(e => reject(e));
+        })
+        
     }
 }
 
