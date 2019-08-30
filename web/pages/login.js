@@ -33,7 +33,7 @@ class Login extends React.Component {
             <div className="main">
                 <Row>
                     <Col xs={{ offset: 4, span: 12}}>
-                        <h1>Nolik INDEX</h1>
+                        <h1>Nolik</h1>
                         <h2>
                             Instant Messenger that does not store users' data.<br />
                             No registration needed.
