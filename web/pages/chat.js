@@ -107,7 +107,7 @@ class Chat extends React.Component {
                         </div>
                     )}
                     {chat.list && (
-                        <div>
+                        <div className="chat">
                             <div className="title">YOUR PUBLIC KEY</div>
                             <div className="yourPublicKey">
                                 <div className="publicKey">
@@ -158,6 +158,10 @@ class Chat extends React.Component {
                         margin-right: auto;
                         padding: 1em;
                         display: flex;
+                    }
+
+                    .chat {
+                        width: 100%;
                     }
 
                     .loading {
