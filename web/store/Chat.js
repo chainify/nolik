@@ -19,6 +19,7 @@ class ChatStore {
         this.toggleShowDrawer = this.toggleShowDrawer.bind(this);
         this.copySeedPhrase = this.copySeedPhrase.bind(this);
         this.copyChatUrl = this.copyChatUrl.bind(this);
+        this.toggleSubjectModal = this.toggleSubjectModal.bind(this);
     }
     
     @observable list = null;
@@ -248,6 +249,7 @@ class ChatStore {
             axios.post(`${SPONSOR_HOST}/sponsor`, formData, formConfig)
                 .then(res => {
                     notifiers.success('Message has been sent');
+                    this.showSubjectModal = false;
                     this.sendCdmStatus = 'success';
                 })
                 .catch(e => {
