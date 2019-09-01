@@ -41,6 +41,9 @@ class Chat extends React.Component {
             <div>
                 <div className="container" ref={el => { this.cdmsDiv = el; }}>
                     <div className="list">
+                        {!chat.thread && (
+                            <div className="empty" />
+                        )}
                         {chat.thread && chat.thread.cdms.map(el => (
                             <div key={`el_${el.id}`}>
                                 <p className="sender">
@@ -68,6 +71,12 @@ class Chat extends React.Component {
                         font-size: 10px;
                         margin: 0;
                         coor: #999;
+                    }
+
+                    .empty {
+                        height: calc(100vh - 160px - 48px - 48px - 10px - 32px - 10px - 32px - 2em);
+                        width: 100%;
+                        background: url(/static/empty.svg) no-repeat center center;
                     }
                 `}</style>
             </div>

@@ -16,6 +16,9 @@ class ChatStore {
         this.sendSponsoredCdm = this.sendSponsoredCdm.bind(this);
         this.chatDestroy = this.chatDestroy.bind(this);
         this.selfClearChat = this.selfClearChat.bind(this);
+        this.toggleShowDrawer = this.toggleShowDrawer.bind(this);
+        this.copySeedPhrase = this.copySeedPhrase.bind(this);
+        this.copyChatUrl = this.copyChatUrl.bind(this);
     }
     
     @observable list = null;
@@ -29,6 +32,18 @@ class ChatStore {
     @observable message = '';
     @observable cdmData = null;
     @observable goodByeCdm = null;
+    @observable showDrawer = false;
+
+
+    @action
+    toggleShowDrawer() {
+        this.showDrawer = !this.showDrawer;
+    }
+
+    @action
+    setThread(item) {
+        this.thread = item;
+    }
 
     @action
     heartbeat() {
@@ -47,30 +62,39 @@ class ChatStore {
             axios.post(`${API_HOST}/api/v1/heartbeat`, formData, formConfig)
                 .then(res => {
                     const listThreads = res.data.threads;
-                    this.list = listThreads;
-
                     if (listThreads.length > 0) {
-                        // const lastThreadCdms = this.thread
-                        //     ? listThreads.filter(el => el.threadHash === thread.threadHash)[0].cdms
-                        //     : listThreads[0].cdms;
                         const lastThreadCdms = listThreads[0].cdms;
                         const lastTxId = lastThreadCdms[0].txId;
 
                         if (this.lastTxId !== lastTxId) {
-                            this.decrypItem(listThreads[0])
-                                .then(res => {
-                                    const lastCdm = res.cdms[res.cdms.length - 1];
+                            const promises = [];
+                            for (let i = 0; i < listThreads.length; i += 1) {
+                                const p = this.decrypItem(listThreads[i])
+                                    .then(res => {
+                                        return res;
+                                        // const lastCdm = res.cdms[res.cdms.length - 1];
+                                        // if (lastCdm.subjectHash === 'bdb08804137f8c6b2374b0fd68dfeb6ff38471e221119e59f38c3d5f3f8cc521') {
+                                        //     this.outerClearChat();
+                                        // } else {
+                                        //     this.sendCdmStatus = 'success';
+                                        //     this.thread = res;
+                                        // }
+                                    });
+                                promises.push(p);
+                            }
 
-                                    if (lastCdm.subjectHash === 'bdb08804137f8c6b2374b0fd68dfeb6ff38471e221119e59f38c3d5f3f8cc521') {
-                                        this.outerClearChat();
-                                    } else {
-                                        this.sendCdmStatus = 'success';
-                                        this.thread = res;
-                                    }
-                                })
-                            this.lastTxId = lastTxId;
+                            Promise.all(promises).then(list => {
+                                this.list = this.list ? list.concat(this.list) : list;
+                                this.thread = this.thread ? this.thread : list[0];
+                                this.lastTxId = list[list.length - 1].cdms[list[list.length - 1].cdms.length - 1].txId;
+                                this.sendCdmStatus = 'success';
+                            })   
                         }
-                    }             
+                    } else {
+                        if (this.list === null) {
+                            this.list = [];
+                        }
+                    }
                 })
                 .then(_ => {
                     this.heartbeatStatus = 'success';
@@ -271,10 +295,6 @@ class ChatStore {
         return new Promise((resolve, reject) => {
             let msg = '';
             const promises = [];
-
-            console.log('subject', subject);
-            console.log('message', message);
-            
             
             if (subject) {
                 const sbj = this.encrypt(recipient, subject)
@@ -460,6 +480,65 @@ class ChatStore {
                 .catch(e => reject(e));
         })
         
+    }
+
+    @action
+    copySeedPhrase() {
+        const { notifiers } = this.stores;
+        this.clipboardTextarea(this.seed);
+        notifiers.info('Seed phrase has been copied');
+    }
+
+    @action
+    copyChatUrl() {
+        const { notifiers } = this.stores;
+        const publicKey = keyPair(this.seed).publicKey;
+        const url = `${API_HOST}/pk/${publicKey}`;
+        this.clipboardTextarea(url);
+        notifiers.info('Chat URL has been copied');
+    }
+
+    @action
+    clipboardTextarea(text) {
+        const id = "clipboard-textarea-hidden-id";
+        let existsTextarea = document.getElementById(id);
+
+        if (!existsTextarea){
+            const textarea = document.createElement("textarea");
+            textarea.id = id;
+            // Place in top-left corner of screen regardless of scroll position.
+            textarea.style.position = 'fixed';
+            textarea.style.top = 0;
+            textarea.style.left = 0;
+
+            // Ensure it has a small width and height. Setting to 1px / 1em
+            // doesn't work as this gives a negative w/h on some browsers.
+            textarea.style.width = '1px';
+            textarea.style.height = '1px';
+
+            // We don't need padding, reducing the size if it does flash render.
+            textarea.style.padding = 0;
+
+            // Clean up any borders.
+            textarea.style.border = 'none';
+            textarea.style.outline = 'none';
+            textarea.style.boxShadow = 'none';
+
+            // Avoid flash of white box if rendered for any reason.
+            textarea.style.background = 'transparent';
+            document.querySelector("body").appendChild(textarea);
+            existsTextarea = document.getElementById(id);
+        }
+
+        existsTextarea.value = text;
+        existsTextarea.select();
+
+        try {
+            document.execCommand('copy');
+            existsTextarea.parentNode.removeChild(existsTextarea);
+        } catch (err) {
+            // console.log('Unable to copy.');
+        }
     }
 }
 

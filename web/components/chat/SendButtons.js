@@ -27,7 +27,13 @@ class ChatButtons extends React.Component {
                                 (chat.sendCdmStatus !== 'init' && chat.thread === null)
                             }
                         >
-                            <FontAwesomeIcon icon={faPaperPlane} />&nbsp;Send
+                            {
+                                chat.sendCdmStatus === 'pending' ||
+                                (chat.sendCdmStatus !== 'init' && chat.thread === null) 
+                                    ? <span>&nbsp;{<FontAwesomeIcon icon={faPaperPlane} />}&nbsp;Send</span>
+                                    : <span><FontAwesomeIcon icon={faPaperPlane} /> Send</span>
+                            }
+                            
                         </Button>
                     </Col>
                     <Col xs={24} sm={0}>
@@ -41,7 +47,11 @@ class ChatButtons extends React.Component {
                                 (chat.sendCdmStatus !== 'init' && chat.thread === null)
                             }
                         >
-                            <FontAwesomeIcon icon={faPaperPlane} />
+                            {
+                                chat.sendCdmStatus === 'pending' ||
+                                (chat.sendCdmStatus !== 'init' && chat.thread === null) 
+                                    ? null : <FontAwesomeIcon icon={faPaperPlane} />
+                            }
                         </Button>
                     </Col>
                 </Row>

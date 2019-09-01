@@ -4,11 +4,11 @@ import { withRouter } from 'next/router';
 import { observer, inject } from 'mobx-react';
 import { autorun, toJS } from 'mobx';
 // import { i18n, Link as Tlink, withNamespaces } from '../i18n';
-import { Input, Result, Button, Icon, Divider, Row, Col } from 'antd';
+import { Input, Result, Button, Icon, Divider, Drawer, Menu, Dropdown } from 'antd';
 import { keyPair } from '@waves/ts-lib-crypto';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faSnowplow} from '@fortawesome/free-solid-svg-icons'
+import { faSnowplow, faSyncAlt } from '@fortawesome/free-solid-svg-icons'
 
 import SendButtons from './../components/chat/SendButtons';
 import CancelButtons from './../components/chat/CancelButtons';
@@ -19,6 +19,7 @@ const { publicRuntimeConfig } = getConfig();
 const { NETWORK, API_HOST } = publicRuntimeConfig;
 
 const { TextArea } = Input;
+const { SubMenu } = Menu;
 
 @inject('chat', 'notifiers')
 @observer
@@ -55,7 +56,7 @@ class Chat extends React.Component {
     }
 
     render() {
-        const { chat } = this.props;
+        const { chat, notifiers } = this.props;
 
         const inputStyle = {
             border: 'none',
@@ -108,15 +109,46 @@ class Chat extends React.Component {
                     )}
                     {chat.list && (
                         <div className="chat">
-                            <div className="title">YOUR PUBLIC KEY</div>
-                            <div className="yourPublicKey">
-                                <div className="publicKey">
-                                    <a href={`${API_HOST}/pk/${publicKey}`} target="_blank">{publicKey}</a>
+                            {chat.list.length > 0 ? (
+                                <div>
+                                    <div className="title">CURRENT THREAD</div>
+                                    <div className="yourPublicKey">
+                                        <div className="publicKey">
+                                            {chat.list[0].cdms[0].subject}
+                                        </div>
+                                        <div className="copyButton">
+                                            <Button
+                                                onClick={chat.toggleShowDrawer}
+                                            >
+                                                <Icon type="menu" />
+                                            </Button>
+                                            {/* {chat.list && chat.list.length > 0 && (
+                                                <Dropdown
+                                                    trigger={['click']}
+                                                    overlay={(
+                                                        <Menu>
+                                                            {chat.list && chat.list.map(el => (
+                                                                <Menu.Item key={`subject_${el.threadHash}`}>{el.cdms[0].subject}</Menu.Item>
+                                                            ))}
+                                                        </Menu>
+                                                    )}
+                                                >
+                                                    
+                                                </Dropdown>
+                                            )} */}
+                                        </div>
+                                    </div>
                                 </div>
-                                <div className="copyButton">
-                                    <CancelButtons />
+                            ) : (
+                                <div>
+                                    <div className="title">CHAT WITH</div>
+                                    <div className="yourPublicKey">
+                                        <div className="publicKey">
+                                            {chat.recipient}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
+                            )}
                             {/* <div className="title">CHAT WITH</div>
                             <div className="yourPublicKey">
                                 <div className="publicKey">{chat.recipient}</div>
@@ -134,8 +166,9 @@ class Chat extends React.Component {
                                     <div className="message">
                                         <TextArea
                                             autosize={{ minRows: 4 }}
+                                            autoFocus
                                             style={inputStyle}
-                                            placeholder="Message"
+                                            placeholder="Write your message here"
                                             value={chat.message}
                                             onChange={e => {
                                                 chat.message = e.target.value;
@@ -147,6 +180,73 @@ class Chat extends React.Component {
                                     <SendButtons />
                                 </div>
                             </div>
+                            <Drawer
+                                title="Nolik messenger"
+                                placement="right"
+                                closable
+                                onClose={chat.toggleShowDrawer}
+                                visible={chat.showDrawer}
+                            >
+                                 <Menu
+                                    mode="inline"
+                                    inlineIndent={0}
+                                    defaultOpenKeys={['threads']}
+                                    style={{
+                                        borderRight: 0,
+                                    }}
+                                 >
+                                     <SubMenu
+                                        key="threads"
+                                        title={
+                                            <span>
+                                                <Icon type="message" />
+                                                <span>Threads</span>
+                                            </span>
+                                        }
+                                    >
+                                        {chat.list && chat.list.map(el => (
+                                            <Menu.Item
+                                                key={`subject_${el.threadHash}`}
+                                                onClick={_ => {
+                                                    chat.setThread(el);
+                                                    chat.toggleShowDrawer();
+                                                }}
+                                            >
+                                                <span className="subMenu">{el.cdms[0].subject}</span>
+                                            </Menu.Item>
+                                        ))}
+                                    </SubMenu>
+                                    <Menu.Item disabled><Divider /></Menu.Item>
+                                    <Menu.Item
+                                        key={'copyChatUrl'}
+                                        onClick={chat.copyChatUrl}
+                                    >
+                                        <Icon type="share-alt" /> Share your personal link
+                                    </Menu.Item>
+                                    <Menu.Item
+                                        key={'copySeedPhrase'}
+                                        onClick={chat.copySeedPhrase}
+                                    >
+                                        <Icon type="copy" /> Copy seed phrase
+                                    </Menu.Item>
+                                    <Menu.Item
+                                        key={'whatIsNolik'}
+                                        // onClick={chat.copyChatUrl}
+                                    >
+                                       <Icon type="info-circle" /> What is Nolik
+                                    </Menu.Item>
+                                    <Menu.Item disabled><Divider /></Menu.Item>
+                                    <Menu.Item
+                                        onClick={_ => {
+                                            chat.selfClearChat();
+                                        }}
+                                    >
+                                        <div className="dropChat">
+                                            <Icon type="reload" /> Reset account
+                                        </div>
+                                    </Menu.Item>
+                                </Menu>
+                            </Drawer>
                         </div>
                     )}
                 </div>
@@ -220,6 +320,19 @@ class Chat extends React.Component {
                     .demolishText {
                         margin: 2em;
                         font-size: 16px;
+                    }
+
+                    .nolikDescr {
+                        font-size: 12px;
+                        color: #999;
+                    }
+
+                    .dropChat {
+                        color: red;
+                    }
+                    
+                    .subMenu {
+                        padding-left: 24px;
                     }
                 `}</style>
             </div>
