@@ -4,7 +4,7 @@ import { withRouter } from 'next/router';
 import { observer, inject } from 'mobx-react';
 import { autorun, toJS } from 'mobx';
 // import { i18n, Link as Tlink, withNamespaces } from '../i18n';
-import { Input, Result, Button, Icon, Divider, Drawer, Menu, Dropdown } from 'antd';
+import { Input, Result, Button, Icon, Divider, Drawer, Menu, Modal } from 'antd';
 import { keyPair } from '@waves/ts-lib-crypto';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -73,7 +73,58 @@ class Chat extends React.Component {
             fontFamily: 'Roboto, sans-serif'
         }
 
-        const publicKey = chat.seed ? keyPair(chat.seed).publicKey : '';
+        const infoModal = (() =>{
+            Modal.info({
+                centered: true,
+                title: 'What is Nolik',
+                content: (
+                  <div>
+                    <p>
+                        Nolik allows to send (truly) secure messages to anyone without installing any app.
+                        Check out more on <a href="https://github.com/chainify/nolik">how itworks</a>.
+                    </p>
+                    <p>
+                        At Nolik <b>we do not store your decryption keys</b> (and we can prove it).
+                        If you need to check the feedback to your messages later on or
+                        have an access to the convesration follow the backup instructions.
+                    </p>
+                    <p>
+                        <Button
+                            onClick={restoreChatModal}
+                        >
+                            Backup chat
+                        </Button>
+                    </p>
+                  </div>
+                ),
+                onOk() {},
+              });
+        });
+
+        const restoreChatModal = (() =>{
+            Modal.info({
+                centered: true,
+                title: 'How to backup your conversation',
+                content: (
+                  <div>
+                    <ol>
+                        <li>
+                            Copy your seed phrase. You can do it in chat menu. 
+                        </li>
+                        <li>
+                            Install <a href="https://wavesplatform.com/technology/keeper" target="_block">Waves Keeper</a> browser extention.
+                        </li>
+                        <li>
+                            Create an account and import your seed phrase.
+                        </li>
+                        <li>Go to <a href={API_HOST} target="_blank">Nolik webpage</a> and login with Waves Keeper</li>
+                    </ol>
+                    <h3>IMPORTANT. Seed phrase is higly confidential information, do not disclose it to anyone!</h3>
+                  </div>
+                ),
+                onOk() {},
+              });
+        });
 
         return (
             <div>
@@ -122,40 +173,26 @@ class Chat extends React.Component {
                                             >
                                                 <Icon type="menu" />
                                             </Button>
-                                            {/* {chat.list && chat.list.length > 0 && (
-                                                <Dropdown
-                                                    trigger={['click']}
-                                                    overlay={(
-                                                        <Menu>
-                                                            {chat.list && chat.list.map(el => (
-                                                                <Menu.Item key={`subject_${el.threadHash}`}>{el.cdms[0].subject}</Menu.Item>
-                                                            ))}
-                                                        </Menu>
-                                                    )}
-                                                >
-                                                    
-                                                </Dropdown>
-                                            )} */}
                                         </div>
                                     </div>
                                 </div>
                             ) : (
                                 <div>
-                                    <div className="title">CHAT WITH</div>
+                                    <div className="title">ONE-TIME CHAT WITH</div>
                                     <div className="yourPublicKey">
                                         <div className="publicKey">
                                             {chat.recipient}
                                         </div>
+                                        <div className="copyButton">
+                                            <Button
+                                                onClick={chat.toggleShowDrawer}
+                                            >
+                                                <Icon type="menu" />
+                                            </Button>
+                                        </div>
                                     </div>
                                 </div>
                             )}
-                            {/* <div className="title">CHAT WITH</div>
-                            <div className="yourPublicKey">
-                                <div className="publicKey">{chat.recipient}</div>
-                                <div className="copyButton">
-                                    <CancelButtons />
-                                </div>
-                            </div> */}
                             <div>
                                 <Divider />
                                 <ChatList />
@@ -190,13 +227,14 @@ class Chat extends React.Component {
                                  <Menu
                                     mode="inline"
                                     inlineIndent={0}
-                                    defaultOpenKeys={['threads']}
+                                    defaultOpenKeys={chat.thread ? ['threads'] : null}
                                     style={{
                                         borderRight: 0,
                                     }}
                                  >
                                      <SubMenu
                                         key="threads"
+                                        disabled={!chat.thread}
                                         title={
                                             <span>
                                                 <Icon type="message" />
@@ -231,8 +269,7 @@ class Chat extends React.Component {
                                     </Menu.Item>
                                     <Menu.Item
                                         key={'whatIsNolik'}
-                                        disabled
-                                        // onClick={chat.copyChatUrl}
+                                        onClick={infoModal}
                                     >
                                        <Icon type="info-circle" /> What is Nolik
                                     </Menu.Item>
