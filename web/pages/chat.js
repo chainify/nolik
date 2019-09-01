@@ -232,10 +232,10 @@ class Chat extends React.Component {
                                     <Button
                                         key="submit"
                                         type="primary"
-                                        // loading={loading}
+                                        loading={chat.sendCdmStatus === 'pending'}
                                         onClick={chat.sendSponsoredCdm}
                                     >
-                                        {chat.subject ? 'Send message' : 'Ignore and send witout subject'}
+                                        {chat.subject ? 'Send message' : 'Ignore and send'}
                                     </Button>,
                                 ]}
                                 >
