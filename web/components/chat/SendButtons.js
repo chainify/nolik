@@ -20,7 +20,13 @@ class ChatButtons extends React.Component {
                     <Col xs={0} sm={24}>
                         <Button
                             type="primary"
-                            onClick={chat.sendSponsoredCdm}
+                            onClick={_ => {
+                                if (chat.thread) {
+                                    chat.sendSponsoredCdm();
+                                } else {
+                                    chat.toggleSubjectModal();
+                                }
+                            }}
                             disabled={chat.message === ''}
                             loading={
                                 chat.sendCdmStatus === 'pending' ||
@@ -40,7 +46,13 @@ class ChatButtons extends React.Component {
                         <Button
                             type="primary"
                             shape="circle"
-                            onClick={chat.sendSponsoredCdm}
+                            onClick={_ => {
+                                if (chat.thread) {
+                                    chat.sendSponsoredCdm();
+                                } else {
+                                    chat.toggleSubjectModal();
+                                }
+                            }}
                             disabled={chat.message === ''}
                             loading={
                                 chat.sendCdmStatus === 'pending' ||

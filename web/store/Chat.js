@@ -33,11 +33,17 @@ class ChatStore {
     @observable cdmData = null;
     @observable goodByeCdm = null;
     @observable showDrawer = false;
+    @observable showSubjectModal = false;
 
 
     @action
     toggleShowDrawer() {
         this.showDrawer = !this.showDrawer;
+    }
+
+    @action
+    toggleSubjectModal() {
+        this.showSubjectModal = !this.showSubjectModal;
     }
 
     @action
@@ -47,7 +53,7 @@ class ChatStore {
 
     @action
     heartbeat() {
-        const { utils, threads, alice } = this.stores;
+        const { utils, notifiers } = this.stores;
         if (this.seed === null) { return }
         const keys = keyPair(this.seed);
         const formConfig = {};
@@ -83,12 +89,43 @@ class ChatStore {
                                 promises.push(p);
                             }
 
-                            Promise.all(promises).then(list => {
-                                this.list = this.list ? list.concat(this.list) : list;
-                                this.thread = this.thread ? this.thread : list[0];
-                                this.lastTxId = list[list.length - 1].cdms[list[list.length - 1].cdms.length - 1].txId;
+                            Promise.all(promises).then(list => {                                
+                                const currentList = this.list || [];
+                                const currentHahses = currentList.map(el => el.threadHash);
+
+                                const indexesToDelete = [];
+                                for (let i = 0; i < list.length; i += 1) {
+                                    const index = currentHahses.indexOf(list[i].threadHash);
+                                    
+                                    if (index > -1) {
+                                        indexesToDelete.push(index);
+                                    }
+                                }
+
+                                const sorted = indexesToDelete.sort(function(a, b){return b-a});
+                                for (let i = 0; i < sorted.length; i += 1) {
+                                    currentList.splice(sorted[i], 1);
+                                }
+
+                                list.reverse();
+                                if (this.thread) {
+                                    if(this.thread.threadHash !== list[0].threadHash) {
+                                        for (let i = 0; i < list.length; i += 1) {
+                                            notifiers.newThread(list[i]);
+                                        }
+                                    } else {
+                                        this.thread = list[0];
+                                    }
+                                } else {
+                                    this.thread = list[0];
+                                }
+
+                                this.list = list.concat(currentList);
+                                this.lastTxId = list[0].cdms[list[0].cdms.length - 1].txId;
                                 this.sendCdmStatus = 'success';
-                            })   
+
+                                
+                            });
                         }
                     } else {
                         if (this.list === null) {
@@ -113,7 +150,7 @@ class ChatStore {
         const signature = signBytes(keys, bytes);
 
         const cdm = {
-            subject: 'One-time request',
+            subject: this.subject || 'One-time request',
             message: this.message,
             rawSubject: null,
             rawMessage: null,
@@ -123,7 +160,10 @@ class ChatStore {
                 senderPublicKey: keys.publicKey,
                 senderSignature: signature,
             },
-            recipients: [{
+            recipients: this.thread ? this.thread.members.map(el => ({
+                recipient: el,
+                type: 'to',
+            })) : [{
                 recipient: this.recipient,
                 type: 'to',
             }],
@@ -155,7 +195,10 @@ class ChatStore {
                 senderPublicKey: keys.publicKey,
                 senderSignature: signature,
             },
-            recipients: [{
+            recipients: this.thread ? this.thread.members.map(el => ({
+                recipient: el,
+                type: 'cc',
+            })) : [{
                 recipient: this.recipient,
                 type: 'cc',
             }],
@@ -239,8 +282,6 @@ class ChatStore {
     }
 
     selfClearChat() {
-        // const { notifiers } = this.stores;
-        // notifiers.selfClearedChat();
         this.chatDestroy();
         location.reload();
     }
@@ -248,7 +289,6 @@ class ChatStore {
     outerClearChat() {
         const { notifiers } = this.stores;
         this.chatDestroy();
-        // notifiers.outerClearedChat();
     }
 
 

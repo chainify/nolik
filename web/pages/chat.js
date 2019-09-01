@@ -160,12 +160,12 @@ class Chat extends React.Component {
                     )}
                     {chat.list && (
                         <div className="chat">
-                            {chat.list.length > 0 ? (
+                            {chat.thread ? (
                                 <div>
                                     <div className="title">CURRENT THREAD</div>
                                     <div className="yourPublicKey">
                                         <div className="publicKey">
-                                            {chat.list[0].cdms[0].subject}
+                                            {chat.thread.cdms[0].subject}
                                         </div>
                                         <div className="copyButton">
                                             <Button
@@ -217,6 +217,43 @@ class Chat extends React.Component {
                                     <SendButtons />
                                 </div>
                             </div>
+                            <Modal
+                                visible={chat.showSubjectModal}
+                                title="Add a subject"
+                                // onOk={this.handleOk}
+                                onCancel={chat.toggleSubjectModal}
+                                footer={[
+                                    <Button
+                                        key="back"
+                                        onClick={chat.toggleSubjectModal}
+                                    >
+                                        Cancel
+                                    </Button>,
+                                    <Button
+                                        key="submit"
+                                        type="primary"
+                                        // loading={loading}
+                                        onClick={chat.sendSponsoredCdm}
+                                    >
+                                        {chat.subject ? 'Send message' : 'Ignore and send witout subject'}
+                                    </Button>,
+                                ]}
+                                >
+                                <p>
+                                    Adding a subject will increase the visibility of your message.
+                                    Ignoring this advice will lead to sending a message with a non-unique subject "One-time request".
+                                </p>
+                                <TextArea
+                                    autosize
+                                    autoFocus
+                                    style={inputStyle}
+                                    placeholder="Write your subject here"
+                                    value={chat.subject}
+                                    onChange={e => {
+                                        chat.subject = e.target.value;
+                                    }}
+                                />
+                            </Modal>
                             <Drawer
                                 title="Nolik messenger"
                                 placement="right"
