@@ -221,7 +221,7 @@ class Chat extends React.Component {
                                         key={'copyChatUrl'}
                                         onClick={chat.copyChatUrl}
                                     >
-                                        <Icon type="share-alt" /> Share your personal link
+                                        <Icon type="share-alt" /> Share your one-time link
                                     </Menu.Item>
                                     <Menu.Item
                                         key={'copySeedPhrase'}
@@ -231,6 +231,7 @@ class Chat extends React.Component {
                                     </Menu.Item>
                                     <Menu.Item
                                         key={'whatIsNolik'}
+                                        disabled
                                         // onClick={chat.copyChatUrl}
                                     >
                                        <Icon type="info-circle" /> What is Nolik
