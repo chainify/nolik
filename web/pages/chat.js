@@ -80,13 +80,13 @@ class Chat extends React.Component {
                 content: (
                   <div>
                     <p>
-                        Nolik allows to send (truly) secure messages to anyone without installing any app.
-                        Check out more on <a href="https://github.com/chainify/nolik">how itworks</a>.
+                        Nolik allows sending (truly) secure messages to anyone without installing any app.
+                        Check out more on <a href="https://github.com/chainify/nolik">how it works</a>.
                     </p>
                     <p>
                         At Nolik <b>we do not store your decryption keys</b> (and we can prove it).
                         If you need to check the feedback to your messages later on or
-                        have an access to the convesration follow the backup instructions.
+                        have access to the conversation follow the backup instructions.
                     </p>
                     <p>
                         <Button
@@ -109,17 +109,17 @@ class Chat extends React.Component {
                   <div>
                     <ol>
                         <li>
-                            Copy your seed phrase. You can do it in chat menu. 
+                            Copy your seed phrase. You can do it in a chat menu. 
                         </li>
                         <li>
-                            Install <a href="https://wavesplatform.com/technology/keeper" target="_block">Waves Keeper</a> browser extention.
+                            Install <a href="https://wavesplatform.com/technology/keeper" target="_block">Waves Keeper</a> browser extension.
                         </li>
                         <li>
                             Create an account and import your seed phrase.
                         </li>
-                        <li>Go to <a href={API_HOST} target="_blank">Nolik webpage</a> and login with Waves Keeper</li>
+                        <li>Go to <a href={API_HOST} target="_blank">Nolik webpage</a> and log in with Waves Keeper</li>
                     </ol>
-                    <h3>IMPORTANT. Seed phrase is higly confidential information, do not disclose it to anyone!</h3>
+                    <h3>IMPORTANT. The seed phrase is highly confidential information, do not disclose it to anyone!</h3>
                   </div>
                 ),
                 onOk() {},
