@@ -8,10 +8,14 @@ import Wrapper from './wrapper';
 import ThreadInfo from './threadInfo';
 import { Row, Col, Input, Button, Icon } from 'antd';
 
+import getConfig from 'next/config';
+const { publicRuntimeConfig } = getConfig();
+const { API_HOST } = publicRuntimeConfig;
+
 import Threads from './threads';
 import Main from './main';
 
-@inject('alice', 'threads')
+@inject('threads', 'alice')
 @observer
 class Index extends React.Component {
     constructor(props) {
@@ -29,7 +33,7 @@ class Index extends React.Component {
     }
 
     render() {
-        const { threads } = this.props;
+        const { threads, alice } = this.props;
         return (
             <Wrapper>
                 <Row>

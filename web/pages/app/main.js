@@ -9,7 +9,7 @@ import { Input, Button, Icon } from 'antd';
 import Cdms from './cdms';
 import Compose from './compose';
 
-@inject('compose', 'threads')
+@inject('compose', 'threads', 'alice')
 @observer
 class Main extends React.Component {
     constructor(props) {
@@ -17,7 +17,7 @@ class Main extends React.Component {
     }
 
     render() {
-        const { compose, threads } = this.props;
+        const { compose, threads, alice } = this.props;
         return (
             <div>
                 <div className="container">
@@ -25,17 +25,20 @@ class Main extends React.Component {
                         ? <Compose />
                         : threads.current ? <Cdms /> : <div className="empty" />}
                 </div>
+                
                 <style jsx>{`
                     .container {
-                        height: 100vh;
+                        height: calc(100vh - 32px);
                         background: #fafafa;
                     }
 
                     .empty {
-                        height: 100vh;
+                        height: calc(100vh - 32px);
                         width: 100%;
                         background: url(/static/empty.svg) no-repeat center center;
                     }
+
+                    
                 `}</style>
             </div>
         );

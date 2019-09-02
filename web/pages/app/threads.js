@@ -102,12 +102,12 @@ class Threads extends React.Component {
                 </div>
                 <style jsx>{`
                     .container {
-                        heightL 100vh;
+                        height: calc(100vh - 32px);
                         border-right: 1px solid #e0e0e0;
                     }
 
                     .list {
-                        height: calc(100vh - 52px);
+                        height: calc(100vh - 52px - 32px);
                         background: #ddd;
                         overflow-y: auto;
                     }

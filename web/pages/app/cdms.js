@@ -87,15 +87,15 @@ class Cdms extends React.Component {
                 </div>
                 <style jsx>{`
                     .container {
-                        height: 100vh;
+                        height: calc(100vh - 32px);
                     }
 
                     .listFull {
-                        height: 100vh;
+                        height: calc(100vh - 32px);
                     }
 
                     .listCurrent {
-                        height: calc(100vh - 52px);
+                        height: calc(100vh - 52px - 32px);
                     }
                 `}</style>
             </div>

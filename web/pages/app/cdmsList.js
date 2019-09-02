@@ -27,6 +27,11 @@ class Cdms extends React.Component {
                                 <Message item={item} />
                             </div>
                         ))}
+                        {threads.current.cdms.map(item => (
+                            <div className="messageContainer" key={`message_${item.messageHash}_${item.timestamp}`}>
+                                <Message item={item} />
+                            </div>
+                        ))}
                     </div>
                 </NoSSR>
                 <style jsx>{`

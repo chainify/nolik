@@ -2,11 +2,15 @@ import React from 'react';
 import { Layout, Menu, Icon } from 'antd';
 import { observer, inject } from 'mobx-react';
 
+import getConfig from 'next/config';
+const { publicRuntimeConfig } = getConfig();
+const { API_HOST } = publicRuntimeConfig;
+
 @inject('wrapper', 'alice', 'notifiers')
 @observer
 class Wrapper extends React.Component {
     render() {
-        const { children, notifiers } = this.props;
+        const { children, notifiers, alice } = this.props;
 
         return (
             <div>
@@ -27,12 +31,15 @@ class Wrapper extends React.Component {
                     <div className="main">
                         {children}
                     </div>
+                    
+                </div>
+                <div className="footer">
+                    Your public link: <a  href={`${API_HOST}/pk/${alice.publicKey}`} target="_blank">{`${API_HOST}/pk/${alice.publicKey}`}</a>
                 </div>
                 <style jsx>{`
                     .wrapper {
-                        height: 100vh;
+                        height: calc(100vh - 32px);
                         min-width: 800px;
-                        // max-width: 1000px;
                         margin-left: auto;
                         margin-right: auto;
                         display: flex;
@@ -41,8 +48,7 @@ class Wrapper extends React.Component {
 
                     .sideBar {
                         min-width: 48px;
-                        // flex-basis: 40px;
-                        height: 100vh;
+                        height: calc(100vh - 32px);
                         background: #263238;
                         padding: 10px 0;
                     }
@@ -80,10 +86,18 @@ class Wrapper extends React.Component {
                         background: #37474f;
                     }
 
-                    .main {
-                        height: 100vh;                        
+                    .main {                    
                         flex-grow: 1;
-                        
+                        height: calc(100vh - 32px);
+                    }
+
+                    .footer {
+                        display: block;
+                        height: 30px;
+                        line-height: 30px;
+                        padding: 0 2em;
+                        background: #eee;
+                        border-top: 1px solid #ddd;
                     }
                 `}</style>
             </div>
