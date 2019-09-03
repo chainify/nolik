@@ -49,43 +49,21 @@ class Header extends React.Component {
                                 {item.members.length > 1 && item.members.length + 1}
                             </div>
                             <div>
-                                {item.cdms[item.cdms.length-1].subject && (
+                                {item.cdms[0].subject && (
                                     <Paragraph ellipsis style={paragrapStyle}>
                                         <span className={`headerTitle`}>
-                                            {item.cdms[item.cdms.length-1].subject}
+                                            {item.cdms[0].subject}
                                         </span>
                                     </Paragraph>
                                 )}
-                                {!item.cdms[item.cdms.length-1].subject && item.cdms[item.cdms.length-1].message && (
+                                {!item.cdms[0].subject && item.cdms[item.cdms.length-1].message && (
                                     <Paragraph ellipsis style={paragrapStyle}>
-                                        {/* <span className={`arrow ${item.cdms[0] && item.cdms[0].direction}`}>
-                                            <FontAwesomeIcon
-                                                icon={
-                                                    item.cdms[0].direction === 'self'
-                                                    ? faBookmark :
-                                                        item.cdms[0].direction === 'incoming'
-                                                        ? faLevelDownAlt
-                                                        : faLevelUpAlt
-                                                }
-                                            />
-                                        </span> */}
                                         <span className={`headerTitle`}>
                                             {item.cdms[item.cdms.length-1].message}
                                         </span>
                                     </Paragraph>
                                 )}
                                 <Paragraph ellipsis={{ rows: item.cdms[0].subject ? 1 : 2 }} style={paragrapStyle}>
-                                    {/* <span className={`arrow ${item.cdms[0] && item.cdms[0].direction}`}>
-                                        <FontAwesomeIcon
-                                            icon={
-                                                item.cdms[0].direction === 'self'
-                                                ? faBookmark :
-                                                    item.cdms[0].direction === 'incoming'
-                                                    ? faLevelDownAlt
-                                                    : faLevelUpAlt
-                                            }
-                                        />
-                                    </span> */}
                                     <span className="headerMessage">
                                         {striptags(md.render(item.cdms[0].message))}
                                     </span>

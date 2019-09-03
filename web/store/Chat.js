@@ -79,13 +79,6 @@ class ChatStore {
                                 const p = this.decrypItem(listThreads[i])
                                     .then(res => {
                                         return res;
-                                        // const lastCdm = res.cdms[res.cdms.length - 1];
-                                        // if (lastCdm.subjectHash === 'bdb08804137f8c6b2374b0fd68dfeb6ff38471e221119e59f38c3d5f3f8cc521') {
-                                        //     this.outerClearChat();
-                                        // } else {
-                                        //     this.sendCdmStatus = 'success';
-                                        //     this.thread = res;
-                                        // }
                                     });
                                 promises.push(p);
                             }
@@ -121,11 +114,15 @@ class ChatStore {
                                     this.thread = list[0];
                                 }
 
-                                this.list = list.concat(currentList);
-                                this.lastTxId = list[0].cdms[list[0].cdms.length - 1].txId;
-                                this.sendCdmStatus = 'success';
-
+                                const lastCdm = list[0].cdms[list[0].cdms.length - 1];
                                 
+                                if (lastCdm.subjectHash === 'bdb08804137f8c6b2374b0fd68dfeb6ff38471e221119e59f38c3d5f3f8cc521') {
+                                    this.outerClearChat();
+                                }
+                                
+                                this.list = list.concat(currentList);
+                                this.lastTxId = lastCdm.txId;
+                                this.sendCdmStatus = 'success';
                             });
                         }
                     } else {
@@ -146,13 +143,13 @@ class ChatStore {
     @action
     newCdm() {
         const keys = keyPair(this.seed);
-        const text = this.subject || '' + this.message || '';
+        const text = this.subject.trim() || '' + this.message.trim() || '';
         const bytes = Uint8Array.from(sha256(text));
         const signature = signBytes(keys, bytes);
 
         const cdm = {
-            subject: this.subject || 'One-time request',
-            message: this.message,
+            subject: this.subject.trim() || 'One-time request',
+            message: this.message.trim(),
             rawSubject: null,
             rawMessage: null,
             regarding: null,
@@ -176,7 +173,7 @@ class ChatStore {
     @action
     replyToThread() {
         const keys = keyPair(this.seed);
-        const text = this.subject || '' + this.message || '';
+        const text = this.subject.trim() || '' + this.message.trim() || '';
         const bytes = Uint8Array.from(sha256(text));
         const signature = signBytes(keys, bytes);
 
@@ -184,7 +181,7 @@ class ChatStore {
 
         const re = {
             subject: `Re: ${initCdm.subject}`,
-            message: this.message,
+            message: this.message.trim(),
             rawSubject: null,
             rawMessage: null,
             regarding: {

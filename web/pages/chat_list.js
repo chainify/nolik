@@ -2,6 +2,8 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'next/router';
 import { observer, inject } from 'mobx-react';
+import NoSSR from 'react-no-ssr';
+
 import { autorun, toJS } from 'mobx';
 // import { i18n, Link as Tlink, withNamespaces } from '../i18n';
 import { Input, Button, Icon, Divider, Row, Col } from 'antd';
@@ -31,7 +33,7 @@ class Chat extends React.Component {
     }
 
     scrollToBottom() {
-        this.cdmsDiv.scrollTop = this.cdmsDiv.scrollHeight - this.cdmsDiv.clientHeight;
+        this.containerDiv.scrollTop = this.containerDiv.scrollHeight - this.containerDiv.clientHeight;
     }
 
     render() {
@@ -39,20 +41,21 @@ class Chat extends React.Component {
 
         return (
             <div>
-                <div className="container" ref={el => { this.cdmsDiv = el; }}>
+                <div className="container" ref={el => { this.containerDiv = el; }}>
                     <div className="list">
-                        {!chat.thread && (
-                            <div className="empty" />
-                        )}
-                        {chat.thread && chat.thread.cdms.map(el => (
-                            <div key={`el_${el.id}`}>
-                                <p className="sender">
-                                    {el.logicalSender === keyPair(chat.seed).publicKey ? 'You' : el.logicalSender}
-                                </p>
-                                {/* {el.subject !== '' && <p className="subject">{el.subject}</p>} */}
-                                <p className="message">{el.message}</p>
-                            </div>
-                        ))}
+                        <NoSSR>
+                            {!chat.thread && (
+                                <div className="empty" />
+                            )}
+                            {chat.thread && chat.thread.cdms.map(el => (
+                                <div key={`el_${el.id}`}>
+                                    <p className="sender">
+                                        {el.logicalSender === keyPair(chat.seed).publicKey ? 'You' : el.logicalSender}
+                                    </p>
+                                    <p className="message">{el.message}</p>
+                                </div>
+                            ))}
+                        </NoSSR>
                     </div>
                 </div>
                 <style jsx>{`

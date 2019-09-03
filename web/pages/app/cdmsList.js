@@ -8,27 +8,31 @@ import { toJS } from 'mobx';
 @observer
 class Cdms extends React.Component {
 
-    componentDidUpdate() {
-        this.contentDiv.scrollTop = 0;
+    componentDidMount() {
+        this.scrollToBottom();
     }
 
-    componentDidMount() {        
-        this.contentDiv.scrollTop = 0;
+    componentDidUpdate() {
+        this.scrollToBottom();
+    }
+
+    scrollToBottom() {
+        this.contentDiv.scrollTop = this.contentDiv.scrollHeight - this.contentDiv.clientHeight;
     }
 
     render() {
         const { threads } = this.props;
         return (
             <div className="content" ref={el => { this.contentDiv = el; }}>
-                <NoSSR>
-                    <div className="list">
+                <div className="list">
+                    <NoSSR>
                         {threads.current.cdms.map(item => (
                             <div className="messageContainer" key={`message_${item.messageHash}_${item.timestamp}`}>
                                 <Message item={item} />
                             </div>
                         ))}
-                    </div>
-                </NoSSR>
+                    </NoSSR>
+                </div>
                 <style jsx>{`
                     .content {
                         height: 100%;
@@ -51,7 +55,7 @@ class Cdms extends React.Component {
 
                     .messageContainer {
                         padding-left: 0em;
-                        padding-bottom: 1em;
+                        padding-bottom: 0em;
                     }
 
                     .messageContainer:first-child {

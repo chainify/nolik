@@ -189,7 +189,7 @@ class ThreadsStore {
             }
 
             Promise.all(promises).then(_ => {
-                item.cdms = cdms;
+                item.cdms = cdms.reverse();
                 resolve(item);
             });
         });

@@ -53,7 +53,7 @@ class ComposeStore {
         this.toggleCompose();
 
         if (this.composeMode === true) {
-            const initCdm = threads.current.cdms[threads.current.cdms.length-1];
+            const initCdm = threads.current.cdms[0];
             const subject = initCdm.subject;
             this.subject = `Re: ${subject ? subject : ''}`;
             this.ccRecipients = threads.current.members.length > 0 ? threads.current.members : alice.publicKey;
@@ -119,9 +119,9 @@ class ComposeStore {
         const { threads } = this.stores;
         this.toggleCompose();
         if (this.composeMode === true) {
-            const initCdm = threads.current.cdms[threads.current.cdms.length-1];
+            const initCdm = threads.current.cdms[0];
             this.subject = `Chat removal request`;
-            this.message = 'Removal description';
+            this.message = '';
             this.ccRecipients = threads.current.members;
 
             this.reSubjectHash = initCdm.subjectHash;

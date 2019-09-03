@@ -20,12 +20,12 @@ const md = require('markdown-it')({
     breaks: true,
 });
 
-@inject('cdms', 'alice', 'compose')
+@inject('cdms', 'alice', 'compose', 'threads')
 @observer
 class Message extends React.Component {
 
     render() {
-        const { item, cdms, alice, compose } = this.props;
+        const { item, cdms, alice, compose, threads } = this.props;
         const css = `<style>${mdcss}</style>`
         const message = `${css}${md.render(item.message)}`;
         const pstyle = {
@@ -97,7 +97,7 @@ class Message extends React.Component {
                         <div className="members">
                             <div className="sender">
                                 {item.logicalSender === alice.publicKey 
-                                    ? <div className="contact self">You</div>
+                                    ? <div className="">You</div>
                                     : <Paragraph ellipsis style={pstyle}>{item.logicalSender}</Paragraph>}
                             </div>
                             <div className={`recipients ${cdms.withRecipients.indexOf(item.id) > -1 && 'active'}`}>
@@ -146,7 +146,7 @@ class Message extends React.Component {
                         <p><b>Signed by:</b> {item.logicalSender}</p>
                         <p><b>Signature:</b> {item.signature}</p>
                     </div>
-                    {item.subject && <div className={`subject ${emojiRe.test(item.subject) && 'isEmoji'}`}>{item.subject}</div>}
+                    {item.subject && item.subject !== `Re: ${threads.current.cdms[0].subject}` && <div className={`subject ${emojiRe.test(item.subject) && 'isEmoji'}`}>{item.subject}</div>}
                     <div className="body markdown" dangerouslySetInnerHTML={{__html: message}}></div>
                 </div>
                 <style jsx>{`
@@ -169,7 +169,7 @@ class Message extends React.Component {
                         flex-grow: 1;
                         overflow-x: hidden;
                         padding-right: 1em;
-                        margin-bottom: 1em;
+                        margin-bottom: 0em;
                     }
 
                     .info {
@@ -274,8 +274,8 @@ class Message extends React.Component {
                     }
 
                     .contact.self {
-                        background: #ba68c8;
-                        color: #fff
+                        // background: #ba68c8;
+                        // color: #fff
                     }
 
                     .toggleRecipietns {
@@ -288,12 +288,12 @@ class Message extends React.Component {
 
                     .sender {
                         color: #999;
-                        font-size: 12px;
+                        font-size: 11px;
                     }
 
                     .recipients {
                         display: none;
-                        font-size: 12px;
+                        font-size: 11px;
                     }
 
                     .recipients.active {

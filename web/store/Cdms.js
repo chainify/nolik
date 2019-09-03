@@ -119,8 +119,6 @@ class CdmStore {
                 break;
         }
 
-        // console.log('cdmData', toJS(this.cdmData));
-        
         if (this.cdmData === null) { return }
 
         // crypto.compose(this.cdmData).then(cdm => {
@@ -169,8 +167,8 @@ class CdmStore {
     newCdm() {
         const { compose } = this.stores;
         const cdm = {
-            subject: compose.subject,
-            message: compose.message,
+            subject: compose.subject.trim(),
+            message: compose.message.trim(),
             rawSubject: null,
             rawMessage: null,
             regarding: null,
@@ -191,8 +189,8 @@ class CdmStore {
     replyToThread() {
         const { compose, threads } = this.stores;
         const re = {
-            subject: compose.subject,
-            message: compose.message,
+            subject: compose.subject.trim(),
+            message: compose.message.trim(),
             rawSubject: null,
             rawMessage: null,
             regarding: {
@@ -231,8 +229,8 @@ class CdmStore {
         };
 
         const re = {
-            subject: compose.subject,
-            message: compose.message,
+            subject: compose.subject.trim(),
+            message: compose.message.trim(),
             rawSubject: null,
             rawMessage: null,
             regarding: {
@@ -271,8 +269,8 @@ class CdmStore {
         };
 
         const re = {
-            subject: compose.subject,
-            message: compose.message,
+            subject: compose.subject.trim(),
+            message: compose.message.trim(),
             rawSubject: null,
             rawMessage: null,
             regarding: {
@@ -293,8 +291,8 @@ class CdmStore {
     forwardMessage() {
         const { compose, crypto } = this.stores;
 
-        const subject = compose.subject;
-        const message = compose.message;
+        const subject = compose.subject.trim();
+        const message = compose.message.trim();
 
         const rawSubject = crypto.randomize(subject);
         const rawMessage = crypto.randomize(message);
@@ -383,8 +381,8 @@ class CdmStore {
     removeChatRequest() {
         const { compose, threads } = this.stores;
         const cdm = {
-            subject: compose.subject,
-            message: compose.message,
+            subject: compose.subject.trim(),
+            message: compose.message.trim(),
             rawSubject: compose.subject, // bdb08804137f8c6b2374b0fd68dfeb6ff38471e221119e59f38c3d5f3f8cc521
             rawMessage: null,
             regarding: {

@@ -27,7 +27,7 @@ class ChatButtons extends React.Component {
                                     chat.toggleSubjectModal();
                                 }
                             }}
-                            disabled={chat.message === ''}
+                            disabled={chat.message.trim() === ''}
                             loading={
                                 chat.sendCdmStatus === 'pending' ||
                                 (chat.sendCdmStatus !== 'init' && chat.thread === null)
@@ -39,7 +39,6 @@ class ChatButtons extends React.Component {
                                     ? <span>&nbsp;{<FontAwesomeIcon icon={faPaperPlane} />}&nbsp;Send</span>
                                     : <span><FontAwesomeIcon icon={faPaperPlane} /> Send</span>
                             }
-                            
                         </Button>
                     </Col>
                     <Col xs={24} sm={0}>

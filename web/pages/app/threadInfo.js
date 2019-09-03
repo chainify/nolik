@@ -46,11 +46,11 @@ class ThreadInfo extends React.Component {
                     <div className="info">
                         <h2>Thread</h2>
                         <div className="paper">
-                            {threads.current.cdms[threads.current.cdms.length-1].subject 
-                                ? threads.current.cdms[threads.current.cdms.length-1].subject
-                                : threads.current.cdms[threads.current.cdms.length-1].message.length > 140
-                                    ? `${threads.current.cdms[threads.current.cdms.length-1].message.substring(0, 140)}...`
-                                    : threads.current.cdms[threads.current.cdms.length-1].message}
+                            {threads.current.cdms[0].subject 
+                                ? threads.current.cdms[0].subject
+                                : threads.current.cdms[0].message.length > 140
+                                    ? `${threads.current.cdms[0].message.substring(0, 140)}...`
+                                    : threads.current.cdms[0].message}
                         </div>
                         <h2>Members</h2>
                         <div className="paper">
@@ -139,7 +139,7 @@ class ThreadInfo extends React.Component {
                 </div>
                 <style jsx>{`
                     .container {
-                        height: 100vh;
+                        height: calc(100vh - 32px);
                         background: #ddd;
                         border-left: 1px solid #e0e0e0;
                     }

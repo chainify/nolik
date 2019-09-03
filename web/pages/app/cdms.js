@@ -37,7 +37,7 @@ class Cdms extends React.Component {
                                     <Icon type="arrow-left" />
                                 </Button>
                             }
-                            title={threads.current.cdms[threads.current.cdms.length-1].subject}
+                            title={threads.current.cdms[0].subject}
                             extra={[
                                 <Button
                                     key="header_write_to_thread"
