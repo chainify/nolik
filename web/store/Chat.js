@@ -275,8 +275,8 @@ class ChatStore {
         this.seed = null;
         this.list = null;
         this.thread = null;
-        this.message = null;
-        this.subject = null;
+        this.message = '';
+        this.subject = '';
         this.lastTxId = null;
     }
 
