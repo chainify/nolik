@@ -1,9 +1,10 @@
-import Document, { Head, Main, NextScript } from 'next/document'
+import React from 'react';
+import Document, { Head, Main, NextScript } from 'next/document';
 
 class MyDocument extends Document {
   static async getInitialProps(ctx) {
-    const initialProps = await Document.getInitialProps(ctx)
-    return { ...initialProps }
+    const initialProps = await Document.getInitialProps(ctx);
+    return { ...initialProps };
   }
 
   render() {
@@ -20,11 +21,12 @@ class MyDocument extends Document {
         <style jsx>{`
           body.custom_class {
             background: #fff;
+            font-family: 'Open Sans', sans-serif;
           }
         `}</style>
       </html>
-    )
+    );
   }
 }
 
-export default MyDocument
+export default MyDocument;

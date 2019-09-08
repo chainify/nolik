@@ -2,44 +2,43 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import Router, { withRouter } from 'next/router';
 import { observer, inject } from 'mobx-react';
-import { Row, Col, Input, Button, notification, Icon, Divider } from 'antd';
+import { Row, Col } from 'antd';
 import mouseTrap from 'react-mousetrap';
 
-@inject('login', 'alice')
+import Main from './main';
+import Loading from './loading';
+
+@inject('app')
 @observer
 class Index extends React.Component {
+  componentDidMount() {
+    const { app } = this.props;
+    app.initLevelDB();
+    app.init();
+  }
 
-    constructor(props) {
-        super(props);
-    }
-
-    componentDidMount() {
-        const { login } = this.props;
-        // this.openNotification();
-    }
-
-    render() {
-        const { login, alice } = this.props;
-        return (
-            <div className="main">
-                <Row>
-                    <Col xs={{ offset: 4, span: 12}}>
-                        <h1>LANDING PAGE</h1>
-                    </Col>
-                </Row>
-                <style jsx>{`
-                    .main {
-                        height: 100vh;
-                        background: #fff;
-                    }
-                `}</style>
-            </div>
-        );
-    }
+  render() {
+    const { app } = this.props;
+    return (
+      <div>
+        <div className="main">{app.accounts ? <Main /> : <Loading />}</div>
+        <style jsx>{`
+          .main {
+            height: 100vh;
+            // background: url(static/pencils.jpg) no-repeat left top fixed;
+            // -webkit-background-size: cover;
+            // -moz-background-size: cover;
+            // -o-background-size: cover;
+            // background-size: cover;
+          }
+        `}</style>
+      </div>
+    );
+  }
 }
 
 Index.propTypes = {
-    index: PropTypes.object,
+  app: PropTypes.object,
 };
 
-export default withRouter(mouseTrap(Index))
+export default withRouter(mouseTrap(Index));
