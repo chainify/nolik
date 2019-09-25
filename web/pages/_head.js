@@ -1,10 +1,9 @@
-import React from 'react'
-import NextHead from 'next/head'
-import { string } from 'prop-types'
+import React from 'react';
+import NextHead from 'next/head';
+import { string } from 'prop-types';
 
-const defaultDescription = ''
-const defaultOGURL = ''
-const defaultOGImage = ''
+const defaultDescription = '';
+const defaultOGURL = '';
 
 const Head = props => (
   <NextHead>
@@ -25,14 +24,17 @@ const Head = props => (
       property="og:description"
       content={props.description || defaultDescription}
     />
+    <link
+      href="https://fonts.googleapis.com/css?family=Caveat:400,700|Montserrat:400,700&amp;display=swap&amp;subset=cyrillic"
+      rel="stylesheet"
+    /> 
   </NextHead>
-)
+);
 
 Head.propTypes = {
   title: string,
   description: string,
   url: string,
-  ogImage: string
-}
+};
 
-export default Head
+export default Head;

@@ -311,7 +311,7 @@ web:
   environment:
     - CDM_VERSION=${CDM_VERSION}
     - ASSET_ID=${ASSET_ID}
-    - KEEPER_SECRET=${KEEPER_SECRET}
+    - CLIENT_SECRET=${CLIENT_SECRET}
     - API_HOST=${API_HOST}
     - NETWORK=${NETWORK}
     - WS_PORT=3001
@@ -391,8 +391,8 @@ POSTGRES_PASSWORD=chainify
 REDIS_URL=redis://redis
 
 ## CLIENT
-KEEPER_PREFIX=chainify
-KEEPER_SECRET=nolik_dev_secret
+CLIENT_PREFIX=chainify
+CLIENT_SECRET=nolik_dev_secret
 ```
 
 #### Stucture of .env file
@@ -415,8 +415,8 @@ KEEPER_SECRET=nolik_dev_secret
 
 * **REDIS_URL** your Redis database connection string.
 
-* **KEEPER_PREFIX** is a prefix for encryption and decryption of your messages.
-* **KEEPER_SECRET** is a random string that is used for authentication in Waves Keeper.
+* **CLIENT_PREFIX** is a prefix for encryption and decryption of your messages.
+* **CLIENT_SECRET** is a random string that is used for authentication in Waves Keeper.
 
 After updating `.env` file changes will take effect only after restarting related containers. You can easily do that with the following commands:
 * For development mode:

@@ -6,8 +6,8 @@ if (typeof require !== 'undefined') {
 module.exports = withCss({
   cssModules: true,
   publicRuntimeConfig: {
-    KEEPER_SECRET: process.env.KEEPER_SECRET,
-    KEEPER_PREFIX: process.env.KEEPER_PREFIX,
+    CLIENT_SECRET: process.env.CLIENT_SECRET,
+    CLIENT_PREFIX: process.env.CLIENT_PREFIX,
     ASSET_ID: process.env.ASSET_ID,
     API_HOST: process.env.API_HOST,
     NETWORK: process.env.NETWORK,
@@ -19,5 +19,5 @@ module.exports = withCss({
     maxInactiveAge: 25 * 1000,
     pagesBufferLength: 2,
     websocketPort: process.env.WS_PORT || 3001,
-  }
+  },
 });

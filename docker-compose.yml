@@ -32,8 +32,8 @@ services:
     environment:
       - CDM_VERSION=${CDM_VERSION}
       - ASSET_ID=${ASSET_ID}
-      - KEEPER_SECRET=${KEEPER_SECRET}
-      - KEEPER_PREFIX=${KEEPER_PREFIX}
+      - CLIENT_SECRET=${CLIENT_SECRET}
+      - CLIENT_PREFIX=${CLIENT_PREFIX}
       - API_HOST=${API_HOST}
       - NETWORK=${NETWORK}
       - WS_PORT=${WS_PORT}
@@ -175,7 +175,7 @@ services:
       - ASSET_ID=${ASSET_ID}
       - NETWORK=${NETWORK}
       - NODE_URL=${NODE_URL}
-      - KEEPER_PREFIX=${KEEPER_PREFIX}
+      - CLIENT_PREFIX=${CLIENT_PREFIX}
       - CDM_VERSION=${CDM_VERSION}
     networks:
       internal:

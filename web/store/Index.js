@@ -1,31 +1,18 @@
 import { action, observable } from 'mobx';
 
-class AliceStore {
-    stores = null;
-    constructor(stores) {
-        this.stores = stores;
-    }
+class AppStore {
+  stores = null;
+  constructor(stores) {
+    this.stores = stores;
+    this.toggleMenu = this.toggleMenu.bind(this);
+  }
 
-    @observable fakeHeaders = [0,1,2,3,4,5,6];
-    @observable showThreadInfoModal = false;
-    @observable showNewThreadMembersModal = false;
+  @observable showMenu = false;
 
-    @observable currentStep = 0;
-    @observable searchValue = '';
-    @observable newThreadMembers = [];
-    @observable newThreadName = '';
-    @observable forwardPreviousMessages = true;
-
-    @action
-    resetNewThreadMember() {
-        const { cdms } = this.stores;
-        this.currentStep = 0;
-        this.searchValue = '';
-        this.newThreadMembers = [];
-        this.forwardPreviousMessages = true;
-        cdms.forwardedList = null;
-    }
+  @action
+  toggleMenu() {
+    this.showMenu = !this.showMenu;
+  }
 }
 
-export default AliceStore;
-
+export default AppStore;

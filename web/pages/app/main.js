@@ -1,52 +1,79 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'next/router';
-import { observer, inject } from 'mobx-react';
 import { autorun, toJS } from 'mobx';
-// import { i18n, Link as Tlink, withNamespaces } from '../i18n';
-import { Input, Button, Icon } from 'antd';
+import { observer, inject } from 'mobx-react';
+import { Row, Col } from 'antd';
 
-import Cdms from './cdms';
-import Compose from './compose';
+import ChatCompose from '../chat/compose';
+import ChatEmpty from '../chat/empty';
+import ChatBlank from '../chat/blank';
+import ChatIndex from '../chat/index';
+import Threads from '../chat/threads';
+// import Menu from './menu';
 
-@inject('compose', 'threads', 'alice')
+@inject('chat', 'threads')
 @observer
 class Main extends React.Component {
-    constructor(props) {
-        super(props);
-    }
+  constructor(props) {
+    super(props);
+    const { chat } = this.props;
 
-    render() {
-        const { compose, threads, alice } = this.props;
-        return (
-            <div>
-                <div className="container">
-                    {compose.composeMode
-                        ? <Compose />
-                        : threads.current ? <Cdms /> : <div className="empty" />}
-                </div>
-                
-                <style jsx>{`
-                    .container {
-                        height: calc(100vh - 32px);
-                        background: #fafafa;
-                    }
+    autorun(() => {
+      if (props.router.query.publicKey) {
+        chat.toRecipients = [props.router.query.publicKey];
+        chat.subject = props.router.query.subject || '';
+        chat.message = props.router.query.message || '';
+        chat.subjectPlaceholder =
+          props.router.query.subjectPlaceholder ||
+          chat.defaultSubjectPlaceholder;
+        chat.messagePlaceholder =
+          props.router.query.messagePlaceholder ||
+          chat.defaultMessagePlaceholder;
+        chat.toggleCompose();
+      }
+    });
+  }
 
-                    .empty {
-                        height: calc(100vh - 32px);
-                        width: 100%;
-                        background: url(/static/empty.svg) no-repeat center center;
-                    }
+  render() {
+    const { threads, chat } = this.props;
+    return (
+      <div className="main">
+        {chat.composeMode && <ChatCompose />}
+        {!chat.composeMode &&
+          threads.list &&
+          (threads.list.length === 0 ? (
+            <ChatBlank />
+          ) : (
+            <Row>
+              <Col xs={threads.current ? 0 : 24} sm={10} md={8}>
+                <Threads />
+              </Col>
+              <Col xs={threads.current ? 24 : 0} sm={14} md={16}>
+                {threads.current ? <ChatIndex /> : <ChatEmpty />}
+              </Col>
+            </Row>
+          ))}
+        <style jsx>{`
+          .main {
+            height: 100vh;
+          }
 
-                    
-                `}</style>
-            </div>
-        );
-    }
+          .menu {
+            border-left: 1px solid #ddd;
+            height: 100vh;
+            padding: 1em 2em;
+          }
+        `}</style>
+      </div>
+    );
+  }
 }
 
 Main.propTypes = {
-    // index: PropTypes.object,
+  chat: PropTypes.object,
+  threads: PropTypes.object,
+  router: PropTypes.object,
 };
 
-export default Main;
+export default withRouter(Main);
