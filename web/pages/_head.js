@@ -25,13 +25,9 @@ const Head = props => (
       content={props.description || defaultDescription}
     />
     <link
-      href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,700&amp;display=swap&amp;subset=cyrillic"
+      href="https://fonts.googleapis.com/css?family=Caveat:400,700|Montserrat:400,700&amp;display=swap&amp;subset=cyrillic"
       rel="stylesheet"
-    />
-    <link
-      href="https://fonts.googleapis.com/css?family=Muli&amp;display=swap"
-      rel="stylesheet"
-    />
+    /> 
   </NextHead>
 );
 

@@ -11,6 +11,21 @@ class AppStore {
   }
 
   @action
+  sleep(time) {
+    return new Promise(resolve => setTimeout(resolve, time));
+  }
+
+  @action
+  generateRandom(length) {
+    const chars =
+      '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    let result = '';
+    for (let i = 0; i < length; i += 1)
+      result += chars[Math.floor(Math.random() * chars.length)];
+    return result;
+  }
+
+  @action
   clipboardTextarea(text) {
     const id = 'clipboard-textarea-hidden-id';
     let existsTextarea = document.getElementById(id);

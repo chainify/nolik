@@ -21,7 +21,6 @@ class MyDocument extends Document {
         <style jsx>{`
           body.custom_class {
             background: #fff;
-            font-family: 'Open Sans', sans-serif;
           }
         `}</style>
       </html>

@@ -1,11 +1,8 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import Router, { withRouter } from 'next/router';
-import { observer, inject } from 'mobx-react';
+import { observer } from 'mobx-react';
 import { Icon } from 'antd';
-import mouseTrap from 'react-mousetrap';
 
-// @inject('app')
 @observer
 class Loading extends React.Component {
   render() {
@@ -13,9 +10,7 @@ class Loading extends React.Component {
       <div>
         <div className="main">
           <div className="content">
-            <h1>
-              <Icon type="loading" /> Generating ecryption keys...
-            </h1>
+            <Icon type="loading" /> Loading...
           </div>
         </div>
         <style jsx>{`
@@ -24,12 +19,13 @@ class Loading extends React.Component {
             max-width: 800px;
             margin-left: auto;
             margin-right: auto;
+            display: flex;
           }
 
           .content {
-            position: absolute;
-            right: 2em;
-            bottom: 4em;
+            width: 100%;
+            align-self: center;
+            text-align: center;
           }
 
           h1 {
@@ -46,4 +42,4 @@ class Loading extends React.Component {
 
 Loading.propTypes = {};
 
-export default withRouter(mouseTrap(Loading));
+export default Loading;

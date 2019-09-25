@@ -4,28 +4,28 @@ import { observer, inject } from 'mobx-react';
 import { Drawer } from 'antd';
 import Menu from './menu';
 
-@inject('threads', 'utils')
+@inject('app')
 @observer
 class DrawerClass extends React.Component {
   render() {
-    const { threads, utils } = this.props;
+    const { app } = this.props;
     return (
       <div className="main">
         <div className="content">
           <Drawer
             title="Nolik messenger"
-            placement="right"
+            placement="left"
             closable
-            mask={false}
-            // onClose={chat.toggleShowDrawer}
-            visible
+            onClose={app.toggleDrawer}
+            visible={app.showDrawer}
+            width={320}
           >
             <Menu />
           </Drawer>
         </div>
         <style jsx>{`
           .main {
-            height: 100vh;
+            // height: 100vh;
           }
 
           h1 {
@@ -41,8 +41,7 @@ class DrawerClass extends React.Component {
 }
 
 DrawerClass.propTypes = {
-  threads: PropTypes.object,
-  utils: PropTypes.object,
+  app: PropTypes.object,
 };
 
 export default DrawerClass;

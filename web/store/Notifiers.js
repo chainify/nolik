@@ -1,5 +1,5 @@
 import { action } from 'mobx';
-import { message } from 'antd';
+import { message, notification } from 'antd';
 
 class NotifiersStore {
   stores = null;
@@ -20,6 +20,19 @@ class NotifiersStore {
   @action
   error(e) {
     message.error(e.message || e);
+  }
+
+  @action
+  passwordHint(hint) {
+    const { app } = this.stores;
+    notification.info({
+      duration: 3,
+      message: 'Password hint',
+      description:
+        hint === ''
+          ? 'Unfortunately password hint was not provided'
+          : `Your  hint is: ${hint}`,
+    });
   }
 }
 

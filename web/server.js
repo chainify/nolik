@@ -16,18 +16,21 @@ app.prepare().then(() => {
 
   server.use(cors());
 
-  server.get('/app', (req, res) => {
-    res.redirect('/');
-  });
+  server.get('/', (req, res) => app.render(req, res, '/index'));
+  server.get('/app', (req, res) => app.render(req, res, '/app'));
 
   server.get('/app/th/:threadHash', (req, res) => {
-    res.redirect('/');
+    res.redirect('/app');
   });
 
-  server.get('/', (req, res) => app.render(req, res, '/index'));
-
   server.get('/pk/:publicKey', (req, res) =>
-    app.render(req, res, '/index', { publicKey: req.params.publicKey }),
+    app.render(req, res, '/app', {
+      publicKey: req.params.publicKey,
+      subject: req.query.s,
+      message: req.query.m,
+      subjectPlaceholder: req.query.sp,
+      messagePlaceholder: req.query.mp,
+    }),
   );
 
   server.get('*', (req, res) => handle(req, res));
