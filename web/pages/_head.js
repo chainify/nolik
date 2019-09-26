@@ -27,7 +27,7 @@ const Head = props => (
     <link
       href="https://fonts.googleapis.com/css?family=Caveat:400,700|Montserrat:400,700&amp;display=swap&amp;subset=cyrillic"
       rel="stylesheet"
-    /> 
+    />
   </NextHead>
 );
 

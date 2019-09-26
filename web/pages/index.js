@@ -4,17 +4,17 @@ import { observer, inject } from 'mobx-react';
 import { Icon } from 'antd';
 import Router from 'next/router';
 
-// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-// import { faInbox } from '@fortawesome/free-solid-svg-icons';
-
-import IndexIndex from './index/index';
-import IndexMenu from './index/menu';
-
-@inject('index', 'app')
+@inject('app')
 @observer
 class Index extends React.Component {
+  componentDidMount() {
+    const { app } = this.props;
+    app.initAccountsDB();
+    app.readAccounts();
+  }
+
   render() {
-    const { index, app } = this.props;
+    const { app } = this.props;
     return (
       <div>
         <div className="main">
@@ -25,7 +25,6 @@ class Index extends React.Component {
                 className="menuButton"
                 onClick={() => {
                   Router.push('/app');
-                  // index.toggleMenu();
                 }}
               >
                 {app.accounts.length === 0 ? (
@@ -35,12 +34,9 @@ class Index extends React.Component {
                   </div>
                 ) : (
                   <div>
-                    {/* 0 <FontAwesomeIcon icon={faInbox} /> */}
-                    {/* 0 <Icon type="inbox" /> */}
                     <Icon type="user" />
                   </div>
                 )}
-                {/* <Icon type={index.showMenu ? 'close' : 'user'} /> */}
               </button>
             ) : (
               <div className="loadingIcon">
@@ -49,7 +45,16 @@ class Index extends React.Component {
             )}
           </div>
           <div className="container">
-            {index.showMenu ? <IndexMenu /> : <IndexIndex />}
+            <div className="text">
+              <h1>
+                <b>Nolik</b> instant messenger
+              </h1>
+              <p>
+                It is the fastest way to create immutable and secure
+                conversations. What makes Nolik unique is auditable protection
+                from data leakages.
+              </p>
+            </div>
           </div>
           <div className="footer">
             <div className="footerItem">
@@ -112,7 +117,6 @@ class Index extends React.Component {
 
           .menuButton span {
             text-decoration: underline;
-            // font-size: 0.75em;
             line-height: 32px;
           }
 
@@ -122,6 +126,26 @@ class Index extends React.Component {
             margin-left: auto;
             margin-right: auto;
             display: flex;
+          }
+
+          .container .text {
+            align-self: center;
+            max-width: 600px;
+            padding: 2em;
+          }
+
+          .text h1 {
+            font-size: 2.4em;
+            color: #000;
+            margin: 0 0 1em 0;
+          }
+          .text p {
+            font-size: 1.65em;
+            line-height: 1.4em;
+          }
+          .text p a {
+            color: #fff;
+            text-decoration: none;
           }
 
           .footer {
@@ -181,7 +205,6 @@ class Index extends React.Component {
 }
 
 Index.propTypes = {
-  index: PropTypes.object,
   app: PropTypes.object,
 };
 
