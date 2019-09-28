@@ -31,7 +31,9 @@ class Threads extends React.Component {
               type="button"
               shape="circle"
               className="menuButton"
-              onClick={chat.toggleCompose}
+              onClick={() => {
+                chat.compose([]);
+              }}
             >
               <Icon type="form" />
             </button>,

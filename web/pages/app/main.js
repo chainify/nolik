@@ -6,6 +6,7 @@ import { observer, inject } from 'mobx-react';
 import { Row, Col } from 'antd';
 
 import ChatCompose from '../chat/compose';
+import ChatFocus from '../chat/focus';
 import ChatEmpty from '../chat/empty';
 import ChatBlank from '../chat/blank';
 import ChatIndex from '../chat/index';
@@ -40,7 +41,9 @@ class Main extends React.Component {
     return (
       <div className="main">
         {chat.composeMode && <ChatCompose />}
+        {!chat.composeMode && chat.focusMode && <ChatFocus />}
         {!chat.composeMode &&
+          !chat.focusMode &&
           threads.list &&
           (threads.list.length === 0 ? (
             <ChatBlank />

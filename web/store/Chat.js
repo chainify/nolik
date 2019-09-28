@@ -20,6 +20,7 @@ class ChatStore {
   @observable toRecipients = [];
   @observable ccRecipients = [];
   @observable composeMode = false;
+  @observable focusMode = false;
 
   @observable inputTo = '';
   @observable inputCc = '';
@@ -30,6 +31,17 @@ class ChatStore {
     if (this.composeMode === false) {
       this.dropCompose();
     }
+  }
+
+  @action
+  toggleFocus() {
+    this.focusMode = !this.focusMode;
+  }
+
+  @action
+  compose(toRecipients) {
+    this.toggleCompose();
+    this.toRecipients = toRecipients;
   }
 
   @action

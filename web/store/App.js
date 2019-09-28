@@ -273,7 +273,6 @@ class AppStore {
           if (password !== this.password) {
             this.getPasswordHint()
               .then(hint => {
-                console.log('hint', hint, hint === '');
                 notifiers.passwordHint(hint);
               })
               .catch(e => {

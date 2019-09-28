@@ -1,109 +1,105 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { autorun } from 'mobx';
+import Router, { withRouter } from 'next/router';
 import { observer, inject } from 'mobx-react';
+import { Input, Icon, Button } from 'antd';
+import mouseTrap from 'react-mousetrap';
+
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
-import mouseTrap from 'react-mousetrap';
-import { Input, Button, Icon } from 'antd';
+
 import ChatList from './list';
 
 const { TextArea } = Input;
 
 @inject('chat', 'cdms', 'threads')
 @observer
-class ChatIndex extends React.Component {
+class ChatNew extends React.Component {
   componentDidMount() {
     const { chat, cdms, threads } = this.props;
     this.props.bindShortcut('meta+enter', () => {
       cdms.sendCdm();
     });
 
-    this.props.bindShortcut('meta+e', () => {
+    this.props.bindShortcut('esc', () => {
       chat.toggleFocus();
     });
 
-    this.props.bindShortcut('esc', () => {
-      threads.setThread(null);
-    });
+    if (threads.current) {
+      chat.toRecipients = threads.current.members;
+    }
   }
+
   render() {
-    const { chat, cdms, threads } = this.props;
+    const { chat, cdms } = this.props;
+
     return (
-      <div>
-        <div className="main">
-          <div className="container">
-            <div className="messages">
-              <ChatList />
-            </div>
-            <div className="sideBar">
-              <button
-                type="button"
-                onClick={() => {
-                  threads.setThread(null);
-                }}
-                className="menuButton"
-              >
-                <Icon type="close" />
-              </button>
-            </div>
+      <div className="main">
+        <div className="container">
+          <div className="messages">
+            <ChatList focus />
           </div>
-          <div className="form">
-            <div className="textArea">
-              <TextArea
-                placeholder="White your message"
-                value={chat.message}
-                onChange={e => {
-                  chat.message = e.target.value;
-                }}
-                autosize={{ minRows: 2, maxRows: 12 }}
-                autoFocus
-                className="mousetrap"
-                style={{
-                  border: 'none',
-                  background: 'transparent',
-                  margin: 0,
-                  padding: '0 0px',
-                  outline: 'none',
-                  boxShadow: 'none',
-                  fontSize: '20px',
-                  lineHeight: '24px',
-                  height: '40px',
-                  resize: 'none',
-                  caretColor: '#2196f3',
-                }}
-              />
-            </div>
-            <div className="formButtons">
-              <button
-                type="button"
-                className="paperPlane"
-                disabled={chat.message.trim() === ''}
-                onClick={() => {
-                  cdms.sendCdm();
-                }}
-              >
-                <FontAwesomeIcon icon={faPaperPlane} />
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  chat.toggleFocus();
-                }}
-              >
-                <Icon type="fullscreen" />
-              </button>
-            </div>
+          <div className="sideBar">
+            <button
+              type="button"
+              onClick={() => {
+                chat.toggleFocus();
+              }}
+              className="menuButton"
+            >
+              <Icon type="close" />
+            </button>
+          </div>
+        </div>
+        <div className="form">
+          <div className="textArea">
+            <TextArea
+              placeholder="White your message"
+              value={chat.message}
+              onChange={e => {
+                chat.message = e.target.value;
+              }}
+              autosize={{ minRows: 4, maxRows: 12 }}
+              autoFocus
+              className="mousetrap"
+              style={{
+                border: 'none',
+                background: 'transparent',
+                margin: 0,
+                padding: '0 0px',
+                outline: 'none',
+                boxShadow: 'none',
+                fontSize: '20px',
+                lineHeight: '24px',
+                height: '40px',
+                resize: 'none',
+                caretColor: '#2196f3',
+              }}
+            />
+          </div>
+          <div className="formButtons">
+            <button
+              type="button"
+              className="paperPlane"
+              disabled={chat.message.trim() === ''}
+              onClick={() => {
+                cdms.sendCdm();
+              }}
+            >
+              <FontAwesomeIcon icon={faPaperPlane} />
+            </button>
           </div>
         </div>
         <style jsx>{`
           .main {
             height: 100vh;
-            display: flex;
+            display flex;
             flex-direction: column;
           }
 
           .container {
-            flex: 1;
+            height: 50vh;
             display: flex;
             overflow-y: hidden;
           }
@@ -122,10 +118,9 @@ class ChatIndex extends React.Component {
 
           .form {
             min-height: 100px;
-            padding: 1em;
+            padding: 2em 1em;
             display: flex;
             flex-direction: row;
-            border-top: 1px solid #eee;
           }
 
           .textArea {
@@ -190,11 +185,11 @@ class ChatIndex extends React.Component {
   }
 }
 
-ChatIndex.propTypes = {
+ChatNew.propTypes = {
   chat: PropTypes.object,
   cdms: PropTypes.object,
   bindShortcut: PropTypes.func,
-  threads: PropTypes.func,
+  threads: PropTypes.object,
 };
 
-export default mouseTrap(ChatIndex);
+export default mouseTrap(ChatNew);

@@ -2,9 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { observer, inject } from 'mobx-react';
 import * as moment from 'moment';
-import { Input, Row, Col } from 'antd';
 import { keyPair } from '@waves/ts-lib-crypto';
-import NoSSR from 'react-no-ssr';
 
 @inject('threads', 'app')
 @observer
@@ -22,27 +20,25 @@ class ChatList extends React.Component {
   }
 
   render() {
-    const { threads, app } = this.props;
+    const { threads, app, focus } = this.props;
     return (
-      <div className="list">
-        <NoSSR>
-          {threads.current.cdms.map(el => (
-            <div key={`el_${el.id}`} className="messageRow">
-              <div className="timestamp">
-                <p>{moment(el.timestamp * 1000).format('h:mm')}</p>
-              </div>
-              <div className="messageContainer">
-                <p className="sender">
-                  {el.logicalSender === keyPair(app.seed).publicKey
-                    ? 'You'
-                    : `${el.logicalSender.substring(0, 16)}...`}
-                </p>
-                {el.subject && <p className="subject">{el.subject}</p>}
-                <p className="message">{el.message}</p>
-              </div>
+      <div className={`list ${focus ? 'focus' : ''}`}>
+        {threads.current.cdms.map(el => (
+          <div key={`el_${el.id}`} className="messageRow">
+            <div className={`timestamp ${focus ? 'focus' : ''}`}>
+              <p>{moment(el.timestamp * 1000).format('h:mm')}</p>
             </div>
-          ))}
-        </NoSSR>
+            <div className="messageContainer">
+              <p className={`sender ${focus ? 'focus' : ''}`}>
+                {el.logicalSender === keyPair(app.seed).publicKey
+                  ? 'You'
+                  : `${el.logicalSender.substring(0, 16)}...`}
+              </p>
+              {el.subject && <p className="subject">{el.subject}</p>}
+              <p className="message">{el.message}</p>
+            </div>
+          </div>
+        ))}
         <div
           ref={el => {
             this.containerDiv = el;
@@ -56,6 +52,10 @@ class ChatList extends React.Component {
             overflow-y: auto;
             flex-direction: column;
             justify-content: flex-start;
+          }
+
+          .list.focus {
+            font-size: 16px;
           }
 
           .messageRow {
@@ -72,6 +72,10 @@ class ChatList extends React.Component {
             color: #999;
           }
 
+          .messageRow .timestamp.focus {
+            display: none;
+          }
+
           .messageRow .messageContainer {
             flex-grow: 1;
           }
@@ -80,6 +84,10 @@ class ChatList extends React.Component {
             margin: 0;
             font-size: 12px;
             color: #999;
+          }
+
+          .seder.focus {
+            display: none;
           }
 
           .subject {
@@ -102,6 +110,7 @@ class ChatList extends React.Component {
 ChatList.propTypes = {
   threads: PropTypes.object,
   app: PropTypes.object,
+  focus: PropTypes.bool,
 };
 
 export default ChatList;

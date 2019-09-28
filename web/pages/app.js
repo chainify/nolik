@@ -13,7 +13,7 @@ import Backup from './app/modals/backup';
 import Switch from './app/modals/switch';
 import Password from './app/modals/password';
 
-@inject('app', 'threads', 'heartbeat')
+@inject('app', 'threads', 'heartbeat', 'chat')
 @observer
 class App extends React.Component {
   constructor(props) {
@@ -62,7 +62,7 @@ class App extends React.Component {
   }
 
   render() {
-    const { app, threads } = this.props;
+    const { app, threads, chat } = this.props;
     return (
       <div>
         <Welcome />
@@ -72,7 +72,7 @@ class App extends React.Component {
         <Password />
         {app.seed && <Share />}
         {app.accounts && <Drawer />}
-        <div className="main">
+        <div className={`main ${chat.focusMode ? 'focused' : ''}`}>
           <div className="container">
             {app.accounts !== null && threads.list !== null ? (
               <Main />
@@ -85,6 +85,10 @@ class App extends React.Component {
           .main {
             height: 100vh;
             background: #f5f5f5;
+          }
+
+          .main.focused {
+            background: #fff;
           }
 
           .container {
@@ -104,6 +108,7 @@ App.propTypes = {
   app: PropTypes.object,
   threads: PropTypes.object,
   heartbeat: PropTypes.object,
+  chat: PropTypes.object,
 };
 
 export default App;

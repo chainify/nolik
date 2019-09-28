@@ -38,6 +38,7 @@
     "react-markdown": "^4.2.2",
     "react-mousetrap": "^0.2.0",
     "react-no-ssr": "^1.1.0",
+    "react-scroll": "^1.7.14",
     "react-share": "^3.0.1",
     "striptags": "^3.1.1",
     "typescript": "^3.6.3",

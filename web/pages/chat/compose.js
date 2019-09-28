@@ -14,11 +14,11 @@ import Tag from '../../components/Tag';
 
 const { TextArea } = Input;
 
-@inject('chat', 'cdms', 'threads')
+@inject('chat', 'cdms')
 @observer
 class ChatNew extends React.Component {
   componentDidMount() {
-    const { chat, cdms, threads } = this.props;
+    const { chat, cdms } = this.props;
     this.props.bindShortcut('meta+enter', () => {
       cdms.sendCdm();
     });
@@ -26,10 +26,6 @@ class ChatNew extends React.Component {
     this.props.bindShortcut('esc', () => {
       chat.toggleCompose();
     });
-
-    if (threads.current) {
-      chat.toRecipients = threads.current.members;
-    }
   }
 
   render() {
@@ -268,7 +264,6 @@ ChatNew.propTypes = {
   chat: PropTypes.object,
   cdms: PropTypes.object,
   bindShortcut: PropTypes.func,
-  threads: PropTypes.object,
 };
 
 export default mouseTrap(ChatNew);
