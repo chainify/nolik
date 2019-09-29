@@ -1,7 +1,9 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { observer, inject } from 'mobx-react';
-import { Button, Icon } from 'antd';
+import { Icon } from 'antd';
+import mouseTrap from 'react-mousetrap';
+
 import Skeleton from '../../components/Skeleton';
 import PageHeader from '../../components/PageHeader';
 import Thread from '../../components/Thread';
@@ -103,4 +105,4 @@ Threads.propTypes = {
   chat: PropTypes.object,
 };
 
-export default Threads;
+export default mouseTrap(Threads);

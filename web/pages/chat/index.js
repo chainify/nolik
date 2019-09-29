@@ -45,6 +45,15 @@ class ChatIndex extends React.Component {
               >
                 <Icon type="close" />
               </button>
+              <button
+                type="button"
+                className="menuButton"
+                onClick={() => {
+                  chat.toggleFocus();
+                }}
+              >
+                <Icon type="fullscreen" />
+              </button>
             </div>
           </div>
           <div className="form">
@@ -55,7 +64,7 @@ class ChatIndex extends React.Component {
                 onChange={e => {
                   chat.message = e.target.value;
                 }}
-                autosize={{ minRows: 2, maxRows: 12 }}
+                autosize={{ minRows: 1, maxRows: 12 }}
                 autoFocus
                 className="mousetrap"
                 style={{
@@ -83,14 +92,6 @@ class ChatIndex extends React.Component {
                 }}
               >
                 <FontAwesomeIcon icon={faPaperPlane} />
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  chat.toggleFocus();
-                }}
-              >
-                <Icon type="fullscreen" />
               </button>
             </div>
           </div>
@@ -121,7 +122,6 @@ class ChatIndex extends React.Component {
           }
 
           .form {
-            min-height: 100px;
             padding: 1em;
             display: flex;
             flex-direction: row;

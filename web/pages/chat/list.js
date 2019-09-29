@@ -63,13 +63,14 @@ class ChatList extends React.Component {
           }
 
           .messageRow .timestamp {
-            width: 50px;
+            min-width: 50px;
           }
 
           .messageRow .timestamp p {
             margin: 0;
             font-size: 12px;
             color: #999;
+            max-width: 600px;
           }
 
           .messageRow .timestamp.focus {
