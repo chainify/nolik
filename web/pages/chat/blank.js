@@ -28,7 +28,6 @@ class ChatBlank extends React.Component {
             extra={[
               <button
                 type="button"
-                shape="circle"
                 className="menuButton"
                 onClick={() => {
                   chat.compose([]);

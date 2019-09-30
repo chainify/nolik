@@ -13,7 +13,7 @@ const md = require('markdown-it')({
   breaks: true,
 });
 
-@inject('threads', 'app')
+@inject('threads', 'app', 'chat')
 @observer
 class ChatList extends React.Component {
   componentDidMount() {
@@ -29,7 +29,7 @@ class ChatList extends React.Component {
   }
 
   render() {
-    const { threads, app, focus } = this.props;
+    const { threads, app, focus, chat } = this.props;
     const css = `<style>${mdcss}</style>`;
     return (
       <div className={`list ${focus ? 'focus' : ''}`}>
@@ -39,11 +39,21 @@ class ChatList extends React.Component {
               <p>{moment(el.timestamp * 1000).format('h:mm')}</p>
             </div>
             <div className="messageContainer">
-              <p className={`sender ${focus ? 'focus' : ''}`}>
-                {el.logicalSender === keyPair(app.seed).publicKey
-                  ? 'You'
-                  : `${el.logicalSender.substring(0, 16)}...`}
-              </p>
+              <div className={`sender ${focus ? 'focus' : ''}`}>
+                {el.logicalSender === keyPair(app.seed).publicKey ? (
+                  'You'
+                ) : (
+                  <button
+                    type="button"
+                    className="menuButton"
+                    onClick={() => {
+                      chat.compose([el.logicalSender]);
+                    }}
+                  >
+                    {`${el.logicalSender.substring(0, 16)}...`}
+                  </button>
+                )}
+              </div>
               {el.subject && <p className="subject">{el.subject}</p>}
               <div
                 className="message markdown"
@@ -100,7 +110,26 @@ class ChatList extends React.Component {
           .sender {
             margin: 0;
             font-size: 12px;
+            line-height: 14px;
             color: #999;
+          }
+
+          .sender button {
+            border: none;
+            background: transparent;
+            padding: 0;
+            margin: 0;
+            text-align: left;
+            box-shadow: none;
+            outline: 0;
+            cursor: pointer;
+            font-size: 12x;
+            line-height: 14px;
+            color: #999;
+          }
+
+          .sender button:hover {
+            color: #42a5f5;
           }
 
           .seder.focus {
@@ -128,6 +157,7 @@ ChatList.propTypes = {
   threads: PropTypes.object,
   app: PropTypes.object,
   focus: PropTypes.bool,
+  chat: PropTypes.object,
 };
 
 export default ChatList;

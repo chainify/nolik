@@ -15,7 +15,7 @@ class ChatIndex extends React.Component {
   componentDidMount() {
     const { chat, cdms, threads } = this.props;
     this.props.bindShortcut('meta+enter', () => {
-      cdms.sendCdm();
+      cdms.sendThreadCdm();
     });
 
     this.props.bindShortcut('meta+e', () => {
@@ -88,7 +88,7 @@ class ChatIndex extends React.Component {
                 className="paperPlane"
                 disabled={chat.message.trim() === ''}
                 onClick={() => {
-                  cdms.sendCdm();
+                  cdms.sendThreadCdm();
                 }}
               >
                 <FontAwesomeIcon icon={faPaperPlane} />

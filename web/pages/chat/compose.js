@@ -20,7 +20,7 @@ class ChatNew extends React.Component {
   componentDidMount() {
     const { chat, cdms } = this.props;
     this.props.bindShortcut('meta+enter', () => {
-      cdms.sendCdm();
+      cdms.sendNewCdm();
     });
 
     this.props.bindShortcut('esc', () => {
@@ -63,7 +63,7 @@ class ChatNew extends React.Component {
             extra={[
               <Button
                 type="primary"
-                onClick={cdms.sendCdm}
+                onClick={cdms.sendNewCdm}
                 loading={cdms.sendCdmStatus === 'pending'}
                 disabled={
                   chat.subject.trim() === '' ||

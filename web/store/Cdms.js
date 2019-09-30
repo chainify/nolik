@@ -14,6 +14,8 @@ class CdmStore {
     this.stores = stores;
     this.toggleWithCrypto = this.toggleWithCrypto.bind(this);
     this.sendCdm = this.sendCdm.bind(this);
+    this.sendNewCdm = this.sendNewCdm.bind(this);
+    this.sendThreadCdm = this.sendThreadCdm.bind(this);
   }
 
   @observable withCrypto = [];
@@ -32,43 +34,29 @@ class CdmStore {
     this.withCrypto = withCrypto;
   }
 
-  // @action
-  // generateTxData(attachment) {
-  //   const { app } = this.stores;
-  //   console.log('app.seed', app.seed);
+  @action
+  sendNewCdm() {
+    this.newCdm();
+    this.sendCdm();
+  }
 
-  //   const recipient =
-  //     NETWORK === 'testnet'
-  //       ? address(keyPair(app.seed).publicKey, 'T')
-  //       : address(keyPair(app.seed).publicKey);
-  //   const txData = {
-  //     type: 4,
-  //     data: {
-  //       amount: {
-  //         assetId: ASSET_ID,
-  //         tokens: '0.00000001',
-  //       },
-  //       fee: {
-  //         assetId: ASSET_ID,
-  //         tokens: '0.001',
-  //       },
-  //       recipient,
-  //       attachment,
-  //     },
-  //   };
-  //   return txData;
-  // }
+  @action
+  sendThreadCdm() {
+    const { threads, notifiers } = this.stores;
+
+    if (!threads.current) {
+      notifiers.error('Thread is not selected');
+      return;
+    }
+
+    this.replyToThread();
+    this.sendCdm();
+  }
 
   @action
   sendCdm() {
-    const { threads, notifiers, crypto, chat } = this.stores;
+    const { notifiers, crypto, chat } = this.stores;
     this.sendCdmStatus = 'pending';
-
-    if (threads.current) {
-      this.replyToThread();
-    } else {
-      this.newCdm();
-    }
 
     if (this.cdmData === null) return;
     const cdm = crypto.compose(this.cdmData);
