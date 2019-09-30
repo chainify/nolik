@@ -52,7 +52,6 @@ class HeartbeatStore {
 
           this.dropList('cdmVersion', res.data.cdmVersion);
           this.dropList('apiVersion', res.data.apiVersion);
-          // console.log('listThreads', listThreads);
 
           if (listThreads.length > 0) {
             const lastThreadCdms = listThreads[listThreads.length - 1].cdms;

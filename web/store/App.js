@@ -21,6 +21,7 @@ class AppStore {
     this.clearSwitch = this.clearSwitch.bind(this);
     this.switchAccount = this.switchAccount.bind(this);
     this.getPasswordHint = this.getPasswordHint.bind(this);
+    this.clearWelcome = this.clearWelcome.bind(this);
   }
 
   @observable seed = null;
@@ -57,6 +58,12 @@ class AppStore {
     if (this.showPasswordModal === false) {
       this.clearPassword();
     }
+  }
+
+  @action
+  clearWelcome() {
+    this.showWelcomeModal = false;
+    this.clearPassword();
   }
 
   @action
@@ -126,16 +133,19 @@ class AppStore {
 
   @action
   init() {
-    const { threads } = this.stores;
+    const { threads, notifiers } = this.stores;
 
     this.readAccounts().then(accounts => {
       threads.init();
       if (accounts.length === 0) {
+        this.clearWelcome();
         this.toggleWelcomeModal();
       } else {
         this.togglePasswordModal();
       }
     });
+
+    notifiers.sound = new Audio('/static/assets/notification.mp3');
   }
 
   @action

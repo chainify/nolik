@@ -1,4 +1,4 @@
-import { action } from 'mobx';
+import { action, observable } from 'mobx';
 import { message, notification } from 'antd';
 
 class NotifiersStore {
@@ -6,6 +6,8 @@ class NotifiersStore {
   constructor(stores) {
     this.stores = stores;
   }
+
+  @observable sound = null;
 
   @action
   info(text) {
@@ -24,7 +26,6 @@ class NotifiersStore {
 
   @action
   passwordHint(hint) {
-    const { app } = this.stores;
     notification.info({
       duration: 3,
       message: 'Password hint',
