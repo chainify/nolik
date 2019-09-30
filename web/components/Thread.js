@@ -72,7 +72,7 @@ class Thread extends React.Component {
                 >
                   <span className="headerMessage">
                     {striptags(
-                      md.render(item.cdms[item.cdms.length - 1].message)
+                      md.render(item.cdms[item.cdms.length - 1].message),
                     )}
                   </span>
                 </Paragraph>

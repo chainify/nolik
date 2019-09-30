@@ -4,6 +4,15 @@ import { observer, inject } from 'mobx-react';
 import * as moment from 'moment';
 import { keyPair } from '@waves/ts-lib-crypto';
 
+import mdcss from '../../styles/MarkDown.css';
+
+const md = require('markdown-it')({
+  html: true,
+  linkify: true,
+  typographer: true,
+  breaks: true,
+});
+
 @inject('threads', 'app')
 @observer
 class ChatList extends React.Component {
@@ -21,6 +30,7 @@ class ChatList extends React.Component {
 
   render() {
     const { threads, app, focus } = this.props;
+    const css = `<style>${mdcss}</style>`;
     return (
       <div className={`list ${focus ? 'focus' : ''}`}>
         {threads.current.cdms.map(el => (
@@ -35,7 +45,13 @@ class ChatList extends React.Component {
                   : `${el.logicalSender.substring(0, 16)}...`}
               </p>
               {el.subject && <p className="subject">{el.subject}</p>}
-              <p className="message">{el.message}</p>
+              <div
+                className="message markdown"
+                // eslint-disable-next-line react/no-danger
+                dangerouslySetInnerHTML={{
+                  __html: `${css}${md.render(el.message)}`,
+                }}
+              />
             </div>
           </div>
         ))}
