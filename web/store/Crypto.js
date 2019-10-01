@@ -173,7 +173,7 @@ class CryptoStore {
     } catch (err) {
       decryptedMessage = '⚠️ Decoding error';
     }
-    return decryptedMessage.replace(/@[\w]{64}$/gim, '');
+    return decryptedMessage;
   }
 
   @action
@@ -186,7 +186,7 @@ class CryptoStore {
         cdm.direction === 'outgoing' ? cdm.recipient : cdm.logicalSender,
       );
       thisCdm.rawSubject = subject;
-      thisCdm.subject = subject.replace(/@[\w]{64}$/gim, '', '');
+      thisCdm.subject = subject.replace(/@[\w]{64}$/gim, '');
     }
 
     if (cdm.message) {
@@ -195,7 +195,7 @@ class CryptoStore {
         cdm.direction === 'outgoing' ? cdm.recipient : cdm.logicalSender,
       );
       thisCdm.rawMessage = message;
-      thisCdm.message = message.replace(/@[\w]{64}$/gim, '', '');
+      thisCdm.message = message.replace(/@[\w]{64}$/gim, '');
     }
 
     return thisCdm;
@@ -206,8 +206,8 @@ class CryptoStore {
     const cdms = [];
     const thisItem = item;
 
-    for (let j = 0; j < item.cdms.length; j += 1) {
-      const cdm = this.decryptCdm(item.cdms[j]);
+    for (let i = 0; i < item.cdms.length; i += 1) {
+      const cdm = this.decryptCdm(item.cdms[i]);
       cdms.push(cdm);
     }
 

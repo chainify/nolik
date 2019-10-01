@@ -33,6 +33,12 @@ app.prepare().then(() => {
     }),
   );
 
+  server.get('/explorer/cdm/:cdmId', (req, res) =>
+    app.render(req, res, '/explorer', {
+      cdmId: req.params.cdmId,
+    }),
+  );
+
   server.get('*', (req, res) => handle(req, res));
 
   server.listen(port, err => {

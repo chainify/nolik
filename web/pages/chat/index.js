@@ -125,7 +125,6 @@ class ChatIndex extends React.Component {
             padding: 1em;
             display: flex;
             flex-direction: row;
-            border-top: 1px solid #eee;
           }
 
           .textArea {

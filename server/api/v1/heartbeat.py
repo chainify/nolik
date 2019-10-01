@@ -1,4 +1,3 @@
-from sanic import Sanic
 import os
 from sanic import Blueprint
 from sanic.views import HTTPMethodView

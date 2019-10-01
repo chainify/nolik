@@ -1,5 +1,8 @@
 import os
 import psycopg2
+from sanic import Blueprint
+from sanic.views import HTTPMethodView
+from sanic.response import json
 from .errors import bad_request
 import configparser
 import base58
@@ -16,6 +19,39 @@ dsn = {
     "sslmode": config['DB']['sslmode'],
     "target_session_attrs": config['DB']['target_session_attrs']
 }
+
+cdms = Blueprint('cdms_v1', url_prefix='/cdms')
+
+class Cdms(HTTPMethodView):
+    @staticmethod
+    def get(request, cdm_id):
+        data = get_cdm(cdm_id)
+        return json(data, status=200)
+
+def get_cdm(cdm_id):
+    conn = psycopg2.connect(**dsn)
+    try:
+        with conn:
+            with conn.cursor() as cur:
+                sql = """
+                    SELECT c.recipient, c.thread_hash FROM cdms c
+                    WHERE id='{cdm_id}'
+                """.format(
+                    cdm_id=cdm_id
+                )
+                cur.execute(sql)
+                alice, thread_hash = cur.fetchone()
+                cdms = get_cdms(alice, thread_hash)
+
+                cdm_data = None
+                for cdm in cdms:
+                    if cdm['id'] == cdm_id:
+                        cdm_data = cdm
+                        break
+    except Exception as error:
+        return bad_request(error)
+    
+    return cdm_data
 
 def get_cdms(alice, thread_hash):
     conn = psycopg2.connect(**dsn)
@@ -126,3 +162,5 @@ def get_cdms(alice, thread_hash):
         return bad_request(error)
     
     return cdms
+
+cdms.add_route(Cdms.as_view(), '/<cdm_id>')

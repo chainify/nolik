@@ -8,6 +8,7 @@ import Heartbeat from './Heartbeat';
 import Crypto from './Crypto';
 import Chat from './Chat';
 import Cdms from './Cdms';
+import Explorer from './Exporer';
 
 const stores = {};
 
@@ -21,5 +22,6 @@ stores.heartbeat = new Heartbeat(stores);
 stores.crypto = new Crypto(stores);
 stores.chat = new Chat(stores);
 stores.cdms = new Cdms(stores);
+stores.explorer = new Explorer(stores);
 
 export default stores;

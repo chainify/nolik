@@ -3,8 +3,11 @@ import PropTypes from 'prop-types';
 import { observer, inject } from 'mobx-react';
 import * as moment from 'moment';
 import { keyPair } from '@waves/ts-lib-crypto';
-
+import getConfig from 'next/config';
 import mdcss from '../../styles/MarkDown.css';
+
+const { publicRuntimeConfig } = getConfig();
+const { API_HOST } = publicRuntimeConfig;
 
 const md = require('markdown-it')({
   html: true,
@@ -36,7 +39,9 @@ class ChatList extends React.Component {
         {threads.current.cdms.map(el => (
           <div key={`el_${el.id}`} className="messageRow">
             <div className={`timestamp ${focus ? 'focus' : ''}`}>
-              <p>{moment(el.timestamp * 1000).format('h:mm')}</p>
+              <a href={`${API_HOST}/explorer/cdm/${el.id}`} target="_blank">
+                {moment(el.timestamp * 1000).format('h:mm')}
+              </a>
             </div>
             <div className="messageContainer">
               <div className={`sender ${focus ? 'focus' : ''}`}>
@@ -45,7 +50,6 @@ class ChatList extends React.Component {
                 ) : (
                   <button
                     type="button"
-                    className="menuButton"
                     onClick={() => {
                       chat.compose([el.logicalSender]);
                     }}
@@ -92,11 +96,29 @@ class ChatList extends React.Component {
             min-width: 50px;
           }
 
-          .messageRow .timestamp p {
+          .messageRow .timestamp {
             margin: 0;
             font-size: 12px;
+            line-height: 14px;
             color: #999;
-            max-width: 600px;
+          }
+
+          .messageRow .timestamp button {
+            border: none;
+            background: transparent;
+            padding: 0;
+            margin: 0;
+            text-align: left;
+            box-shadow: none;
+            outline: 0;
+            cursor: pointer;
+            font-size: 12x;
+            line-height: 14px;
+            color: #999;
+          }
+
+          .messageRow .timestamp button:hover {
+            color: #42a5f5;
           }
 
           .messageRow .timestamp.focus {
