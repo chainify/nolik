@@ -36,15 +36,14 @@ class ExplorerStore {
     const publicKey =
       alice === cdm.logicalSender ? cdm.recipient : cdm.logicalSender;
 
-    const subject = crypto.decryptMessage(cdm.subject, publicKey);
-    const message = crypto.decryptMessage(cdm.message, publicKey);
-
     if (cdm.subject) {
+      const subject = crypto.decryptMessage(cdm.subject, publicKey);
       cdm.subject = subject.replace(/@[\w]{64}$/gim, '');
       cdm.rawSubject = subject;
     }
 
     if (cdm.subject) {
+      const message = crypto.decryptMessage(cdm.message, publicKey);
       cdm.message = message.replace(/@[\w]{64}$/gim, '');
       cdm.rawMessage = message;
     }

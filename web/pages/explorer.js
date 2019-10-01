@@ -144,7 +144,7 @@ class Explorer extends React.Component {
                   <b>Message:</b>&nbsp;{explorer.cdm.message}
                 </p>
                 <p>
-                  <b>Raw message:</b>&nbsp;{explorer.cdm.rawMessage}
+                  <b>Raw message:</b>&nbsp;{app.seed ? explorer.cdm.rawMessage : 'Please unlock'}
                 </p>
                 <p>
                   <b>Message SHA256 hash:</b>&nbsp;{explorer.cdm.messageHash}
