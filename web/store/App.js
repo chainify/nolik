@@ -145,7 +145,7 @@ class AppStore {
       }
     });
 
-    notifiers.sound = new Audio('/static/assets/notification.mp3');
+    // notifiers.sound = new Audio('/static/assets/notification.mp3');
   }
 
   @action

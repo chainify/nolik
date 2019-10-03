@@ -53,10 +53,14 @@ class Explorer extends React.Component {
     let rawMessageVerified = null;
     let sigVerified = null;
     if (explorer.cdm) {
-      rawSubjectVerified =
-        sha256(explorer.cdm.rawSubject) === explorer.cdm.subjectHash;
-      rawMessageVerified =
-        sha256(explorer.cdm.rawMessage) === explorer.cdm.messageHash;
+      if (explorer.cdm.rawSubject) {
+        rawSubjectVerified =
+          sha256(explorer.cdm.rawSubject) === explorer.cdm.subjectHash;
+      }
+      if (explorer.cdm.rawMessage) {
+        rawMessageVerified =
+          sha256(explorer.cdm.rawMessage) === explorer.cdm.messageHash;
+      }
       const subjectHash = explorer.cdm.subjectHash || '';
       const messageHash = explorer.cdm.messageHash || '';
       const bytes = Uint8Array.from(sha256(`${subjectHash}${messageHash}`));
@@ -121,17 +125,18 @@ class Explorer extends React.Component {
                 </p>
                 <Divider />
                 <p>
-                  <b>Subject:</b>&nbsp;{explorer.cdm.subject}
+                  <b>Subject:</b>&nbsp;{explorer.cdm.subject || '-'}
                 </p>
                 <p>
-                  <b>Raw subject:</b>&nbsp;{app.seed ? explorer.cdm.rawSubject : 'Please unlock'}
+                  <b>Raw subject:</b>&nbsp;{app.seed ? explorer.cdm.rawSubject || '-' : 'Please unlock'}
                 </p>
                 <p>
-                  <b>Subject SHA256 hash:</b>&nbsp;{explorer.cdm.subjectHash}
+                  <b>Subject SHA256 hash:</b>&nbsp;{explorer.cdm.subjectHash || '-'}
                 </p>
                 <p>
                   <b>Hash is valid:</b>&nbsp;
                   {!app.seed && 'Please unlock'}
+                  {app.seed && rawSubjectVerified === null && <span>-</span>}
                   {app.seed && rawSubjectVerified === true && (
                     <span className="valid">TRUE</span>
                   )}
@@ -141,17 +146,18 @@ class Explorer extends React.Component {
                 </p>
                 <Divider />
                 <p>
-                  <b>Message:</b>&nbsp;{explorer.cdm.message}
+                  <b>Message:</b>&nbsp;{explorer.cdm.message || '-'}
                 </p>
                 <p>
-                  <b>Raw message:</b>&nbsp;{app.seed ? explorer.cdm.rawMessage : 'Please unlock'}
+                  <b>Raw message:</b>&nbsp;{app.seed ? explorer.cdm.rawMessage || '-' : 'Please unlock'}
                 </p>
                 <p>
-                  <b>Message SHA256 hash:</b>&nbsp;{explorer.cdm.messageHash}
+                  <b>Message SHA256 hash:</b>&nbsp;{explorer.cdm.messageHash || '-'}
                 </p>
                 <p>
                   <b>Hash is valid:</b>&nbsp;
                   {!app.seed && 'Please unlock'}
+                  {app.seed && rawMessageVerified === null && <span>-</span>}
                   {app.seed && rawMessageVerified === true && (
                     <span className="valid">TRUE</span>
                   )}

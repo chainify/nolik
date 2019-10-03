@@ -42,7 +42,7 @@ class ExplorerStore {
       cdm.rawSubject = subject;
     }
 
-    if (cdm.subject) {
+    if (cdm.message) {
       const message = crypto.decryptMessage(cdm.message, publicKey);
       cdm.message = message.replace(/@[\w]{64}$/gim, '');
       cdm.rawMessage = message;
