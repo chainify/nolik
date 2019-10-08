@@ -64,6 +64,7 @@ class Threads extends React.Component {
           .list {
             height: calc(100vh - 52px);
             border-top: 1px solid #eee;
+            overflow-y: auto;
           }
 
           .menuButton {
