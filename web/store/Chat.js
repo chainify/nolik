@@ -7,6 +7,10 @@ class ChatStore {
   constructor(stores) {
     this.stores = stores;
     this.toggleCompose = this.toggleCompose.bind(this);
+    this.toggleContacts = this.toggleContacts.bind(this);
+    this.toggleShowMembers = this.toggleShowMembers.bind(this);
+    this.toggleAddMemberMode = this.toggleAddMemberMode.bind(this);
+    this.toggleNewMember = this.toggleNewMember.bind(this);
     this.dropCompose = this.dropCompose.bind(this);
     this.writetoNolik = this.writetoNolik.bind(this);
   }
@@ -21,9 +25,17 @@ class ChatStore {
   @observable ccRecipients = [];
   @observable composeMode = false;
   @observable focusMode = false;
+  @observable contactsMode = false;
+  @observable showMembersDrawer = false
+  @observable addMemberMode = false;
+
+  @observable newMembers = [];
 
   @observable inputTo = '';
   @observable inputCc = '';
+
+  @observable newMembers = [];
+  @observable membersSearch = '';
 
   @action
   toggleCompose() {
@@ -36,6 +48,40 @@ class ChatStore {
   @action
   toggleFocus() {
     this.focusMode = !this.focusMode;
+  }
+
+  @action
+  toggleContacts() {
+    const { app } = this.stores;
+    this.contactsMode = !this.contactsMode;
+    app.showDrawer = false;
+  }
+
+  @action
+  toggleShowMembers() {
+    this.showMembersDrawer = !this.showMembersDrawer;
+  }
+
+  @action
+  toggleAddMemberMode() {
+    this.addMemberMode = !this.addMemberMode;
+  }
+
+  @action
+  toggleNewMember(publicKey) {
+    const index = this.newMembers.indexOf(publicKey);
+    const { newMembers } = this;
+    if (index < 0) {
+      this.newMembers = newMembers.concat([publicKey]);
+    } else {
+      newMembers.splice(index, 1);
+    }
+  }
+
+  @action
+  clearNewMembers() {
+    this.newMembers = [];
+    this.membersSearch = '';
   }
 
   @action

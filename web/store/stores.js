@@ -9,6 +9,7 @@ import Crypto from './Crypto';
 import Chat from './Chat';
 import Cdms from './Cdms';
 import Explorer from './Exporer';
+import Contacts from './Contacts';
 
 const stores = {};
 
@@ -23,5 +24,6 @@ stores.crypto = new Crypto(stores);
 stores.chat = new Chat(stores);
 stores.cdms = new Cdms(stores);
 stores.explorer = new Explorer(stores);
+stores.contacts = new Contacts(stores);
 
 export default stores;

@@ -13,18 +13,20 @@ import Backup from './app/modals/backup';
 import Switch from './app/modals/switch';
 import Password from './app/modals/password';
 
-@inject('app', 'threads', 'heartbeat', 'chat')
+@inject('app', 'threads', 'heartbeat', 'chat', 'contacts')
 @observer
 class App extends React.Component {
   constructor(props) {
     super(props);
-    const { app, threads, heartbeat } = this.props;
+    const { app, threads, heartbeat, contacts } = this.props;
 
     autorun(() => {
       if (app.seed) {
         app.initSettingsDB();
         threads.initLevelDB();
+        contacts.initLevelDB();
         threads.readList();
+        contacts.readList();
       }
     });
 
@@ -37,6 +39,11 @@ class App extends React.Component {
         heartbeat.push();
       }
     });
+
+    // autorun(() => {
+    //   if (threads.list && threads.list.length > 0) {
+    //   }
+    // });
 
     this.heartbeatPeriodic = autorun(() => {
       if (
@@ -109,6 +116,7 @@ App.propTypes = {
   threads: PropTypes.object,
   heartbeat: PropTypes.object,
   chat: PropTypes.object,
+  contacts: PropTypes.object,
 };
 
 export default App;

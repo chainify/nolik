@@ -83,6 +83,9 @@ class MenuClass extends React.Component {
           >
             <Icon type="import" /> Import account (soon)
           </Menu.Item>
+          <Menu.Item key="contacts" onClick={chat.toggleContacts}>
+            <Icon type="contacts" /> Contacts
+          </Menu.Item>
           <Menu.Item key="copyChatUrl" onClick={menu.toggleShareModal}>
             <Icon type="share-alt" /> Share your address
           </Menu.Item>

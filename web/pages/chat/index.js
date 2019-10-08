@@ -54,6 +54,15 @@ class ChatIndex extends React.Component {
               >
                 <Icon type="fullscreen" />
               </button>
+              {/* <button
+                type="button"
+                className="menuButton"
+                onClick={() => {
+                  chat.toggleShowMembers();
+                }}
+              >
+                <Icon type="usergroup-add" />
+              </button> */}
             </div>
           </div>
           <div className="form">
@@ -182,6 +191,10 @@ class ChatIndex extends React.Component {
             font-size: 20px;
             line-height: 32px;
             text-align: center;
+          }
+
+          .menuButton:hover {
+            color: #999;
           }
         `}</style>
       </div>

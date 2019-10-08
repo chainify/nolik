@@ -38,6 +38,7 @@ class ThreadsStore {
   setThread(item) {
     const { chat } = this.stores;
     this.current = item;
+    chat.showMembersDrawer = false;
     chat.clearChat();
   }
 
@@ -59,62 +60,47 @@ class ThreadsStore {
 
   @action
   readList() {
-    const { crypto } = this.stores;
+    const { crypto, contacts } = this.stores;
     const list = [];
     this.listDB
       .createReadStream()
       .on('data', data => {
         const v = stringFromUTF8Array(data.value);
-
         const item = JSON.parse(v);
         const listItem = crypto.decrypThread(item);
         list.push(listItem);
+
+        for (let i = 0; i < listItem.members.length; i += 1) {
+          const publicKey = listItem.members[i];
+          contacts
+            .getContact(publicKey)
+            .then(res => {
+              if (res === null) {
+                const name = contacts.generateName();
+                contacts.saveContact(publicKey, name);
+                contacts.readList();
+              }
+            })
+            .catch(e => {
+              console.log('err', e);
+            });
+        }
       })
       .on('end', () => {
+        if (this.current) {
+          const current = list.filter(
+            el => el.threadHash === this.current.threadHash,
+          )[0];
+          this.current = current;
+        }
+
         this.list = list.reverse();
       });
   }
 
   @action
-  updateList(list) {
-    const { crypto } = this.stores;
-    const hashes = this.list ? this.list.map(el => el.threadHash) : [];
-    const indexesToDelete = [];
-
-    const decLIst = [];
-    let current = null;
-    for (let i = 0; i < list.length; i += 1) {
-      const item = list[i];
-      const index = hashes.indexOf(item.threadHash);
-
-      if (index > -1) {
-        indexesToDelete.push(index);
-      }
-
-      if (this.current && this.current.threadHash === item.threadHash) {
-        current = item;
-      }
-
-      decLIst.push(crypto.decrypThread(item));
-    }
-
-    const sorted = indexesToDelete.sort((a, b) => b - a);
-    if (this.list) {
-      for (let i = 0; i < sorted.length; i += 1) {
-        this.list.splice(sorted[i], 1);
-      }
-      const newList = decLIst.reverse().concat(this.list);
-      this.list = newList;
-    }
-
-    if (current) {
-      this.current = current;
-      // this.setThread(current);
-    }
-  }
-
-  @action
   saveList(list) {
+    const { notifiers } = this.stores;
     const records = [];
     this.listDB
       .createReadStream()
@@ -151,8 +137,10 @@ class ThreadsStore {
 
         // eslint-disable-next-line consistent-return
         this.listDB.batch(operations, err => {
-          if (err) return console.log('Ooops!', err);
-          this.updateList(list);
+          if (err) {
+            notifiers.error(err);
+          }
+          this.readList();
         });
       });
   }

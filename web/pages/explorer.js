@@ -5,6 +5,7 @@ import { autorun } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { Divider, Button } from 'antd';
 import { sha256 } from 'js-sha256';
+import * as moment from 'moment';
 import getConfig from 'next/config';
 import LogIn from './app/modals/login';
 import Switch from './app/modals/switch';
@@ -52,6 +53,7 @@ class Explorer extends React.Component {
     let rawSubjectVerified = null;
     let rawMessageVerified = null;
     let sigVerified = null;
+    let signedText = '';
     if (explorer.cdm) {
       if (explorer.cdm.rawSubject) {
         rawSubjectVerified =
@@ -63,7 +65,8 @@ class Explorer extends React.Component {
       }
       const subjectHash = explorer.cdm.subjectHash || '';
       const messageHash = explorer.cdm.messageHash || '';
-      const bytes = Uint8Array.from(sha256(`${subjectHash}${messageHash}`));
+      signedText = sha256(`${subjectHash}${messageHash}`);
+      const bytes = Uint8Array.from(signedText);
       const verified = verifySignature(
         explorer.cdm.logicalSender,
         bytes,
@@ -123,6 +126,11 @@ class Explorer extends React.Component {
                     &nbsp;{explorer.cdm.ipfsHash}
                   </a>
                 </p>
+                <p>
+                  <b>Timestamp:</b>&nbsp;
+                  {moment(explorer.cdm.timestamp * 1000).format('LLLL')}&nbsp;[
+                  {moment(explorer.cdm.timestamp * 1000).fromNow()}]
+                </p>
                 <Divider />
                 <p>
                   <b>Subject:</b>&nbsp;{explorer.cdm.subject || '-'}
@@ -174,6 +182,9 @@ class Explorer extends React.Component {
                 </p>
                 <p>
                   <b>Signed by:</b>&nbsp;{explorer.cdm.logicalSender}
+                </p>
+                <p>
+                  <b>Signed text:</b>&nbsp;{signedText}
                 </p>
                 <p>
                   <b>Signature:</b>&nbsp;{explorer.cdm.signature}

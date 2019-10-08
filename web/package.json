@@ -1,5 +1,5 @@
 {
-  "name": "create-next-example-app",
+  "name": "nolik-instant-messenger",
   "scripts": {
     "dev": "node server.js",
     "build": "next build",
@@ -43,6 +43,7 @@
     "react-share": "^3.0.1",
     "striptags": "^3.1.1",
     "typescript": "^3.6.3",
+    "unique-names-generator": "^3.0.0",
     "waves-api": "^0.24.2"
   },
   "devDependencies": {

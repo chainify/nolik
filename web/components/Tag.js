@@ -5,7 +5,7 @@ import { Button, Icon } from 'antd';
 
 @inject('chat')
 @observer
-class PageHeader extends React.Component {
+class Tag extends React.Component {
   render() {
     const { chat, type, children, index } = this.props;
     return (
@@ -90,11 +90,11 @@ class PageHeader extends React.Component {
   }
 }
 
-PageHeader.propTypes = {
+Tag.propTypes = {
   chat: PropTypes.object,
   children: PropTypes.string,
   type: PropTypes.string,
   index: PropTypes.number,
 };
 
-export default PageHeader;
+export default Tag;
