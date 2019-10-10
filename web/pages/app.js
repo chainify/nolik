@@ -25,8 +25,19 @@ class App extends React.Component {
         app.initSettingsDB();
         threads.initLevelDB();
         contacts.initLevelDB();
-        threads.readList();
         contacts.readList();
+        contacts.readPinned();
+      }
+    });
+
+    autorun(() => {
+      if (
+        app.seed &&
+        threads.list === null &&
+        contacts.list !== null &&
+        contacts.pinned !== null
+      ) {
+        threads.readList();
       }
     });
 

@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { observer, inject } from 'mobx-react';
-import { Icon, Typography, Row, Col } from 'antd';
+import { Icon, Typography, Row, Col, Button, Divider } from 'antd';
 
 import PageHeader from '../../components/PageHeader';
 import NewContactModal from '../app/modals/newContact';
@@ -42,13 +42,27 @@ class Contacts extends React.Component {
             ]}
           />
           <div className="container">
-            {contacts.list &&
-              contacts.list.map(el => (
+            {contacts.pinned && contacts.pinned.length === 0 && (
+              <p>No pinned contacts</p>
+            )}
+            {contacts.pinned &&
+              contacts.pinned.map(el => (
                 <Row key={`contact_${el.publicKey}`}>
-                  <Col xs={24} md={16}>
-                    <div className="publicKey">{el.publicKey}</div>
+                  <Col xs={4} md={2}>
+                    <div className="pin">
+                      <Button
+                        shape="circle"
+                        icon="pushpin"
+                        type="primary"
+                        onClick={() => {
+                          contacts.saveContact(el.publicKey, el.contact);
+                          contacts.readList();
+                          contacts.readPinned();
+                        }}
+                      />
+                    </div>
                   </Col>
-                  <Col xs={24} md={8}>
+                  <Col xs={20} md={8}>
                     <div className="contactName">
                       <Paragraph
                         editable={{
@@ -61,6 +75,49 @@ class Contacts extends React.Component {
                         {el.contact}
                       </Paragraph>
                     </div>
+                  </Col>
+                  <Col xs={24} md={14}>
+                    <div className="publicKey">{el.publicKey}</div>
+                  </Col>
+                </Row>
+              ))}
+            <Divider />
+            {contacts.list && contacts.list.length === 0 && (
+              <p>All contacts has been pinned</p>
+            )}
+            {contacts.list &&
+              contacts.list.map(el => (
+                <Row key={`contact_${el.publicKey}`}>
+                  <Col xs={4} md={2}>
+                    <div className="pin">
+                      <Button
+                        shape="circle"
+                        icon="pushpin"
+                        type="default"
+                        onClick={() => {
+                          contacts.pinContact(el.publicKey, el.contact);
+                          contacts.readList();
+                          contacts.readPinned();
+                        }}
+                      />
+                    </div>
+                  </Col>
+                  <Col xs={20} md={8}>
+                    <div className="contactName">
+                      <Paragraph
+                        editable={{
+                          onChange: value => {
+                            contacts.saveContact(el.publicKey, value);
+                            contacts.readList();
+                          },
+                        }}
+                      >
+                        {el.contact}
+                      </Paragraph>
+                    </div>
+                  </Col>
+                  <Col xs={24} md={14}>
+                    <div className="publicKey">{el.publicKey}</div>
                   </Col>
                 </Row>
               ))}
@@ -75,6 +132,7 @@ class Contacts extends React.Component {
             height: calc(100vh - 52px);
             width: 100%;
             padding: 4em;
+            overflow-y: auto;
           }
 
           .menuButton {
@@ -102,10 +160,20 @@ class Contacts extends React.Component {
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
+            line-height: 32px;
+            font-size: 14px;
+          }
+
+          .pin {
+            cursor: pointer;
+            font-size: 20px;
+            line-height: 32px;
           }
 
           .contactName {
             padding-bottom: 1em;
+            line-height: 32px;
+            font-size: 14px;
           }
         `}</style>
       </div>

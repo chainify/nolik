@@ -96,8 +96,23 @@ class Main extends React.Component {
                         key="2"
                       >
                         <div className="contacts">
-                          {contacts.list &&
-                            contacts.list.map(el => (
+                          {contacts.pinned && contacts.pinned.length === 0 && (
+                            <div>
+                              <p>
+                                No pinned contacts.&nbsp;
+                                <Button
+                                  type="link"
+                                  onClick={() => {
+                                    chat.toggleContacts();
+                                  }}
+                                >
+                                  Add some
+                                </Button>
+                              </p>
+                            </div>
+                          )}
+                          {contacts.pinned &&
+                            contacts.pinned.map(el => (
                               <div
                                 key={`contact_${el.publicKey}`}
                                 className="contactRow"
@@ -119,6 +134,12 @@ class Main extends React.Component {
                                         ? 'default'
                                         : 'primary'
                                     }
+                                    disabled={
+                                      threads.current &&
+                                      threads.current.members.indexOf(
+                                        el.publicKey,
+                                      ) > -1
+                                    }
                                     onClick={() => {
                                       chat.toggleNewMember(el.publicKey);
                                     }}
@@ -127,6 +148,16 @@ class Main extends React.Component {
                               </div>
                             ))}
                         </div>
+                        <Divider />
+                        <Button
+                          type="primary"
+                          disabled={chat.newMembers.length === 0}
+                          onClick={() => {
+                            console.log('sd');
+                          }}
+                        >
+                          Add members
+                        </Button>
                       </TabPane>
                       <TabPane tab="Members" key="1">
                         <div className="members">
@@ -157,6 +188,11 @@ class Main extends React.Component {
             border-left: 1px solid #ddd;
             height: 100vh;
             padding: 1em 2em;
+          }
+
+          .contacts {
+            height: 210px;
+            overflow-y: auto;
           }
 
           .members {

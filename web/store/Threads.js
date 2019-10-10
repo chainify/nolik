@@ -72,18 +72,15 @@ class ThreadsStore {
 
         for (let i = 0; i < listItem.members.length; i += 1) {
           const publicKey = listItem.members[i];
-          contacts
-            .getContact(publicKey)
-            .then(res => {
-              if (res === null) {
-                const name = contacts.generateName();
-                contacts.saveContact(publicKey, name);
-                contacts.readList();
-              }
-            })
-            .catch(e => {
-              console.log('err', e);
-            });
+          const contactsList = contacts.list;
+          const contactsPinned = contacts.pinned;
+          const allContacts = contactsList.concat(contactsPinned);
+          const matches = allContacts.filter(el => el.publicKey === publicKey);
+          if (matches.length === 0) {
+            const name = contacts.generateName();
+            contacts.saveContact(publicKey, name);
+            contacts.readList();
+          }
         }
       })
       .on('end', () => {

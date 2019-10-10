@@ -30,7 +30,9 @@ class ChatList extends React.Component {
           if (currentDaystamp !== daystamp) {
             daystamp = currentDaystamp;
             return [
-              <Divider>{moment(el.timestamp * 1000).format('LL')}</Divider>,
+              <Divider key={`divider_${el.timestamp}`}>
+                {moment(el.timestamp * 1000).format('LL')}
+              </Divider>,
               <Message item={el} focus={focus} key={`message_${el.id}`} />,
             ];
           }

@@ -29,8 +29,6 @@ class ChatStore {
   @observable showMembersDrawer = false
   @observable addMemberMode = false;
 
-  @observable newMembers = [];
-
   @observable inputTo = '';
   @observable inputCc = '';
 

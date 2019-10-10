@@ -25,7 +25,9 @@ class ExplorerStore {
   }
 
   @observable list = null;
+  @observable pinned = null;
   @observable contactsDB = null;
+  @observable pinnedDB = null;
 
   @observable showNewContactModal = false;
   @observable newPublicKey = '';
@@ -42,6 +44,9 @@ class ExplorerStore {
     this.contactsDB = levelup(
       leveljs(`/root/.leveldb/contacts_${keyPair(app.seed).publicKey}`),
     );
+    this.pinnedDB = levelup(
+      leveljs(`/root/.leveldb/pinned_${keyPair(app.seed).publicKey}`),
+    );
   }
 
   @action
@@ -54,6 +59,26 @@ class ExplorerStore {
   clearNewContact() {
     this.newContactName = '';
     this.newPublicKey = '';
+  }
+
+  @action
+  readPinned() {
+    const promises = [];
+    this.pinnedDB
+      .createReadStream()
+      .on('data', data => {
+        const k = stringFromUTF8Array(data.key);
+        const p = this.getPinned(k).then(res => ({
+          publicKey: k,
+          contact: res,
+        }));
+        promises.push(p);
+      })
+      .on('end', () => {
+        Promise.all(promises).then(list => {
+          this.pinned = list.reverse();
+        });
+      });
   }
 
   @action
@@ -86,7 +111,22 @@ class ExplorerStore {
     }
 
     const ciphertext = CryptoJS.AES.encrypt(contact, CLIENT_SECRET).toString();
+    this.pinnedDB.del(publicKey);
     this.contactsDB.put(publicKey, ciphertext);
+  }
+
+  @action
+  pinContact(publicKey, contact) {
+    const { notifiers } = this.stores;
+    const isValidPublicKey = verifyPublicKey(publicKey);
+    if (!isValidPublicKey) {
+      notifiers.error('Public key is not valid');
+      return false;
+    }
+
+    const ciphertext = CryptoJS.AES.encrypt(contact, CLIENT_SECRET).toString();
+    this.contactsDB.del(publicKey);
+    this.pinnedDB.put(publicKey, ciphertext);
   }
 
   @action
@@ -103,9 +143,10 @@ class ExplorerStore {
       return false;
     }
 
-    this.saveContact(this.newPublicKey, this.newContactName);
+    this.pinContact(this.newPublicKey, this.newContactName);
     this.toggleNewContactModal();
     this.readList();
+    this.readPinned();
     notifiers.success('Contact saved');
   }
 
@@ -137,11 +178,7 @@ class ExplorerStore {
       this.contactsDB
         .get(publicKey)
         .then(ciphertext => {
-          const contact = CryptoJS.AES.decrypt(
-            stringFromUTF8Array(ciphertext),
-            CLIENT_SECRET,
-          ).toString(CryptoJS.enc.Utf8);
-          // console.log('contact', contact);
+          const contact = this.decryptContact(ciphertext);
           resolve(contact);
         })
         .catch(e => {
@@ -152,6 +189,34 @@ class ExplorerStore {
           }
         });
     });
+  }
+
+  @action
+  getPinned(publicKey) {
+    return new Promise((resolve, reject) => {
+      this.pinnedDB
+        .get(publicKey)
+        .then(ciphertext => {
+          const contact = this.decryptContact(ciphertext);
+          resolve(contact);
+        })
+        .catch(e => {
+          if (e.name === 'NotFoundError') {
+            resolve(null);
+          } else {
+            reject(e);
+          }
+        });
+    });
+  }
+
+  @action
+  decryptContact(ciphertext) {
+    const contact = CryptoJS.AES.decrypt(
+      stringFromUTF8Array(ciphertext),
+      CLIENT_SECRET,
+    ).toString(CryptoJS.enc.Utf8);
+    return contact;
   }
 }
 
