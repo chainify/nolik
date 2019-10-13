@@ -13,6 +13,7 @@ class ChatStore {
     this.toggleNewMember = this.toggleNewMember.bind(this);
     this.dropCompose = this.dropCompose.bind(this);
     this.writetoNolik = this.writetoNolik.bind(this);
+    this.clearNewMembers = this.clearNewMembers.bind(this);
   }
 
   @observable subject = '';
@@ -78,6 +79,7 @@ class ChatStore {
 
   @action
   clearNewMembers() {
+    this.showMembersDrawer = false;
     this.newMembers = [];
     this.membersSearch = '';
   }

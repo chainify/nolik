@@ -10,7 +10,7 @@ import {
 
 import getConfig from 'next/config';
 const { publicRuntimeConfig } = getConfig();
-const { CDM_VERSION, CLIENT_PREFIX } = publicRuntimeConfig;
+const { CDM_VERSION, CLIENT_PREFIX, NETWORK } = publicRuntimeConfig;
 
 class CryptoStore {
   stores = null;
@@ -26,7 +26,10 @@ class CryptoStore {
     cdm += '\r\n<cdm>';
     cdm += `\r\n<version>${CDM_VERSION}</version>`;
     cdm += '\r\n<blockchain>Waves</blockchain>';
-    cdm += '\r\n<network>Mainnet</network>';
+    cdm += `\r\n<network>${NETWORK.substring(
+      0,
+      1,
+    ).toUpperCase()}${NETWORK.substring(1).toLowerCase()}</network>`;
     cdm += '\r\n<messages>';
     cdm += messages;
     cdm += '\r\n</messages>';
@@ -113,7 +116,7 @@ class CryptoStore {
 
       msg += '\r\n<message>';
       msg += block;
-      if (data.regarding) {
+      if (data.regarding && (reSubjectHash || reMessageHash)) {
         msg += `\r\n<regarding>`;
         if (reSubjectHash) {
           msg += `\r\n<subjecthash>${reSubjectHash}</subjecthash>`;
@@ -123,7 +126,7 @@ class CryptoStore {
         }
         msg += `\r\n</regarding>>`;
       }
-      if (data.forwarded) {
+      if (data.forwarded && (fwdSubjectHash || fwdMessageHash)) {
         msg += `\r\n<forwarded>`;
         if (fwdSubjectHash) {
           msg += `\r\n<subjecthash>${fwdSubjectHash}</subjecthash>`;
@@ -133,14 +136,14 @@ class CryptoStore {
         }
         msg += `\r\n</forwarded>`;
       }
-      if (data.from) {
+      if (data.from && senderPublicKey && data.recipients[i].signature) {
         msg += `\r\n<from>`;
         msg += `\r\n<sender>`;
         if (senderPublicKey) {
           msg += `\r\n<publickey>${senderPublicKey}</publickey>`;
         }
-        if (senderSignature) {
-          msg += `\r\n<signature>${senderSignature}</signature>`;
+        if (data.recipients[i].signature) {
+          msg += `\r\n<signature>${data.recipients[i].signature}</signature>`;
         }
         msg += `\r\n</sender>`;
         msg += `\r\n</from>`;

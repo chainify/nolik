@@ -54,7 +54,7 @@ class ChatIndex extends React.Component {
               >
                 <Icon type="fullscreen" />
               </button>
-              {/* <button
+              <button
                 type="button"
                 className="menuButton"
                 onClick={() => {
@@ -62,7 +62,7 @@ class ChatIndex extends React.Component {
                 }}
               >
                 <Icon type="usergroup-add" />
-              </button> */}
+              </button>
             </div>
           </div>
           <div className="form">

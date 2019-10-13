@@ -17,12 +17,13 @@ const md = require('markdown-it')({
   breaks: true,
 });
 
-@inject('chat', 'app')
+@inject('chat', 'app', 'contacts')
 @observer
 class Message extends React.Component {
   render() {
-    const { item, focus, chat, app } = this.props;
+    const { item, focus, chat, app, contacts } = this.props;
     const css = `<style>${mdcss}</style>`;
+    const allContacts = contacts.list.concat(contacts.pinned);
     return (
       <div className="messageRow">
         <div className={`timestamp ${focus ? 'focus' : ''}`}>
@@ -42,7 +43,11 @@ class Message extends React.Component {
                     chat.compose([item.logicalSender]);
                   }}
                 >
-                  {`${item.logicalSender.substring(0, 16)}...`}
+                  {
+                    allContacts.filter(
+                      el => el.publicKey === item.logicalSender,
+                    )[0].contact
+                  }
                 </button>
               )}
             </div>
@@ -150,6 +155,7 @@ Message.propTypes = {
   focus: PropTypes.bool,
   chat: PropTypes.object,
   app: PropTypes.object,
+  contacts: PropTypes.object,
 };
 
 export default Message;

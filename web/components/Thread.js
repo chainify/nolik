@@ -48,28 +48,13 @@ class Thread extends React.Component {
               <div className="users">
                 {item.members.length > 1 && <Icon type="team" />}
               </div>
-              <div className="uersCount">
-                {item.members.length > 1 && item.members.length + 1}
-              </div>
               <div>
                 {item.cdms[0].subject && (
                   <Paragraph ellipsis style={paragrapStyle}>
                     <span className="headerTitle">{item.cdms[0].subject}</span>
                   </Paragraph>
                 )}
-                {!item.cdms[0].subject && (
-                  <Paragraph ellipsis style={paragrapStyle}>
-                    <span className="headerTitle">
-                      {item.cdms[item.cdms.length - 1].message}
-                    </span>
-                  </Paragraph>
-                )}
-                <Paragraph
-                  ellipsis={{
-                    rows: item.cdms[item.cdms.length - 1].subject ? 1 : 2,
-                  }}
-                  style={paragrapStyle}
-                >
+                <Paragraph ellipsis style={paragrapStyle}>
                   <span className="headerMessage">
                     {striptags(
                       md.render(item.cdms[item.cdms.length - 1].message),
@@ -101,7 +86,7 @@ class Thread extends React.Component {
             width: 100%;
             text-align: left;
             box-shadow: none;
-            outline:0;
+            outline: 0;
             cursor: pointer;
             color: #999;
             overflow-x: hidden;
@@ -134,37 +119,17 @@ class Thread extends React.Component {
 
           .users {
             position: absolute;
-            top: 4px;
-            left: 14px;
+            top: 0px;
+            left: 16px;
           }
-
-          .uersCount {
-            position: absolute;
-            top: 18px;
-            left: 18px;
-          }
-
-          .arrow {
-            font-size: 12px;
-            margin-right: 4px;
-          }
-
-          .arrow.incoming {
-            color: #ef9a9a;
-          }
-
-          .arrow.outgoing {
-            color: #66bb6a;
-          }
-
           .headerTitle {
             color: #333;
           }
 
           .headerMessage {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+            // white-space: nowrap;
+            // overflow: hidden;
+            // text-overflow: ellipsis;
           }
 
           .badgeDiv {

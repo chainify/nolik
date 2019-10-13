@@ -4,6 +4,7 @@ import { withRouter } from 'next/router';
 import { autorun, toJS } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { Row, Col, Drawer, Divider, Icon, Button, Tabs } from 'antd';
+import { keyPair } from '@waves/ts-lib-crypto';
 
 import ChatCompose from '../chat/compose';
 import ChatFocus from '../chat/focus';
@@ -15,7 +16,7 @@ import Contacts from '../chat/contacts';
 // import Menu from './menu';
 const { TabPane } = Tabs;
 
-@inject('chat', 'threads', 'contacts')
+@inject('chat', 'threads', 'contacts', 'cdms', 'app')
 @observer
 class Main extends React.Component {
   constructor(props) {
@@ -39,7 +40,7 @@ class Main extends React.Component {
   }
 
   render() {
-    const { threads, chat, contacts } = this.props;
+    const { threads, chat, contacts, cdms, app } = this.props;
     return (
       <div className="main">
         {chat.composeMode && <ChatCompose />}
@@ -67,7 +68,7 @@ class Main extends React.Component {
                     // title="Thread members"
                     placement="top"
                     closable={false}
-                    onClose={chat.toggleShowMembers}
+                    onClose={chat.clearNewMembers}
                     visible={chat.showMembersDrawer}
                     getContainer={false}
                     style={{
@@ -135,10 +136,11 @@ class Main extends React.Component {
                                         : 'primary'
                                     }
                                     disabled={
-                                      threads.current &&
-                                      threads.current.members.indexOf(
-                                        el.publicKey,
-                                      ) > -1
+                                      (threads.current &&
+                                        threads.current.members.indexOf(
+                                          el.publicKey,
+                                        ) > -1) ||
+                                      cdms.sendCdmStatus === 'pending'
                                     }
                                     onClick={() => {
                                       chat.toggleNewMember(el.publicKey);
@@ -153,8 +155,9 @@ class Main extends React.Component {
                           type="primary"
                           disabled={chat.newMembers.length === 0}
                           onClick={() => {
-                            console.log('sd');
+                            cdms.sendAddMembersCdm();
                           }}
+                          loading={cdms.sendCdmStatus === 'pending'}
                         >
                           Add members
                         </Button>
@@ -162,7 +165,7 @@ class Main extends React.Component {
                       <TabPane tab="Members" key="1">
                         <div className="members">
                           <p className="member" key="member_you">
-                            1. You
+                            1. You {`<${keyPair(app.seed).publicKey}>`}
                           </p>
                           {threads.current &&
                             threads.current.members.map((el, index) => (
@@ -238,6 +241,8 @@ Main.propTypes = {
   threads: PropTypes.object,
   router: PropTypes.object,
   contacts: PropTypes.object,
+  cdms: PropTypes.object,
+  app: PropTypes.object,
 };
 
 export default withRouter(Main);

@@ -16,6 +16,7 @@ class CdmStore {
     this.sendCdm = this.sendCdm.bind(this);
     this.sendNewCdm = this.sendNewCdm.bind(this);
     this.sendThreadCdm = this.sendThreadCdm.bind(this);
+    this.sendAddMembersCdm = this.sendAddMembersCdm.bind(this);
   }
 
   @observable withCrypto = [];
@@ -54,6 +55,19 @@ class CdmStore {
   }
 
   @action
+  sendAddMembersCdm() {
+    const { threads, notifiers } = this.stores;
+
+    if (!threads.current) {
+      notifiers.error('Thread is not selected');
+      return;
+    }
+
+    this.addMembers();
+    this.sendCdm();
+  }
+
+  @action
   sendCdm() {
     const { notifiers, crypto, chat } = this.stores;
     this.sendCdmStatus = 'pending';
@@ -86,6 +100,7 @@ class CdmStore {
             } else {
               chat.clearChat();
             }
+            chat.clearNewMembers();
             this.sendCdmStatus = 'success';
           })
           .catch(e => {
@@ -110,7 +125,6 @@ class CdmStore {
         }`,
       ),
     );
-    const signature = signBytes(keys, bytes);
 
     const cdm = {
       subject: chat.subject.trim(),
@@ -122,10 +136,10 @@ class CdmStore {
       recipients: chat.toRecipients.map(el => ({
         recipient: el,
         type: 'to',
+        signature: signBytes(keys, bytes),
       })),
       from: {
         senderPublicKey: keys.publicKey,
-        senderSignature: signature,
       },
     };
     this.cdmData = [cdm];
@@ -147,7 +161,6 @@ class CdmStore {
         }`,
       ),
     );
-    const signature = signBytes(keys, bytes);
 
     const re = {
       subject: chat.subject.trim(),
@@ -162,14 +175,111 @@ class CdmStore {
       recipients: threads.current.members.map(el => ({
         recipient: el,
         type: 'cc',
+        signature: signBytes(keys, bytes),
       })),
       from: {
         senderPublicKey: keys.publicKey,
-        senderSignature: signature,
       },
     };
 
     this.cdmData = [re];
+  }
+
+  @action
+  addMembers() {
+    const { threads, chat, app, crypto } = this.stores;
+    const keys = keyPair(app.seed);
+
+    const initCdm = threads.current.cdms[0];
+
+    const fwdInitRawSubject = crypto.randomize(initCdm.subject);
+    const fwdInitRawMessage = crypto.randomize(initCdm.message);
+
+    const data = [];
+    for (let i = 0; i < threads.current.cdms.length; i += 1) {
+      const fwdCdm = threads.current.cdms[i];
+      const fwdBytes = Uint8Array.from(
+        sha256(
+          `${fwdCdm.rawSubject ? sha256(fwdCdm.rawSubject) : ''}${
+            fwdCdm.rawMessage ? sha256(fwdCdm.rawMessage) : ''
+          }`,
+        ),
+      );
+
+      const fwd = {
+        subject: fwdCdm.subject,
+        message: fwdCdm.message,
+        rawSubject: fwdCdm.id === initCdm.id ? fwdInitRawSubject : null,
+        rawMessage: fwdCdm.id === initCdm.id ? fwdInitRawMessage : null,
+        regarding: {
+          reSubjectHash:
+            fwdCdm.id === initCdm.id ? null : sha256(fwdInitRawSubject),
+          reMessageHash:
+            fwdCdm.id === initCdm.id ? null : sha256(fwdInitRawMessage),
+        },
+        forwarded: {
+          fwdSubjectHash: fwdCdm.subjectHash,
+          fwdMessageHash: fwdCdm.messageHash,
+        },
+        recipients: threads.current.members
+          .map(el => ({
+            recipient: el,
+            type: 'to',
+            signature: signBytes(keys, fwdBytes),
+          }))
+          .concat(
+            chat.newMembers.map(el => ({
+              recipient: el,
+              type: 'to',
+              signature: signBytes(keys, fwdBytes),
+            })),
+          ),
+        from: {
+          senderPublicKey: keys.publicKey,
+        },
+      };
+      data.push(fwd);
+    }
+
+    const message = `Added new ${
+      chat.newMembers.length > 1 ? 'members' : 'member'
+    }: ${chat.newMembers.join(',')}`;
+    const rawMessage = crypto.randomize(message) || '';
+
+    const bytes = Uint8Array.from(
+      sha256(`${rawMessage ? sha256(rawMessage) : ''}`),
+    );
+
+    const cdm = {
+      subject: '',
+      message,
+      rawSubject: '',
+      rawMessage,
+      regarding: {
+        reSubjectHash: sha256(fwdInitRawSubject),
+        reMessageHash: sha256(fwdInitRawMessage),
+      },
+      forwarded: null,
+      recipients: threads.current.members
+        .map(el => ({
+          recipient: el,
+          type: 'to',
+          signature: signBytes(keys, bytes),
+        }))
+        .concat(
+          chat.newMembers.map(el => ({
+            recipient: el,
+            type: 'to',
+            signature: signBytes(keys, bytes),
+          })),
+        ),
+      from: {
+        senderPublicKey: keys.publicKey,
+      },
+    };
+    data.push(cdm);
+
+    this.cdmData = data;
   }
 }
 

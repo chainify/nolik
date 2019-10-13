@@ -133,6 +133,16 @@ class Explorer extends React.Component {
                 </p>
                 <Divider />
                 <p>
+                  <b>Sender:</b>&nbsp;{explorer.cdm.logicalSender}
+                </p>
+                <p>
+                  <b>Recipient:</b>&nbsp;{explorer.cdm.recipient}
+                </p>
+                <p>
+                  <b>Shared with:</b>&nbsp;{explorer.cdm.sharedWith.map(el => el.publicKey).join(', ')}
+                </p>
+                <Divider />
+                <p>
                   <b>Subject:</b>&nbsp;{explorer.cdm.subject || '-'}
                 </p>
                 <p>
