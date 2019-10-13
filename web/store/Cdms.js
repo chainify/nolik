@@ -188,14 +188,51 @@ class CdmStore {
   @action
   addMembers() {
     const { threads, chat, app, crypto } = this.stores;
+    const data = [];
     const keys = keyPair(app.seed);
 
     const initCdm = threads.current.cdms[0];
-
     const fwdInitRawSubject = crypto.randomize(initCdm.subject);
     const fwdInitRawMessage = crypto.randomize(initCdm.message);
 
-    const data = [];
+    const message = `Added new ${
+      chat.newMembers.length > 1 ? 'members' : 'member'
+    }: ${chat.newMembers.join(',')}`;
+    const rawMessage = crypto.randomize(message) || '';
+
+    const bytes = Uint8Array.from(
+      sha256(`${rawMessage ? sha256(rawMessage) : ''}`),
+    );
+
+    const cdm = {
+      subject: '',
+      message,
+      rawSubject: '',
+      rawMessage,
+      regarding: {
+        reSubjectHash: sha256(fwdInitRawSubject),
+        reMessageHash: sha256(fwdInitRawMessage),
+      },
+      forwarded: null,
+      recipients: threads.current.members
+        .map(el => ({
+          recipient: el,
+          type: 'to',
+          signature: signBytes(keys, bytes),
+        }))
+        .concat(
+          chat.newMembers.map(el => ({
+            recipient: el,
+            type: 'to',
+            signature: signBytes(keys, bytes),
+          })),
+        ),
+      from: {
+        senderPublicKey: keys.publicKey,
+      },
+    };
+    data.push(cdm);
+
     for (let i = 0; i < threads.current.cdms.length; i += 1) {
       const fwdCdm = threads.current.cdms[i];
       const fwdBytes = Uint8Array.from(
@@ -240,44 +277,6 @@ class CdmStore {
       };
       data.push(fwd);
     }
-
-    const message = `Added new ${
-      chat.newMembers.length > 1 ? 'members' : 'member'
-    }: ${chat.newMembers.join(',')}`;
-    const rawMessage = crypto.randomize(message) || '';
-
-    const bytes = Uint8Array.from(
-      sha256(`${rawMessage ? sha256(rawMessage) : ''}`),
-    );
-
-    const cdm = {
-      subject: '',
-      message,
-      rawSubject: '',
-      rawMessage,
-      regarding: {
-        reSubjectHash: sha256(fwdInitRawSubject),
-        reMessageHash: sha256(fwdInitRawMessage),
-      },
-      forwarded: null,
-      recipients: threads.current.members
-        .map(el => ({
-          recipient: el,
-          type: 'to',
-          signature: signBytes(keys, bytes),
-        }))
-        .concat(
-          chat.newMembers.map(el => ({
-            recipient: el,
-            type: 'to',
-            signature: signBytes(keys, bytes),
-          })),
-        ),
-      from: {
-        senderPublicKey: keys.publicKey,
-      },
-    };
-    data.push(cdm);
 
     this.cdmData = data;
   }
