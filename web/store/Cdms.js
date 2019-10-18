@@ -75,6 +75,21 @@ class CdmStore {
       return;
     }
 
+    if (chat.toRecipients.concat(chat.ccRecipients).length === 0) {
+      notifiers.error(`There must be at least one recipient`);
+      return;
+    }
+
+    if (chat.subject.trim() === '') {
+      notifiers.error(`Subject can't be empty`);
+      return;
+    }
+
+    if (chat.message.trim() === '') {
+      notifiers.error(`Message can't be empty`);
+      return;
+    }
+
     this.sendCdmStatus = 'pending';
 
     if (this.cdmData === null) return;

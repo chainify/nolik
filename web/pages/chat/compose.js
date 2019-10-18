@@ -1,9 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { autorun } from 'mobx';
-import Router, { withRouter } from 'next/router';
 import { observer, inject } from 'mobx-react';
-import { Input, Icon, Button } from 'antd';
+import { Input, Icon, Button, AutoComplete } from 'antd';
 import mouseTrap from 'react-mousetrap';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -13,8 +11,9 @@ import PageHeader from '../../components/PageHeader';
 import Tag from '../../components/Tag';
 
 const { TextArea } = Input;
+const { Option, OptGroup } = AutoComplete;
 
-@inject('chat', 'cdms')
+@inject('chat', 'cdms', 'contacts')
 @observer
 class ChatNew extends React.Component {
   componentDidMount() {
@@ -28,8 +27,16 @@ class ChatNew extends React.Component {
     });
   }
 
+  rendeTitle(title) {
+    return <span>{title}</span>;
+  }
+
+  rendeOption(contact, publicKey) {
+    return <span className="contactOption">{`${contact}, ${publicKey}`}</span>;
+  }
+
   render() {
-    const { chat, cdms } = this.props;
+    const { chat, cdms, contacts } = this.props;
     const inputStyle = {
       border: 'none',
       background: 'transparent',
@@ -43,7 +50,30 @@ class ChatNew extends React.Component {
       height: '40px',
       resize: 'none',
       caretColor: '#2196f3',
+      width: '100%',
     };
+
+    const allContacts = contacts.pinned.concat(contacts.list);
+    const dataSource = [
+      {
+        title: 'Contacts',
+        children: allContacts.filter(
+          el =>
+            el.contact.toLowerCase().match(chat.inputTo.toLowerCase()) ||
+            el.publicKey.toLowerCase().match(chat.inputTo.toLowerCase()),
+        ),
+      },
+    ];
+
+    const options = dataSource.map(group => (
+      <OptGroup key={group.title} label={this.rendeTitle(group.title)}>
+        {group.children.map(opt => (
+          <Option key={opt.publicKey} value={opt.publicKey}>
+            {this.rendeOption(opt.contact, opt.publicKey)}
+          </Option>
+        ))}
+      </OptGroup>
+    ));
 
     return (
       <div>
@@ -65,11 +95,6 @@ class ChatNew extends React.Component {
                 type="primary"
                 onClick={cdms.sendNewCdm}
                 loading={cdms.sendCdmStatus === 'pending'}
-                disabled={
-                  chat.subject.trim() === '' ||
-                  chat.message.trim() === '' ||
-                  chat.toRecipients.concat(chat.ccRecipients).length === 0
-                }
               >
                 <FontAwesomeIcon
                   icon={faPaperPlane}
@@ -85,29 +110,53 @@ class ChatNew extends React.Component {
               <div className="formInput">
                 {chat.toRecipients.length > 0 && (
                   <div className="inputTags">
-                    {chat.toRecipients.map((el, index) => (
-                      <Tag key={`tag_${el}`} type="to" index={index}>
-                        {el}
-                      </Tag>
-                    ))}
+                    {chat.toRecipients.map((el, index) => {
+                      const mathcedContacts = allContacts.filter(
+                        item => item.publicKey === el,
+                      );
+                      return (
+                        <Tag key={`tag_${el}`} type="to" index={index}>
+                          {mathcedContacts.length > 0
+                            ? mathcedContacts[0].contact
+                            : el}
+                        </Tag>
+                      );
+                    })}
                   </div>
                 )}
-                <Input
-                  style={inputStyle}
-                  placeholder="Public key"
+                <AutoComplete
+                  dataSource={options}
                   autoFocus
+                  allowClear
+                  defaultActiveFirstOption={false}
+                  open={chat.inputTo !== ''}
+                  onSearch={val => {
+                    chat.inputTo = val;
+                  }}
                   value={chat.inputTo}
-                  onChange={e => {
-                    chat.inputTo = e.target.value;
+                  style={{ width: '100%' }}
+                  backfill
+                  onSelect={e => {
+                    chat.addTag('toRecipients', e);
                   }}
-                  onPressEnter={e => {
-                    e.preventDefault();
-                    chat.addTag('toRecipients', chat.inputTo);
+                  onBlur={e => {
+                    chat.addTag('toRecipients', e);
                   }}
-                  onBlur={() => {
-                    chat.addTag('toRecipients', chat.inputTo);
-                  }}
-                />
+                >
+                  <Input
+                    style={inputStyle}
+                    placeholder="Public key or contact name"
+                    onPressEnter={e => {
+                      if (
+                        e.target.value === '' ||
+                        dataSource[0].children.length > 0
+                      ) {
+                        return;
+                      }
+                      chat.addTag('toRecipients', e.target.value);
+                    }}
+                  />
+                </AutoComplete>
               </div>
             </div>
             <div className="formField">
@@ -134,7 +183,6 @@ class ChatNew extends React.Component {
                   chat.message = e.target.value;
                 }}
                 autosize={{ minRows: 8 }}
-                autoFocus
                 style={inputStyle}
               />
             </div>
@@ -254,6 +302,12 @@ class ChatNew extends React.Component {
             line-height: 32px;
             text-align: center;
           }
+
+          .contactOption {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
         `}</style>
       </div>
     );
@@ -263,6 +317,7 @@ class ChatNew extends React.Component {
 ChatNew.propTypes = {
   chat: PropTypes.object,
   cdms: PropTypes.object,
+  contacts: PropTypes.object,
   bindShortcut: PropTypes.func,
 };
 

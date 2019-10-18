@@ -59,12 +59,13 @@ class Password extends React.Component {
               <Button
                 key="passwordHint"
                 type="link"
+                block
                 onClick={() => {
                   app.getPasswordHint().then(hint => {
                     notifiers.passwordHint(hint);
                   });
                 }}
-                style={{ paddingLeft: 0, marginLeft: 0 }}
+                // style={{ paddingLeft: 0, marginLeft: 0 }}
               >
                 Show password hint
               </Button>
@@ -73,6 +74,7 @@ class Password extends React.Component {
               <Button
                 key="passwordForgot"
                 type="link"
+                block
                 onClick={() => {
                   notifiers.passwordForgot();
                 }}

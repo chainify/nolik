@@ -47,6 +47,11 @@ class ExplorerStore {
     this.pinnedDB = levelup(
       leveljs(`/root/.leveldb/pinned_${keyPair(app.seed).publicKey}`),
     );
+
+    this.pinContact(
+      'Ft5eAxcCmzfQnv1CznLqR9MZ2Vt7ewfD8caHzpcLM23x',
+      'Founder of Nolik',
+    );
   }
 
   @action
