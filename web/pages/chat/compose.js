@@ -53,11 +53,10 @@ class ChatNew extends React.Component {
       width: '100%',
     };
 
-    const allContacts = contacts.pinned.concat(contacts.list);
     const dataSource = [
       {
         title: 'Contacts',
-        children: allContacts.filter(
+        children: contacts.list.filter(
           el =>
             el.contact.toLowerCase().match(chat.inputTo.toLowerCase()) ||
             el.publicKey.toLowerCase().match(chat.inputTo.toLowerCase()),
@@ -111,7 +110,7 @@ class ChatNew extends React.Component {
                 {chat.toRecipients.length > 0 && (
                   <div className="inputTags">
                     {chat.toRecipients.map((el, index) => {
-                      const mathcedContacts = allContacts.filter(
+                      const mathcedContacts = contacts.list.filter(
                         item => item.publicKey === el,
                       );
                       return (

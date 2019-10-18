@@ -26,18 +26,24 @@ class App extends React.Component {
         app.initSettingsDB();
         threads.initLevelDB();
         contacts.initLevelDB();
-        contacts.readList();
         contacts.readPinned();
+        contacts.readSaved();
       }
     });
 
     autorun(() => {
       if (
         app.seed &&
-        threads.list === null &&
-        contacts.list !== null &&
-        contacts.pinned !== null
+        contacts.list === null &&
+        contacts.pinned !== null &&
+        contacts.saved !== null
       ) {
+        contacts.createList();
+      }
+    });
+
+    autorun(() => {
+      if (app.seed && threads.list === null && contacts.list !== null) {
         threads.readList();
       }
     });
@@ -51,11 +57,6 @@ class App extends React.Component {
         heartbeat.push();
       }
     });
-
-    // autorun(() => {
-    //   if (threads.list && threads.list.length > 0) {
-    //   }
-    // });
 
     this.heartbeatPeriodic = autorun(() => {
       if (

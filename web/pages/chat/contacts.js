@@ -79,11 +79,11 @@ class Contacts extends React.Component {
                 </Row>
               ))}
             <Divider />
-            {contacts.list && contacts.list.length === 0 && (
+            {contacts.saved && contacts.saved.length === 0 && (
               <p>All contacts has been pinned</p>
             )}
-            {contacts.list &&
-              contacts.list.map(el => (
+            {contacts.saved &&
+              contacts.saved.map(el => (
                 <Row key={`contact_${el.publicKey}`}>
                   <Col xs={4} md={2}>
                     <div className="pin">

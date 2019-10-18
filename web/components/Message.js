@@ -23,8 +23,7 @@ class Message extends React.Component {
   render() {
     const { item, focus, chat, app, contacts } = this.props;
     const css = `<style>${mdcss}</style>`;
-    const allContacts = contacts.list.concat(contacts.pinned);
-    const matchedContacts = allContacts.filter(
+    const matchedContacts = contacts.list.filter(
       el => el.publicKey === item.logicalSender,
     );
     return (

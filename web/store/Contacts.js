@@ -15,7 +15,7 @@ class ExplorerStore {
   stores = null;
   constructor(stores) {
     this.stores = stores;
-    this.readList = this.readList.bind(this);
+    this.readSaved = this.readSaved.bind(this);
     this.generateName = this.generateName.bind(this);
     this.camelize = this.camelize.bind(this);
     this.toggleNewContactModal = this.toggleNewContactModal.bind(this);
@@ -26,6 +26,7 @@ class ExplorerStore {
 
   @observable list = null;
   @observable pinned = null;
+  @observable saved = null;
   @observable contactsDB = null;
   @observable pinnedDB = null;
 
@@ -87,7 +88,7 @@ class ExplorerStore {
   }
 
   @action
-  readList() {
+  readSaved() {
     const promises = [];
     this.contactsDB
       .createReadStream()
@@ -101,9 +102,15 @@ class ExplorerStore {
       })
       .on('end', () => {
         Promise.all(promises).then(list => {
-          this.list = list.reverse();
+          this.saved = list.reverse();
         });
       });
+  }
+
+  @action
+  createList() {
+    this.list = this.pinned.concat(this.saved);
+    console.log(toJS(this.list));
   }
 
   @action
@@ -118,8 +125,9 @@ class ExplorerStore {
     const ciphertext = CryptoJS.AES.encrypt(contact, CLIENT_SECRET).toString();
     this.pinnedDB.del(publicKey);
     this.contactsDB.put(publicKey, ciphertext);
-    this.readList();
+    this.readSaved();
     this.readPinned();
+    this.createList();
   }
 
   @action
@@ -134,8 +142,9 @@ class ExplorerStore {
     const ciphertext = CryptoJS.AES.encrypt(contact, CLIENT_SECRET).toString();
     this.contactsDB.del(publicKey);
     this.pinnedDB.put(publicKey, ciphertext);
-    this.readList();
+    this.readSaved();
     this.readPinned();
+    this.createList();
   }
 
   @action
@@ -154,7 +163,7 @@ class ExplorerStore {
 
     this.pinContact(this.newPublicKey, this.newContactName);
     this.toggleNewContactModal();
-    this.readList();
+    this.readSaved();
     this.readPinned();
     notifiers.success('Contact saved');
   }
