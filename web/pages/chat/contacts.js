@@ -56,8 +56,6 @@ class Contacts extends React.Component {
                         type="primary"
                         onClick={() => {
                           contacts.saveContact(el.publicKey, el.contact);
-                          contacts.readList();
-                          contacts.readPinned();
                         }}
                       />
                     </div>
@@ -67,8 +65,7 @@ class Contacts extends React.Component {
                       <Paragraph
                         editable={{
                           onChange: value => {
-                            contacts.saveContact(el.publicKey, value);
-                            contacts.readList();
+                            contacts.pinContact(el.publicKey, value);
                           },
                         }}
                       >
@@ -96,8 +93,6 @@ class Contacts extends React.Component {
                         type="default"
                         onClick={() => {
                           contacts.pinContact(el.publicKey, el.contact);
-                          contacts.readList();
-                          contacts.readPinned();
                         }}
                       />
                     </div>
@@ -108,7 +103,6 @@ class Contacts extends React.Component {
                         editable={{
                           onChange: value => {
                             contacts.saveContact(el.publicKey, value);
-                            contacts.readList();
                           },
                         }}
                       >

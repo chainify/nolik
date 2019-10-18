@@ -113,6 +113,8 @@ class ExplorerStore {
     const ciphertext = CryptoJS.AES.encrypt(contact, CLIENT_SECRET).toString();
     this.pinnedDB.del(publicKey);
     this.contactsDB.put(publicKey, ciphertext);
+    this.readList();
+    this.readPinned();
   }
 
   @action
@@ -127,6 +129,8 @@ class ExplorerStore {
     const ciphertext = CryptoJS.AES.encrypt(contact, CLIENT_SECRET).toString();
     this.contactsDB.del(publicKey);
     this.pinnedDB.put(publicKey, ciphertext);
+    this.readList();
+    this.readPinned();
   }
 
   @action
