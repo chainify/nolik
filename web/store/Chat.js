@@ -110,7 +110,7 @@ class ChatStore {
   writeToNolik() {
     const { app } = this.stores;
     // const publicKey = 'cEdRrkTRMkd61UdQHvs1c2pwLfuCXVTA4GaABmiEqrP';
-    const publicKey = 'cEdRrkTRMkd61UdQHvs1c2pwLfuCXVTA4GaABmiEqrP';
+    const publicKey = 'Ft5eAxcCmzfQnv1CznLqR9MZ2Vt7ewfD8caHzpcLM23x';
     this.toRecipients = [publicKey];
     this.composeMode = true;
     app.toggleDrawer();
