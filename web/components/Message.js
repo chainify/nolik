@@ -23,9 +23,9 @@ class Message extends React.Component {
   render() {
     const { item, focus, chat, app, contacts } = this.props;
     const css = `<style>${mdcss}</style>`;
-    const matchedContacts = contacts.list.filter(
-      el => el.publicKey === item.logicalSender,
-    );
+    const matchedContacts =
+      contacts.list &&
+      contacts.list.filter(el => el.publicKey === item.logicalSender);
     return (
       <div className="messageRow">
         <div className={`timestamp ${focus ? 'focus' : ''}`}>
@@ -45,7 +45,9 @@ class Message extends React.Component {
                     chat.compose([item.logicalSender]);
                   }}
                 >
-                  {matchedContacts.length > 0 ? matchedContacts[0].contact : ''}
+                  {matchedContacts && matchedContacts.length > 0
+                    ? matchedContacts[0].contact
+                    : ''}
                 </button>
               )}
             </div>

@@ -56,11 +56,13 @@ class ChatNew extends React.Component {
     const dataSource = [
       {
         title: 'Contacts',
-        children: contacts.list.filter(
-          el =>
-            el.contact.toLowerCase().match(chat.inputTo.toLowerCase()) ||
-            el.publicKey.toLowerCase().match(chat.inputTo.toLowerCase()),
-        ),
+        children:
+          contacts.list &&
+          contacts.list.filter(
+            el =>
+              el.contact.toLowerCase().match(chat.inputTo.toLowerCase()) ||
+              el.publicKey.toLowerCase().match(chat.inputTo.toLowerCase()),
+          ),
       },
     ];
 

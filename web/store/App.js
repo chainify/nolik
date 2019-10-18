@@ -438,7 +438,7 @@ class AppStore {
 
   @action
   switchAccount() {
-    const { notifiers, threads } = this.stores;
+    const { notifiers, threads, contacts } = this.stores;
 
     if (this.switchTo === null) {
       notifiers.error('Account is not provided');
@@ -452,6 +452,9 @@ class AppStore {
             el => el.publicKey === this.switchTo,
           )[0];
           const seed = this.unlockAccount(ciphertext);
+          contacts.pinned = null;
+          contacts.saved = null;
+          contacts.list = null;
           this.seed = seed;
           this.clearPassword();
           this.switchTo = null;

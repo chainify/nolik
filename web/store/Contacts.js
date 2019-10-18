@@ -48,11 +48,6 @@ class ExplorerStore {
     this.pinnedDB = levelup(
       leveljs(`/root/.leveldb/pinned_${keyPair(app.seed).publicKey}`),
     );
-
-    this.pinContact(
-      'Ft5eAxcCmzfQnv1CznLqR9MZ2Vt7ewfD8caHzpcLM23x',
-      'Founder of Nolik',
-    );
   }
 
   @action
@@ -110,7 +105,6 @@ class ExplorerStore {
   @action
   createList() {
     this.list = this.pinned.concat(this.saved);
-    console.log(toJS(this.list));
   }
 
   @action
@@ -235,6 +229,14 @@ class ExplorerStore {
       CLIENT_SECRET,
     ).toString(CryptoJS.enc.Utf8);
     return contact;
+  }
+
+  @action
+  pinBaseContacts() {
+    this.pinContact(
+      'Ft5eAxcCmzfQnv1CznLqR9MZ2Vt7ewfD8caHzpcLM23x',
+      'Founder of Nolik',
+    );
   }
 }
 

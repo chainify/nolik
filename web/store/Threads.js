@@ -72,10 +72,10 @@ class ThreadsStore {
 
         for (let i = 0; i < listItem.members.length; i += 1) {
           const publicKey = listItem.members[i];
-          const matches = contacts.list.filter(
-            el => el.publicKey === publicKey,
-          );
-          if (matches.length === 0) {
+          const matches =
+            contacts.list &&
+            contacts.list.filter(el => el.publicKey === publicKey);
+          if (matches && matches.length === 0) {
             const name = contacts.generateName();
             contacts.saveContact(publicKey, name);
             contacts.readSaved();
