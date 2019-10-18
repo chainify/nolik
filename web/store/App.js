@@ -18,6 +18,7 @@ class AppStore {
     this.savePassword = this.savePassword.bind(this);
     this.logOut = this.logOut.bind(this);
     this.copySeedPhrase = this.copySeedPhrase.bind(this);
+    this.copyPublicKey = this.copyPublicKey.bind(this);
     this.clearSwitch = this.clearSwitch.bind(this);
     this.switchAccount = this.switchAccount.bind(this);
     this.getPasswordHint = this.getPasswordHint.bind(this);
@@ -212,7 +213,7 @@ class AppStore {
     this.appDB.put('password', ciphertextPassord);
     this.appDB.put('passwordHint', ciphertextHint);
     this.createAccount();
-    this.saveAccount();
+    this.saveAccount(this.seed);
     this.clearPassword();
     this.toggleWelcomeModal();
   }
@@ -266,7 +267,6 @@ class AppStore {
 
   @action
   verifyPassword() {
-    const { notifiers } = this.stores;
     return new Promise((resolve, reject) => {
       this.appDB
         .get('password')
@@ -299,11 +299,22 @@ class AppStore {
   }
 
   @action
-  saveAccount() {
-    const { publicKey } = keyPair(this.seed);
+  saveAccount(seed) {
+    const { notifiers } = this.stores;
+    const { publicKey } = keyPair(seed);
+
+    if (this.password === '') {
+      notifiers.error('Password is not provided');
+      return;
+    }
+
+    if (this.accounts.filter(el => el.publicKey === publicKey).length > 0) {
+      notifiers.error('Account is already in the list');
+      return;
+    }
 
     const ciphertextSecret = CryptoJS.AES.encrypt(
-      this.seed,
+      seed,
       CLIENT_SECRET,
     ).toString();
 
@@ -313,6 +324,7 @@ class AppStore {
     ).toString();
 
     this.accountsDB.put(publicKey, ciphertextPassword);
+    notifiers.success('Account has been saved');
   }
 
   @action
@@ -347,7 +359,6 @@ class AppStore {
     const seed = CryptoJS.AES.decrypt(ciphertextSecret, CLIENT_SECRET).toString(
       CryptoJS.enc.Utf8,
     );
-
     return seed;
   }
 
@@ -418,8 +429,22 @@ class AppStore {
   }
 
   @action
+  copyPublicKey() {
+    const { utils, notifiers } = this.stores;
+    const { publicKey } = keyPair(this.seed);
+    utils.clipboardTextarea(publicKey);
+    notifiers.info('Public key has been copied');
+  }
+
+  @action
   switchAccount() {
-    const { notifiers } = this.stores;
+    const { notifiers, threads } = this.stores;
+
+    if (this.switchTo === null) {
+      notifiers.error('Account is not provided');
+      return;
+    }
+
     this.verifyPassword()
       .then(res => {
         if (res === true) {
@@ -430,6 +455,9 @@ class AppStore {
           this.seed = seed;
           this.clearPassword();
           this.switchTo = null;
+          this.toggleDrawer();
+          threads.setThread(null);
+          threads.readList();
           notifiers.success('Switched account');
         }
       })

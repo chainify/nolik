@@ -70,6 +70,11 @@ class CdmStore {
   @action
   sendCdm() {
     const { notifiers, crypto, chat } = this.stores;
+    if (this.sendCdmStatus === 'pending') {
+      notifiers.warning('Senging in progress. Please wait...');
+      return;
+    }
+
     this.sendCdmStatus = 'pending';
 
     if (this.cdmData === null) return;

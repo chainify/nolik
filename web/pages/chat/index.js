@@ -89,18 +89,25 @@ class ChatIndex extends React.Component {
                   resize: 'none',
                   caretColor: '#2196f3',
                 }}
+                disabled={cdms.sendCdmStatus === 'pending'}
               />
             </div>
             <div className="formButtons">
               <button
                 type="button"
                 className="paperPlane"
-                disabled={chat.message.trim() === ''}
+                disabled={
+                  chat.message.trim() === '' || cdms.sendCdmStatus === 'pending'
+                }
                 onClick={() => {
                   cdms.sendThreadCdm();
                 }}
               >
-                <FontAwesomeIcon icon={faPaperPlane} />
+                {cdms.sendCdmStatus === 'pending' ? (
+                  <Icon type="loading" />
+                ) : (
+                  <FontAwesomeIcon icon={faPaperPlane} />
+                )}
               </button>
             </div>
           </div>

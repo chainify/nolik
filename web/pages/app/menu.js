@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import { observer, inject } from 'mobx-react';
 import { Menu, Icon, Divider, Dropdown, Button } from 'antd';
 import { keyPair } from '@waves/ts-lib-crypto';
+// import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+// import { faKey } from '@fortawesome/free-solid-svg-icons';
 import AboutModal from './modals/about';
 
 @inject('app', 'menu', 'chat')
@@ -45,11 +47,11 @@ class MenuClass extends React.Component {
                           ) : null}
                         </div>
                         <div className="publicKey">
-                          {`${keyPair(app.seed).publicKey.substring(
+                          {`${el.publicKey.substring(
                             0,
                             4,
-                          )}••••••••${keyPair(app.seed).publicKey.substring(
-                            keyPair(app.seed).publicKey.length - 4,
+                          )}••••••••${el.publicKey.substring(
+                            el.publicKey.length - 4,
                           )}`}
                         </div>
                       </div>
@@ -74,17 +76,19 @@ class MenuClass extends React.Component {
             </Dropdown>
           </Menu.Item>
           <Menu.Item key="copySeedPhrase" onClick={menu.toggleBackupModal}>
-            <Icon type="copy" /> Backup phrase
+            <Icon type="key" /> Backup phrase
           </Menu.Item>
-          <Menu.Item
-            key="importSeedPhrase"
-            onClick={menu.copySeedPhrase}
-            disabled
-          >
-            <Icon type="import" /> Import account (soon)
+          <Menu.Item key="importSeedPhrase" onClick={menu.toggleImportModal}>
+            <Icon type="import" /> Import account
           </Menu.Item>
           <Menu.Item key="contacts" onClick={chat.toggleContacts}>
             <Icon type="contacts" /> Contacts
+          </Menu.Item>
+          <Menu.Item disabled>
+            <Divider />
+          </Menu.Item>
+          <Menu.Item key="copyPublicKey" onClick={app.copyPublicKey}>
+            <Icon type="copy" /> Copy public key
           </Menu.Item>
           <Menu.Item key="copyChatUrl" onClick={menu.toggleShareModal}>
             <Icon type="share-alt" /> Share your address

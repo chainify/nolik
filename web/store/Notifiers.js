@@ -20,6 +20,11 @@ class NotifiersStore {
   }
 
   @action
+  warning(text) {
+    message.warn(text);
+  }
+
+  @action
   error(e) {
     message.error(e.message || e);
   }

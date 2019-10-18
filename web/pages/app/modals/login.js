@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { observer, inject } from 'mobx-react';
-import { Row, Col, Modal, Input, Button, notification } from 'antd';
+import { Row, Col, Modal, Input, Button } from 'antd';
 import Router from 'next/router';
 
 @inject('app', 'notifiers')

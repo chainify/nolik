@@ -24,6 +24,9 @@ class Message extends React.Component {
     const { item, focus, chat, app, contacts } = this.props;
     const css = `<style>${mdcss}</style>`;
     const allContacts = contacts.list.concat(contacts.pinned);
+    const matchedContacts = allContacts.filter(
+      el => el.publicKey === item.logicalSender,
+    );
     return (
       <div className="messageRow">
         <div className={`timestamp ${focus ? 'focus' : ''}`}>
@@ -43,11 +46,7 @@ class Message extends React.Component {
                     chat.compose([item.logicalSender]);
                   }}
                 >
-                  {
-                    allContacts.filter(
-                      el => el.publicKey === item.logicalSender,
-                    )[0].contact
-                  }
+                  {matchedContacts.length > 0 ? matchedContacts[0].contact : ''}
                 </button>
               )}
             </div>

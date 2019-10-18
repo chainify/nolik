@@ -23,18 +23,7 @@ class DrawerClass extends React.Component {
             <Menu />
           </Drawer>
         </div>
-        <style jsx>{`
-          .main {
-            // height: 100vh;
-          }
-
-          h1 {
-            font-size: 32px;
-            margin: 0;
-            line-height: 32px;
-            font-weight: 300;
-          }
-        `}</style>
+        <style jsx>{``}</style>
       </div>
     );
   }

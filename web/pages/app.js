@@ -12,6 +12,7 @@ import LogIn from './app/modals/login';
 import Backup from './app/modals/backup';
 import Switch from './app/modals/switch';
 import Password from './app/modals/password';
+import ImportBackupPhrase from './app/modals/import';
 
 @inject('app', 'threads', 'heartbeat', 'chat', 'contacts')
 @observer
@@ -88,6 +89,7 @@ class App extends React.Component {
         <Backup />
         <Switch />
         <Password />
+        <ImportBackupPhrase />
         {app.seed && <Share />}
         {app.accounts && <Drawer />}
         <div className={`main ${chat.focusMode ? 'focused' : ''}`}>

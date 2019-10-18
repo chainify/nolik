@@ -12,15 +12,20 @@ class MenuStore {
     this.toggleShareModal = this.toggleShareModal.bind(this);
     this.toggleAboutModal = this.toggleAboutModal.bind(this);
     this.toggleBackupModal = this.toggleBackupModal.bind(this);
+    this.toggleImportModal = this.toggleImportModal.bind(this);
     this.togglePasswordModal = this.togglePasswordModal.bind(this);
   }
 
   @observable backupUnlocked = false;
+  @observable importProvided = false;
   @observable showShareModal = false;
   @observable showAboutModal = false;
   @observable showBackupModal = false;
   @observable passwordUnlocked = false;
   @observable showPasswordModal = false;
+  @observable showImportModal = false;
+
+  @observable importSecretPhrase = '';
 
   @action
   toggleShareModal() {
@@ -39,6 +44,14 @@ class MenuStore {
   }
 
   @action
+  toggleImportModal() {
+    this.showImportModal = !this.showImportModal;
+    if (this.showImportModal === false) {
+      this.importSecretPhrase = '';
+    }
+  }
+
+  @action
   togglePasswordModal() {
     this.showPasswordModal = !this.showPasswordModal;
   }
@@ -50,6 +63,29 @@ class MenuStore {
     const url = `${API_HOST}/pk/${publicKey}`;
     utils.clipboardTextarea(url);
     notifiers.info('Your address has been copied');
+  }
+
+  @action
+  importSubmit() {
+    this.importProvided = true;
+  }
+
+  @action
+  importSave() {
+    const { app, notifiers } = this.stores;
+    app
+      .verifyPassword()
+      .then(res => {
+        if (res === true) {
+          app.saveAccount(this.importSecretPhrase);
+          app.readAccounts();
+          app.clearPassword();
+          this.toggleImportModal();
+        }
+      })
+      .catch(e => {
+        notifiers.error(e);
+      });
   }
 }
 
