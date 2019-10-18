@@ -1,14 +1,14 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { observer, inject } from 'mobx-react';
-import { Row, Col, Modal, Input, Button } from 'antd';
+import { Row, Col, Modal, Input, Button, notification } from 'antd';
 import Router from 'next/router';
 
-@inject('app')
+@inject('app', 'notifiers')
 @observer
 class Password extends React.Component {
   render() {
-    const { app } = this.props;
+    const { app, notifiers } = this.props;
     return (
       <div>
         <Modal
@@ -54,36 +54,35 @@ class Password extends React.Component {
               </Button>
             </Col>
           </Row>
+          <Row>
+            <Col xs={24} sm={8}>
+              <Button
+                key="passwordHint"
+                type="link"
+                onClick={() => {
+                  app.getPasswordHint().then(hint => {
+                    notifiers.passwordHint(hint);
+                  });
+                }}
+                style={{ paddingLeft: 0, marginLeft: 0 }}
+              >
+                Show password hint
+              </Button>
+            </Col>
+            <Col xs={24} sm={8}>
+              <Button
+                key="passwordForgot"
+                type="link"
+                onClick={() => {
+                  notifiers.passwordForgot();
+                }}
+              >
+                Forgot password
+              </Button>
+            </Col>
+          </Row>
         </Modal>
-        <style jsx>{`
-          .socialIcon {
-            border-radius: 10px;
-            display: inline-block;
-            overflow: hidden;
-            margin-left: 2px;
-            margin-right: 2px;
-            opacity: 0.8;
-          }
-
-          .socialIcon:hover {
-            opacity: 1;
-            cursor: pointer;
-          }
-
-          .copyIcon {
-            width: 64px;
-            height: 64px;
-            border: none;
-            background: #eee;
-            padding: 0;
-            margin: 0;
-            box-shadow: none;
-            outline: 0;
-            color: #999;
-            font-size: 32px;
-            cursor: pointer;
-          }
-        `}</style>
+        <style jsx>{``}</style>
       </div>
     );
   }
@@ -91,6 +90,7 @@ class Password extends React.Component {
 
 Password.propTypes = {
   app: PropTypes.object,
+  notifiers: PropTypes.object,
 };
 
 export default Password;

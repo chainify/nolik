@@ -92,8 +92,8 @@ class MenuClass extends React.Component {
           <Menu.Item disabled>
             <Divider />
           </Menu.Item>
-          <Menu.Item key="contactNolik" onClick={chat.writetoNolik}>
-            <Icon type="build" /> Contact Nolik
+          <Menu.Item key="contactNolik" onClick={chat.writeToNolik}>
+            <Icon type="build" /> Contact Founder
           </Menu.Item>
           <Menu.Item key="whatIsNolik" onClick={menu.toggleAboutModal}>
             <Icon type="question-circle" /> What is Nolik

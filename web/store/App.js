@@ -281,13 +281,6 @@ class AppStore {
           }
 
           if (password !== this.password) {
-            this.getPasswordHint()
-              .then(hint => {
-                notifiers.passwordHint(hint);
-              })
-              .catch(e => {
-                notifiers.error(e);
-              });
             reject(new Error(`Provided password is not valid`));
           }
 

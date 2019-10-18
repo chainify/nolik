@@ -28,11 +28,20 @@ class NotifiersStore {
   passwordHint(hint) {
     notification.info({
       duration: 3,
-      message: 'Password hint',
+      message: 'Your password hint',
       description:
         hint === ''
           ? 'Unfortunately password hint was not provided'
-          : `Your  hint is: ${hint}`,
+          : `${hint}`,
+    });
+  }
+
+  @action
+  passwordForgot() {
+    notification.info({
+      duration: 7,
+      message: 'Password recovery',
+      description: `It is sad to say, but we will not be able to restore your password because at Nolik we do not store your passwords, decryption keys or any personal data.`,
     });
   }
 }

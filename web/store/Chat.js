@@ -12,7 +12,7 @@ class ChatStore {
     this.toggleAddMemberMode = this.toggleAddMemberMode.bind(this);
     this.toggleNewMember = this.toggleNewMember.bind(this);
     this.dropCompose = this.dropCompose.bind(this);
-    this.writetoNolik = this.writetoNolik.bind(this);
+    this.writeToNolik = this.writeToNolik.bind(this);
     this.clearNewMembers = this.clearNewMembers.bind(this);
   }
 
@@ -106,8 +106,10 @@ class ChatStore {
     this.messagePlaceholder = this.defaultMessagePlaceholder;
   }
 
-  writetoNolik() {
+  @action
+  writeToNolik() {
     const { app } = this.stores;
+    // const publicKey = 'cEdRrkTRMkd61UdQHvs1c2pwLfuCXVTA4GaABmiEqrP';
     const publicKey = 'cEdRrkTRMkd61UdQHvs1c2pwLfuCXVTA4GaABmiEqrP';
     this.toRecipients = [publicKey];
     this.composeMode = true;
