@@ -26,14 +26,18 @@ class NotifiersStore {
 
   @action
   passwordHint(hint) {
-    notification.info({
-      duration: 3,
-      message: 'Your password hint',
-      description:
-        hint === ''
-          ? 'Unfortunately password hint was not provided'
-          : `${hint}`,
-    });
+    if (hint) {
+      notification.info({
+        duration: 3,
+        message: 'Your password hint',
+        description: `${hint}`,
+      });
+    } else {
+      notification.warn({
+        duration: 3,
+        message: 'Unfortunately password hint was not provided',
+      });
+    }
   }
 
   @action
