@@ -89,35 +89,7 @@ class Backup extends React.Component {
             </Row>
           )}
         </Modal>
-        <style jsx>{`
-          .socialIcon {
-            border-radius: 10px;
-            display: inline-block;
-            overflow: hidden;
-            margin-left: 2px;
-            margin-right: 2px;
-            opacity: 0.8;
-          }
-
-          .socialIcon:hover {
-            opacity: 1;
-            cursor: pointer;
-          }
-
-          .copyIcon {
-            width: 64px;
-            height: 64px;
-            border: none;
-            background: #eee;
-            padding: 0;
-            margin: 0;
-            box-shadow: none;
-            outline: 0;
-            color: #999;
-            font-size: 32px;
-            cursor: pointer;
-          }
-        `}</style>
+        <style jsx>{``}</style>
       </div>
     );
   }

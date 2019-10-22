@@ -38,7 +38,7 @@ class ThreadsStore {
   setThread(item) {
     const { chat } = this.stores;
     this.current = item;
-    chat.showMembersDrawer = false;
+    chat.membersDrawerKey = null;
     chat.clearChat();
   }
 

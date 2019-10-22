@@ -23,6 +23,7 @@ class AppStore {
     this.switchAccount = this.switchAccount.bind(this);
     this.getPasswordHint = this.getPasswordHint.bind(this);
     this.clearWelcome = this.clearWelcome.bind(this);
+    this.checkAccountExists = this.checkAccountExists.bind(this);
   }
 
   @observable seed = null;
@@ -302,29 +303,38 @@ class AppStore {
   saveAccount(seed) {
     const { notifiers } = this.stores;
     const { publicKey } = keyPair(seed);
+    const { password } = this;
 
-    if (this.password === '') {
+    if (password === '') {
       notifiers.error('Password is not provided');
       return;
     }
 
-    if (this.accounts.filter(el => el.publicKey === publicKey).length > 0) {
-      notifiers.error('Account is already in the list');
-      return;
-    }
+    this.checkAccountExists(publicKey)
+      .then(res => {
+        if (res === null) {
+          console.log('this.password', password);
+          
+          const ciphertextSecret = CryptoJS.AES.encrypt(
+            seed,
+            CLIENT_SECRET,
+          ).toString();
 
-    const ciphertextSecret = CryptoJS.AES.encrypt(
-      seed,
-      CLIENT_SECRET,
-    ).toString();
+          const ciphertextPassword = CryptoJS.AES.encrypt(
+            ciphertextSecret,
+            password,
+          ).toString();
 
-    const ciphertextPassword = CryptoJS.AES.encrypt(
-      ciphertextSecret,
-      this.password,
-    ).toString();
-
-    this.accountsDB.put(publicKey, ciphertextPassword);
-    notifiers.success('Account has been saved');
+          this.accountsDB.put(publicKey, ciphertextPassword);
+          notifiers.success('Account has been saved');
+        }
+        if (res === true) {
+          notifiers.error('Account is already in the list');
+        }
+      })
+      .catch(e => {
+        notifiers.error(e);
+      });
   }
 
   @action
@@ -360,6 +370,24 @@ class AppStore {
       CryptoJS.enc.Utf8,
     );
     return seed;
+  }
+
+  @action
+  checkAccountExists(publicKey) {
+    return new Promise((resolve, reject) => {
+      this.accountsDB
+        .get(publicKey)
+        .then(() => {
+          resolve(true);
+        })
+        .catch(e => {
+          if (e.name === 'NotFoundError') {
+            resolve(null);
+          } else {
+            reject(e);
+          }
+        });
+    });
   }
 
   @action

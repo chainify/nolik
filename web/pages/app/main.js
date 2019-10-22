@@ -13,6 +13,7 @@ import ChatBlank from '../chat/blank';
 import ChatIndex from '../chat/index';
 import Threads from '../chat/threads';
 import Contacts from '../chat/contacts';
+
 // import Menu from './menu';
 const { TabPane } = Tabs;
 
@@ -69,7 +70,7 @@ class Main extends React.Component {
                     placement="top"
                     closable={false}
                     onClose={chat.clearNewMembers}
-                    visible={chat.showMembersDrawer}
+                    visible={chat.membersDrawerKey !== null}
                     getContainer={false}
                     style={{
                       position: 'absolute',
@@ -77,15 +78,19 @@ class Main extends React.Component {
                     height={400}
                   >
                     <Tabs
+                      activeKey={chat.membersDrawerKey}
                       tabBarExtraContent={
                         <Button
                           icon="close"
                           shape="circle"
                           onClick={() => {
-                            chat.toggleShowMembers();
+                            chat.toggleShowMembers(null);
                           }}
                         />
                       }
+                      onChange={key => {
+                        chat.toggleShowMembers(key);
+                      }}
                     >
                       <TabPane
                         tab={
@@ -94,7 +99,7 @@ class Main extends React.Component {
                             &nbsp;Add member
                           </span>
                         }
-                        key="2"
+                        key="addMember"
                       >
                         <div className="contacts">
                           {contacts.pinned && contacts.pinned.length === 0 && (
@@ -162,15 +167,27 @@ class Main extends React.Component {
                           Add members
                         </Button>
                       </TabPane>
-                      <TabPane tab="Members" key="1">
+                      <TabPane tab="Members" key="members">
                         <div className="members">
                           <p className="member" key="member_you">
                             1. You {`<${keyPair(app.seed).publicKey}>`}
                           </p>
                           {threads.current &&
+                            chat.onlineMembers &&
                             threads.current.members.map((el, index) => (
                               <p key={`member_${el}`} className="member">
-                                {index + 2}.&nbsp;{`<${el}>`}
+                                {index + 2}.&nbsp;
+                                {chat.onlineMembers.filter(item => item === el)
+                                  .length > 0 && (
+                                  <span className="online">ONLINE</span>
+                                )}
+                                {`${contacts.list.filter(
+                                  item => item.publicKey === el,
+                                ).length > 0 &&
+                                  contacts.list.filter(
+                                    item => item.publicKey === el,
+                                  )[0].contact}
+                                  <${el}>`}
                               </p>
                             ))}
                         </div>
@@ -229,6 +246,15 @@ class Main extends React.Component {
             height: 32px;
             text-align: right;
             color: #999;
+          }
+
+          .online {
+            display: inline-block;
+            color: #fff;
+            background: green;
+            padding: 0 0.2em;
+            border-radius: 4px;
+            margin-right: 4px;
           }
         `}</style>
       </div>

@@ -31,7 +31,7 @@ class HeartbeatStore {
 
   @action
   push() {
-    const { utils, threads, app } = this.stores;
+    const { utils, threads, app, chat } = this.stores;
     const formConfig = {};
 
     if (threads.list && threads.list.length > 0 && this.lastTxId === null) {
@@ -43,6 +43,9 @@ class HeartbeatStore {
     if (this.lastTxId) {
       formData.append('lastTxId', this.lastTxId);
     }
+    if (threads.current) {
+      formData.append('threadMembers', threads.current.members.join(','));
+    }
     this.heartbeatStatus = 'pending';
     utils.sleep(this.heartbeatStatus === 'init' ? 0 : 1000).then(() => {
       axios
@@ -52,6 +55,8 @@ class HeartbeatStore {
 
           this.dropList('cdmVersion', res.data.cdmVersion);
           this.dropList('apiVersion', res.data.apiVersion);
+
+          chat.onlineMembers = res.data.onlineMembers;
 
           if (listThreads.length > 0) {
             const lastThreadCdms = listThreads[listThreads.length - 1].cdms;

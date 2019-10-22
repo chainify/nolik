@@ -27,8 +27,9 @@ class ChatStore {
   @observable composeMode = false;
   @observable focusMode = false;
   @observable contactsMode = false;
-  @observable showMembersDrawer = false
+  @observable membersDrawerKey = null;
   @observable addMemberMode = false;
+  @observable onlineMembers = null;
 
   @observable inputTo = '';
   @observable inputCc = '';
@@ -57,8 +58,8 @@ class ChatStore {
   }
 
   @action
-  toggleShowMembers() {
-    this.showMembersDrawer = !this.showMembersDrawer;
+  toggleShowMembers(chatMembersKey) {
+    this.membersDrawerKey = chatMembersKey;
   }
 
   @action
@@ -79,7 +80,7 @@ class ChatStore {
 
   @action
   clearNewMembers() {
-    this.showMembersDrawer = false;
+    this.membersDrawerKey = null;
     this.newMembers = [];
     this.membersSearch = '';
   }
