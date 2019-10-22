@@ -63,15 +63,15 @@ class Message extends React.Component {
         </div>
         <style jsx>{`
           .messageRow {
-            display: flex;
-          }
-
-          .messageRow .timestamp {
-            min-width: 50px;
+            display: -webkit-box;
+            display: -moz-box;
+            display: -ms-flexbox;
+            display: -ms-flexbox;
           }
 
           .messageRow .timestamp {
             margin: 0;
+            min-width: 50px;
             font-size: 12px;
             line-height: 14px;
           }
