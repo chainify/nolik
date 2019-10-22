@@ -53,7 +53,10 @@ class MenuStore {
 
   @action
   togglePasswordModal() {
+    const { app } = this.stores;
     this.showPasswordModal = !this.showPasswordModal;
+    this.passwordUnlocked = false;
+    app.clearPassword();
   }
 
   @action
@@ -78,7 +81,6 @@ class MenuStore {
       .then(res => {
         if (res === true) {
           app.saveAccount(this.importSecretPhrase);
-          app.readAccounts();
           app.clearPassword();
           this.toggleImportModal();
         }

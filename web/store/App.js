@@ -313,8 +313,6 @@ class AppStore {
     this.checkAccountExists(publicKey)
       .then(res => {
         if (res === null) {
-          console.log('this.password', password);
-          
           const ciphertextSecret = CryptoJS.AES.encrypt(
             seed,
             CLIENT_SECRET,
@@ -327,6 +325,7 @@ class AppStore {
 
           this.accountsDB.put(publicKey, ciphertextPassword);
           notifiers.success('Account has been saved');
+          this.readAccounts();
         }
         if (res === true) {
           notifiers.error('Account is already in the list');
