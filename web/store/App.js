@@ -465,7 +465,7 @@ class AppStore {
 
   @action
   switchAccount() {
-    const { notifiers, threads, contacts } = this.stores;
+    const { notifiers, threads, contacts, heartbeat } = this.stores;
 
     if (this.switchTo === null) {
       notifiers.error('Account is not provided');
@@ -475,6 +475,7 @@ class AppStore {
     this.verifyPassword()
       .then(res => {
         if (res === true) {
+          heartbeat.lastTxId = null;
           const { ciphertext } = this.accounts.filter(
             el => el.publicKey === this.switchTo,
           )[0];
