@@ -74,25 +74,15 @@ class Message extends React.Component {
             margin: 0;
             font-size: 12px;
             line-height: 14px;
-            color: #999;
           }
 
-          .messageRow .timestamp button {
-            border: none;
-            background: transparent;
-            padding: 0;
-            margin: 0;
-            text-align: left;
-            box-shadow: none;
-            outline: 0;
-            cursor: pointer;
-            font-size: 12x;
-            line-height: 14px;
-            color: #999;
-          }
-
-          .messageRow .timestamp button:hover {
+          .messageRow .timestamp a {
+            text-decoration: none;
             color: #42a5f5;
+          }
+
+          .messageRow .timestamp a:hover {
+            color: #90caf9;
           }
 
           .messageRow .timestamp.focus {
@@ -140,9 +130,10 @@ class Message extends React.Component {
           .message {
             margin: 0;
             font-size: 1em;
-            font-weight: 300;
+            font-weight: 400;
             padding-bottom: 1.2em;
             max-width: calc(100vw - 120px);
+            color: rgba(0, 0, 0, 1);
           }
         `}</style>
       </div>

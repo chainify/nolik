@@ -3,13 +3,14 @@ import PropTypes from 'prop-types';
 import { autorun } from 'mobx';
 import Router, { withRouter } from 'next/router';
 import { observer, inject } from 'mobx-react';
-import { Input, Icon, Button } from 'antd';
+import { Input, Icon, Badge } from 'antd';
 import mouseTrap from 'react-mousetrap';
 
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 
 import ChatList from './list';
+import MembersDrawer from '../../components/MembersDrawer';
 
 const { TextArea } = Input;
 
@@ -36,6 +37,7 @@ class ChatNew extends React.Component {
 
     return (
       <div className="main">
+        <MembersDrawer />
         <div className="container">
           <div className="messages">
             <ChatList focus />
@@ -50,6 +52,24 @@ class ChatNew extends React.Component {
             >
               <Icon type="close" />
             </button>
+            <Badge
+              dot={chat.onlineMembers !== null}
+              status={
+                chat.onlineMembers && chat.onlineMembers.length > 0
+                  ? 'success'
+                  : 'error'
+              }
+            >
+              <button
+                type="button"
+                className="menuButton"
+                onClick={() => {
+                  chat.toggleShowMembers('members');
+                }}
+              >
+                <Icon type="team" />
+              </button>
+            </Badge>
           </div>
         </div>
         <div className="form">
@@ -96,6 +116,7 @@ class ChatNew extends React.Component {
             height: 100vh;
             display flex;
             flex-direction: column;
+            position: relative;
           }
 
           .container {
@@ -167,16 +188,16 @@ class ChatNew extends React.Component {
             border: none;
             background: transparent;
             padding: 0;
-            margin: 0;
+            margin: 0 0 12px 0;
             width: 100%;
             text-align: left;
             box-shadow: none;
             outline: 0;
             cursor: pointer;
-            height: 32px;
-            width: 32px;
+            height: 20px;
+            width: 20px;
             font-size: 20px;
-            line-height: 32px;
+            line-height: 20px;
             text-align: center;
           }
         `}</style>
