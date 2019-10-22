@@ -118,6 +118,7 @@ class MembersDrawer extends React.Component {
                 </p>
                 {threads.current &&
                   chat.onlineMembers &&
+                  contacts.list &&
                   threads.current.members.map((el, index) => (
                     <p key={`member_${el}`} className="member">
                       {index + 2}.&nbsp;
