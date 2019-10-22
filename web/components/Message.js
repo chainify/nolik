@@ -130,7 +130,7 @@ class Message extends React.Component {
           .message {
             margin: 0;
             font-size: 1em;
-            font-weight: 400;
+            font-weight: 300;
             padding-bottom: 1.2em;
             max-width: calc(100vw - 120px);
             color: rgba(0, 0, 0, 1);
