@@ -23,6 +23,7 @@ class HeartbeatStore {
       if (currentVersion !== value) {
         if (currentVersion !== null) {
           threads.dropList();
+          this.lastTxId = null;
         }
         app.setAppSettings(key, value);
       }
