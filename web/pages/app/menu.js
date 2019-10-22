@@ -111,6 +111,9 @@ class MenuClass extends React.Component {
           >
             <Icon type="lock" /> Password update
           </Menu.Item>
+          <Menu.Item key="dropAccounts" onClick={menu.toggleDropAccountsModal}>
+            <Icon type="delete" /> Drop all accounts
+          </Menu.Item>
           <Menu.Item key="logOut" onClick={app.logOut}>
             <Icon type="poweroff" /> Log Out
           </Menu.Item>

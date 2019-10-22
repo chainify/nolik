@@ -518,6 +518,31 @@ class AppStore {
         });
     });
   }
+
+  @action
+  dropAccounts() {
+    const { notifiers, menu } = this.stores;
+    this.verifyPassword()
+      .then(res => {
+        if (res === true) {
+          this.accountsDB
+            .createReadStream()
+            .on('data', data => {
+              const publicKey = stringFromUTF8Array(data.key);
+              this.accountsDB.del(publicKey);
+            })
+            .on('end', () => {
+              this.accounts = [];
+              menu.toggleDropAccountsModal();
+              this.logOut();
+              notifiers.success('All accounts have been deleted');
+            });
+        }
+      })
+      .catch(e => {
+        notifiers.error(e);
+      });
+  }
 }
 
 export default AppStore;

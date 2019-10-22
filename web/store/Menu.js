@@ -14,6 +14,7 @@ class MenuStore {
     this.toggleBackupModal = this.toggleBackupModal.bind(this);
     this.toggleImportModal = this.toggleImportModal.bind(this);
     this.togglePasswordModal = this.togglePasswordModal.bind(this);
+    this.toggleDropAccountsModal = this.toggleDropAccountsModal.bind(this);
   }
 
   @observable backupUnlocked = false;
@@ -22,10 +23,13 @@ class MenuStore {
   @observable showAboutModal = false;
   @observable showBackupModal = false;
   @observable passwordUnlocked = false;
+  @observable dropAccountsUnlocked = false;
   @observable showPasswordModal = false;
   @observable showImportModal = false;
+  @observable showDropAccountsModal = false;
 
   @observable importSecretPhrase = '';
+  @observable dropVerification = '';
 
   @action
   toggleShareModal() {
@@ -46,9 +50,8 @@ class MenuStore {
   @action
   toggleImportModal() {
     this.showImportModal = !this.showImportModal;
-    if (this.showImportModal === false) {
-      this.importSecretPhrase = '';
-    }
+    this.importSecretPhrase = '';
+    this.importProvided = false;
   }
 
   @action
@@ -57,6 +60,13 @@ class MenuStore {
     this.showPasswordModal = !this.showPasswordModal;
     this.passwordUnlocked = false;
     app.clearPassword();
+  }
+
+  @action
+  toggleDropAccountsModal() {
+    this.showDropAccountsModal = !this.showDropAccountsModal;
+    this.dropAccountsUnlocked = false;
+    this.dropVerification = '';
   }
 
   @action
@@ -88,6 +98,16 @@ class MenuStore {
       .catch(e => {
         notifiers.error(e);
       });
+  }
+
+  @action
+  dropSubmit() {
+    const { notifiers } = this.stores;
+    if (this.dropVerification !== 'Drop all accounts') {
+      notifiers.error('Please type "Drop all accounts"');
+      return;
+    }
+    this.dropAccountsUnlocked = true;
   }
 }
 
