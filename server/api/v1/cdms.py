@@ -34,14 +34,14 @@ def get_cdm(cdm_id):
         with conn:
             with conn.cursor() as cur:
                 sql = """
-                    SELECT c.recipient, c.thread_hash FROM cdms c
+                    SELECT c.recipient_hash, c.thread_hash FROM cdms c
                     WHERE id='{cdm_id}'
                 """.format(
                     cdm_id=cdm_id
                 )
                 cur.execute(sql)
-                alice, thread_hash = cur.fetchone()
-                cdms = get_cdms(alice, thread_hash)
+                alice_hash, thread_hash = cur.fetchone()
+                cdms = get_cdms(alice_hash, thread_hash)
 
                 cdm_data = None
                 for cdm in cdms:
@@ -53,7 +53,7 @@ def get_cdm(cdm_id):
     
     return cdm_data
 
-def get_cdms(alice, thread_hash):
+def get_cdms(alice_hash, thread_hash):
     conn = psycopg2.connect(**dsn)
     try:
         with conn:
@@ -63,6 +63,9 @@ def get_cdms(alice, thread_hash):
                         c.recipient,
                         s.sender,
                         t.sender_public_key,
+                        c.recipient_hash,
+                        s.sender_hash,
+                        t.sender_public_key_hash,
                         c.subject,
                         c.message,
                         c.subject_hash,
@@ -74,6 +77,7 @@ def get_cdms(alice, thread_hash):
                         c.type,
                         c.thread_hash,
                         c.timestamp,
+                        c.version,
                         t.id,
                         t.attachment,
                         t.attachment_hash,
@@ -93,14 +97,14 @@ def get_cdms(alice, thread_hash):
                     LEFT JOIN transactions t ON c.tx_id = t.id
                     LEFT JOIN senders s ON c.id = s.cdm_id
                     WHERE (
-                        c.recipient = '{alice}' OR
-                        t.sender_public_key = '{alice}' OR
-                        s.sender = '{alice}'
+                        c.recipient_hash = '{alice_hash}' OR
+                        t.sender_public_key_hash = '{alice_hash}' OR
+                        s.sender_hash = '{alice_hash}'
                         )
                     AND c.thread_hash='{thread_hash}'
                     ORDER BY c.timestamp DESC, init_cdm_timestamp DESC
                     """.format(
-                        alice=alice,
+                        alice_hash=alice_hash,
                         thread_hash=thread_hash
                     )
                 
@@ -109,48 +113,63 @@ def get_cdms(alice, thread_hash):
 
                 cdms = []
                 for record in records:
+                    # cur.execute("""
+                    #     SELECT DISTINCT c.recipient, c.recipient_hash, c.tx_id, c.timestamp, c.type
+                    #     FROM cdms c
+                    #     WHERE c.message_hash='{hash}'
+                    # """.format(
+                    #     hash=record[9]
+                    # ))
                     cur.execute("""
-                        SELECT DISTINCT c.recipient, c.tx_id, c.timestamp, c.type
+                        SELECT DISTINCT
+                            c.recipient,
+                            s.sender,
+                            c.recipient_hash,
+                            s.sender_hash
                         FROM cdms c
+                        LEFT JOIN senders s ON s.cdm_id = c.id
                         WHERE c.message_hash='{hash}'
                     """.format(
-                        hash=record[6]
+                        hash=record[9]
                     ))
-                    recipients = cur.fetchall()
+                    members = cur.fetchall()
                     shared_with = []
-                    for recipient in recipients:
-                        shared_with.append({
-                            'publicKey': recipient[0],
-                            'txId': recipient[1],
-                            'timestamp': recipient[2],
-                            'type': recipient[3]
-                        })
-
+                    for member in members:
+                        if alice_hash != member[2] and member[0] not in shared_with:
+                            shared_with.append(member[0])
+                        if alice_hash != member[3] and member[1] not in shared_with:
+                            shared_with.append(member[1])
+                    
+                    shared_with = list(set(shared_with))
                     data = {
                         "recipient": record[0],
-                        "logicalSender": record[1] or record[2],
+                        "logicalSender": record[1],
                         "realSender": record[2],
-                        "subject": record[3],
-                        "message": record[4],
-                        "subjectHash": record[5],
-                        "messageHash": record[6],
-                        "reSubjectHash": record[7],
-                        "reMessageHash": record[8],
-                        "fwdSubjectHash": record[9],
-                        "fwdMessageHash": record[10],
-                        "type": record[11],
-                        "threadHash": record[12],
-                        "timestamp": record[13],
-                        "txId": record[14],
-                        "ipfsHash": base58.b58decode(record[15]).decode('utf-8'),
-                        "attachmentHash": record[16],
-                        "signature": record[17] or record[18][0],
-                        "id": record[19],
+                        "recipientHash": record[3],
+                        "logicalSenderHash": record[4],
+                        "realSenderHash": record[5],
+                        "subject": record[6],
+                        "message": record[7],
+                        "subjectHash": record[8],
+                        "messageHash": record[9],
+                        "reSubjectHash": record[10],
+                        "reMessageHash": record[11],
+                        "fwdSubjectHash": record[12],
+                        "fwdMessageHash": record[13],
+                        "type": record[14],
+                        "threadHash": record[15],
+                        "timestamp": record[16],
+                        "version": record[17],
+                        "txId": record[18],
+                        "ipfsHash": base58.b58decode(record[19]).decode('utf-8'),
+                        "attachmentHash": record[20],
+                        "signature": record[21] or record[22][0],
+                        "id": record[23],
                         "sharedWith": shared_with
                     }
 
-                    sender, recipient = record[1] or record[2], record[0]
-                    if alice == sender:
+                    sender, recipient = record[4], record[3]
+                    if alice_hash == sender:
                         data['direction'] = 'self' if sender == recipient else 'outgoing'
                     else:
                         data['direction'] = 'incoming'

@@ -10,7 +10,7 @@ import {
 
 import getConfig from 'next/config';
 const { publicRuntimeConfig } = getConfig();
-const { CDM_VERSION, CLIENT_PREFIX, NETWORK } = publicRuntimeConfig;
+const { CDM_VERSION, CLIENT_PREFIX, NETWORK, CLIENT_SEED } = publicRuntimeConfig;
 
 class CryptoStore {
   stores = null;
@@ -45,12 +45,22 @@ class CryptoStore {
   }
 
   @action
+  clientCipherText(recipient, text) {
+    const keys = keyPair(CLIENT_SEED);
+    const cipherBytes = messageEncrypt(
+      sharedKey(keys.privateKey, recipient, CLIENT_PREFIX),
+      text,
+    );
+    const cipherText = base58Encode(cipherBytes);
+    return cipherText;
+  }
+
+  @action
   encrypt(recipient, text) {
     const { app } = this.stores;
     let msg = '';
-    const keys = keyPair(app.seed);
     const messageHash = sha256(text);
-
+    const keys = keyPair(app.seed);
     const cipherBytes = messageEncrypt(
       sharedKey(keys.privateKey, recipient, CLIENT_PREFIX),
       text,
@@ -65,6 +75,7 @@ class CryptoStore {
 
   @action
   block(subject, message, recipient, type) {
+    const { app } = this.stores;
     let msg = '';
     if (subject) {
       const sbj = this.encrypt(recipient, subject);
@@ -75,7 +86,11 @@ class CryptoStore {
 
     const body = this.encrypt(recipient, message);
     msg += `\r\n<${type}>`;
-    msg += `\r\n<publickey>${recipient}</publickey>`;
+    msg += `\r\n<ciphertext>${this.clientCipherText(
+      keyPair(CLIENT_SEED).publicKey,
+      recipient,
+    )}</ciphertext>`;
+    msg += `\r\n<sha256>${sha256(recipient)}</sha256>`;
     msg += `\r\n</${type}>`;
     msg += `\r\n<body>`;
     msg += body;
@@ -86,6 +101,7 @@ class CryptoStore {
 
   @action
   message(data) {
+    const { app } = this.stores;
     let msg = '';
     const subject = data.rawSubject
       ? data.rawSubject
@@ -104,7 +120,6 @@ class CryptoStore {
       : null;
 
     const senderPublicKey = data.from ? data.from.senderPublicKey : null;
-    const senderSignature = data.from ? data.from.senderSignature : null;
 
     for (let i = 0; i < data.recipients.length; i += 1) {
       const block = this.block(
@@ -140,7 +155,12 @@ class CryptoStore {
         msg += `\r\n<from>`;
         msg += `\r\n<sender>`;
         if (senderPublicKey) {
-          msg += `\r\n<publickey>${senderPublicKey}</publickey>`;
+          const cipherText = this.clientCipherText(
+            keyPair(CLIENT_SEED).publicKey,
+            senderPublicKey,
+          );
+          msg += `\r\n<ciphertext>${cipherText}</ciphertext>`;
+          msg += `\r\n<sha256>${sha256(senderPublicKey)}</sha256>`;
         }
         if (data.recipients[i].signature) {
           msg += `\r\n<signature>${data.recipients[i].signature}</signature>`;
@@ -174,7 +194,22 @@ class CryptoStore {
         cipherText,
       );
     } catch (err) {
-      decryptedMessage = '⚠️ Decoding error';
+      decryptedMessage = null;
+    }
+    return decryptedMessage;
+  }
+
+  @action
+  decryptPublicKey(cipherText, publicKey) {
+    const keys = keyPair(CLIENT_SEED);
+    let decryptedMessage;
+    try {
+      decryptedMessage = messageDecrypt(
+        sharedKey(keys.privateKey, publicKey, CLIENT_PREFIX),
+        cipherText,
+      );
+    } catch (err) {
+      decryptedMessage = null;
     }
     return decryptedMessage;
   }
@@ -182,21 +217,56 @@ class CryptoStore {
   @action
   decryptCdm(cdm) {
     const thisCdm = cdm;
+    const decodingError = '⚠️ Decoding error';
+
+    let { recipient } = cdm;
+    let { logicalSender } = cdm;
+
+    if (cdm.version === '0.8') {
+      recipient = this.decryptPublicKey(
+        cdm.recipient,
+        keyPair(CLIENT_SEED).publicKey,
+      );
+      thisCdm.rawRecipient = recipient;
+      thisCdm.recipient = recipient.replace(/@[\w]{64}$/gim, '');
+
+      logicalSender = this.decryptPublicKey(
+        cdm.logicalSender,
+        keyPair(CLIENT_SEED).publicKey,
+      );
+      thisCdm.rawLogicalSender = logicalSender;
+      thisCdm.logicalSender = logicalSender.replace(/@[\w]{64}$/gim, '');
+
+      const sharedWith = [];
+      for (let i = 0; i < cdm.sharedWith.length; i += 1) {
+        const publicKey = this.decryptPublicKey(
+          cdm.sharedWith[i],
+          keyPair(CLIENT_SEED).publicKey,
+        );
+        if (sharedWith.indexOf(publicKey) < 0) {
+          sharedWith.push(publicKey);
+        }
+      }
+      thisCdm.sharedWith = sharedWith;
+      console.log('sharedWith', sharedWith);
+    }
 
     if (cdm.subject) {
-      const subject = this.decryptMessage(
-        cdm.subject,
-        cdm.direction === 'outgoing' ? cdm.recipient : cdm.logicalSender,
-      );
+      const subject =
+        this.decryptMessage(
+          cdm.subject,
+          cdm.direction === 'outgoing' ? cdm.recipient : cdm.logicalSender,
+        ) || decodingError;
       thisCdm.rawSubject = subject;
       thisCdm.subject = subject.replace(/@[\w]{64}$/gim, '');
     }
 
     if (cdm.message) {
-      const message = this.decryptMessage(
-        cdm.message,
-        cdm.direction === 'outgoing' ? cdm.recipient : cdm.logicalSender,
-      );
+      const message =
+        this.decryptMessage(
+          cdm.message,
+          cdm.direction === 'outgoing' ? cdm.recipient : cdm.logicalSender,
+        ) || decodingError;
       thisCdm.rawMessage = message;
       thisCdm.message = message.replace(/@[\w]{64}$/gim, '');
     }
@@ -207,6 +277,7 @@ class CryptoStore {
   @action
   decrypThread(item) {
     const cdms = [];
+    const members = [];
     const thisItem = item;
 
     for (let i = 0; i < item.cdms.length; i += 1) {
@@ -214,6 +285,12 @@ class CryptoStore {
       cdms.push(cdm);
     }
 
+    // for (let i = 0; i < item.cdms.length; i += 1) {
+    //   const cdm = this.decryptCdm(item.cdms[i]);
+    //   cdms.push(cdm);
+    // }
+
+    thisItem.members = cdms[0].sharedWith;
     thisItem.cdms = cdms.reverse();
     return thisItem;
   }

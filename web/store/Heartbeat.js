@@ -1,5 +1,6 @@
 import { action, observable, toJS } from 'mobx';
 import axios from 'axios';
+import { sha256 } from 'js-sha256';
 import { keyPair } from '@waves/ts-lib-crypto';
 
 import getConfig from 'next/config';
@@ -40,12 +41,13 @@ class HeartbeatStore {
     }
 
     const formData = new FormData();
-    formData.append('publicKey', keyPair(app.seed).publicKey);
+    formData.append('publicKeyHash', sha256(keyPair(app.seed).publicKey));
     if (this.lastTxId) {
       formData.append('lastTxId', this.lastTxId);
     }
     if (threads.current) {
-      formData.append('threadMembers', threads.current.members.join(','));
+      // formData.append('threadMembers', threads.current.members.join(','));
+      // formData.append('threadMsembers', threads.current.members.join(','));
     }
     this.heartbeatStatus = 'pending';
     utils.sleep(this.heartbeatStatus === 'init' ? 0 : 1000).then(() => {

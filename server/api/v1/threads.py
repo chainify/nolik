@@ -19,7 +19,7 @@ dsn = {
     "target_session_attrs": config['DB']['target_session_attrs']
 }
 
-def get_threads(alice, last_tx_id = None):
+def get_threads(alice_hash, last_tx_id = None):
     conn = psycopg2.connect(**dsn)
     try:
         with conn:
@@ -38,14 +38,15 @@ def get_threads(alice, last_tx_id = None):
                             LEFT JOIN cdms cc ON cc.id = ss.cdm_id
                             WHERE c.thread_hash = cc.thread_hash
                         ),
-                        c.timestamp
+                        c.timestamp,
+                        c.version
                     FROM cdms c
                     LEFT JOIN transactions t on c.tx_id = t.id
                     LEFT JOIN senders s on c.id = s.cdm_id
                     WHERE (
-                        c.recipient = '{alice}' OR 
-                        t.sender_public_key = '{alice}' OR
-                        s.sender = '{alice}'
+                        c.recipient_hash = '{alice_hash}' OR 
+                        t.sender_public_key_hash = '{alice_hash}' OR
+                        s.sender_hash = '{alice_hash}'
                         )
                     AND c.timestamp IN (
                         SELECT max(timestamp)
@@ -53,7 +54,7 @@ def get_threads(alice, last_tx_id = None):
                         WHERE thread_hash = c.thread_hash
                     )
                 """.format(
-                    alice=alice
+                    alice_hash=alice_hash
                 )
 
                 if last_tx_id:
@@ -68,12 +69,13 @@ def get_threads(alice, last_tx_id = None):
                 thread_hashes = []
                 for record in records:
                     thread_hash = record[0]
+                    cdm_version = record[3]
                     if (thread_hash in thread_hashes):
                         continue
                     members = record[1]
-                    cdms = get_cdms(alice, thread_hash)
+                    cdms = get_cdms(alice_hash, thread_hash)
                     thread = {
-                        'members': [member for member in members if member not in [alice, sponsor]],
+                        'members': [member for member in members if member not in [alice_hash, sponsor]] if cdm_version == '0.8' else [],
                         'threadHash': thread_hash,
                         'cdms': cdms
                     }

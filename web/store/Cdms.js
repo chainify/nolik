@@ -87,11 +87,11 @@ class CdmStore {
         notifiers.error(`Subject can't be empty`);
         return;
       }
-    }
 
-    if (chat.message.trim() === '') {
-      notifiers.error(`Message can't be empty`);
-      return;
+      if (chat.message.trim() === '') {
+        notifiers.error(`Message can't be empty`);
+        return;
+      }
     }
 
     this.sendCdmStatus = 'pending';

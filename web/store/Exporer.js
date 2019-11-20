@@ -4,7 +4,7 @@ import { keyPair } from '@waves/ts-lib-crypto';
 
 import getConfig from 'next/config';
 const { publicRuntimeConfig } = getConfig();
-const { API_HOST } = publicRuntimeConfig;
+const { API_HOST, CLIENT_SEED } = publicRuntimeConfig;
 
 class ExplorerStore {
   stores = null;
@@ -33,8 +33,18 @@ class ExplorerStore {
     const { app, crypto } = this.stores;
     const { cdm } = this;
     const alice = keyPair(app.seed).publicKey;
-    const publicKey =
-      alice === cdm.logicalSender ? cdm.recipient : cdm.logicalSender;
+
+    const logicalSender = crypto.decryptPublicKey(
+      cdm.logicalSender,
+      keyPair(CLIENT_SEED).publicKey,
+    );
+
+    const recipient = crypto.decryptPublicKey(
+      cdm.recipient,
+      keyPair(CLIENT_SEED).publicKey,
+    );
+
+    const publicKey = alice === logicalSender ? recipient : logicalSender;
 
     if (cdm.subject) {
       const subject = crypto.decryptMessage(cdm.subject, publicKey);

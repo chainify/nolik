@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { withRouter } from 'next/router';
-import { autorun } from 'mobx';
+import { autorun, toJS } from 'mobx';
 import { observer, inject } from 'mobx-react';
 import { Divider, Button } from 'antd';
 import { sha256 } from 'js-sha256';
@@ -12,9 +12,9 @@ import Switch from './app/modals/switch';
 const { verifySignature, keyPair } = require('@waves/ts-lib-crypto');
 
 const { publicRuntimeConfig } = getConfig();
-const { NETWORK, API_HOST } = publicRuntimeConfig;
+const { NETWORK, API_HOST, CLIENT_SEED } = publicRuntimeConfig;
 
-@inject('app', 'explorer')
+@inject('app', 'explorer', 'crypto')
 @observer
 class Explorer extends React.Component {
   constructor(props) {
@@ -49,11 +49,12 @@ class Explorer extends React.Component {
   }
 
   render() {
-    const { explorer, app } = this.props;
+    const { explorer, app, crypto } = this.props;
     let rawSubjectVerified = null;
     let rawMessageVerified = null;
     let sigVerified = null;
     let signedText = '';
+
     if (explorer.cdm) {
       if (explorer.cdm.rawSubject) {
         rawSubjectVerified =
@@ -63,12 +64,17 @@ class Explorer extends React.Component {
         rawMessageVerified =
           sha256(explorer.cdm.rawMessage) === explorer.cdm.messageHash;
       }
+      const logicalSender = crypto.decryptPublicKey(
+        explorer.cdm.logicalSender,
+        keyPair(CLIENT_SEED).publicKey,
+      );
+
       const subjectHash = explorer.cdm.subjectHash || '';
       const messageHash = explorer.cdm.messageHash || '';
       signedText = sha256(`${subjectHash}${messageHash}`);
       const bytes = Uint8Array.from(signedText);
       const verified = verifySignature(
-        explorer.cdm.logicalSender,
+        logicalSender,
         bytes,
         explorer.cdm.signature,
       );
@@ -138,9 +144,9 @@ class Explorer extends React.Component {
                 <p>
                   <b>Recipient:</b>&nbsp;{explorer.cdm.recipient}
                 </p>
-                <p>
+                {/* <p>
                   <b>Shared with:</b>&nbsp;{explorer.cdm.sharedWith.map(el => el.publicKey).join(', ')}
-                </p>
+                </p> */}
                 <Divider />
                 <p>
                   <b>Subject:</b>&nbsp;{explorer.cdm.subject || '-'}
@@ -251,6 +257,7 @@ class Explorer extends React.Component {
 Explorer.propTypes = {
   app: PropTypes.object,
   explorer: PropTypes.object,
+  crypto: PropTypes.object,
   router: PropTypes.object,
 };
 
