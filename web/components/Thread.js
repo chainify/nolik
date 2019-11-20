@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { observer, inject } from 'mobx-react';
 import { Badge, Icon, Typography } from 'antd';
+import sha256 from 'js-sha256';
 // import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 // import { faLevelDownAlt, faLevelUpAlt, faBookmark } from '@fortawesome/free-solid-svg-icons';
 const striptags = require('striptags');
@@ -13,11 +14,11 @@ const md = require('markdown-it')({
   typographer: false,
 });
 
-@inject('threads')
+@inject('threads', 'chat')
 @observer
 class Thread extends React.Component {
   render() {
-    const { item, threads } = this.props;
+    const { item, threads, chat } = this.props;
     const paragrapStyle = {
       margin: 0,
       padding: 0,
@@ -46,12 +47,18 @@ class Thread extends React.Component {
           >
             <div className="headerBody">
               <div className="users">
-                {item.members.length > 1 && <Icon type="team" />}
+                {chat.onlineMembers &&
+                  item.members.some(
+                    el => chat.onlineMembers.indexOf(sha256(el)) > -1,
+                  ) && <Badge dot status="success" />}
               </div>
               <div>
                 {item.cdms[0].subject && (
                   <Paragraph ellipsis style={paragrapStyle}>
-                    <span className="headerTitle">{item.cdms[0].subject}</span>
+                    <span className="headerTitle">
+                      {item.members.length > 1 && <Icon type="team" />}
+                      {item.cdms[0].subject}
+                    </span>
                   </Paragraph>
                 )}
                 <Paragraph ellipsis style={paragrapStyle}>
@@ -147,6 +154,7 @@ class Thread extends React.Component {
 Thread.propTypes = {
   item: PropTypes.object,
   threads: PropTypes.object,
+  chat: PropTypes.object,
 };
 
 export default Thread;

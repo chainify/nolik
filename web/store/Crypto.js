@@ -247,8 +247,7 @@ class CryptoStore {
           sharedWith.push(publicKey);
         }
       }
-      thisCdm.sharedWith = sharedWith;
-      console.log('sharedWith', sharedWith);
+      thisCdm.sharedWith = sharedWith;  
     }
 
     if (cdm.subject) {
@@ -276,8 +275,9 @@ class CryptoStore {
 
   @action
   decrypThread(item) {
+    const { heartbeat } = this.stores;
     const cdms = [];
-    const members = [];
+    const { onliners } = heartbeat;
     const thisItem = item;
 
     for (let i = 0; i < item.cdms.length; i += 1) {
@@ -285,13 +285,16 @@ class CryptoStore {
       cdms.push(cdm);
     }
 
-    // for (let i = 0; i < item.cdms.length; i += 1) {
-    //   const cdm = this.decryptCdm(item.cdms[i]);
-    //   cdms.push(cdm);
-    // }
+    for (let i = 0; i < cdms[0].sharedWith.length; i += 1) {
+      const member = cdms[0].sharedWith[i];
+      if (onliners.indexOf(member) < 0) {
+        onliners.push(sha256(member));
+      }
+    }
 
     thisItem.members = cdms[0].sharedWith;
     thisItem.cdms = cdms.reverse();
+    heartbeat.onliners = onliners;
     return thisItem;
   }
 }

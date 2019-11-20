@@ -16,6 +16,7 @@ class HeartbeatStore {
 
   @observable heartbeatStatus = 'init';
   @observable lastTxId = null;
+  @observable onliners = [];
 
   @action
   dropList(key, value) {
@@ -45,10 +46,7 @@ class HeartbeatStore {
     if (this.lastTxId) {
       formData.append('lastTxId', this.lastTxId);
     }
-    if (threads.current) {
-      // formData.append('threadMembers', threads.current.members.join(','));
-      // formData.append('threadMsembers', threads.current.members.join(','));
-    }
+    formData.append('onliners', this.onliners.join(','));
     this.heartbeatStatus = 'pending';
     utils.sleep(this.heartbeatStatus === 'init' ? 0 : 1000).then(() => {
       axios

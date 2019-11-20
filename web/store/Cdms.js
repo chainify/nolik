@@ -217,9 +217,13 @@ class CdmStore {
     const fwdInitRawSubject = crypto.randomize(initCdm.subject);
     const fwdInitRawMessage = crypto.randomize(initCdm.message);
 
+
+    // const message = `Added new ${
+    //   chat.newMembers.length > 1 ? 'members' : 'member'
+    // }: ${chat.newMembers.join(', ')}`;
     const message = `Added new ${
       chat.newMembers.length > 1 ? 'members' : 'member'
-    }: ${chat.newMembers.join(',')}`;
+    }}`;
     const rawMessage = crypto.randomize(message) || '';
 
     const bytes = Uint8Array.from(

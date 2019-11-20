@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { observer, inject } from 'mobx-react';
 import { Button, Icon, Drawer, Tabs, Divider } from 'antd';
 import { keyPair } from '@waves/ts-lib-crypto';
+import sha256 from 'js-sha256';
 
 const { TabPane } = Tabs;
 
@@ -122,10 +123,12 @@ class MembersDrawer extends React.Component {
                   threads.current.members.map((el, index) => (
                     <p key={`member_${el}`} className="member">
                       {index + 2}.&nbsp;
-                      {chat.onlineMembers.filter(item => item === el).length >
-                        0 && <span className="online">ONLINE</span>}
-                      {chat.onlineMembers.filter(item => item === el).length ===
-                        0 && <span className="offline">OFFLINE</span>}
+                      {chat.onlineMembers.filter(item => item === sha256(el))
+                        .length > 0 && <span className="online">ONLINE</span>}
+                      {chat.onlineMembers.filter(item => item === sha256(el))
+                        .length === 0 && (
+                        <span className="offline">OFFLINE</span>
+                      )}
                       {`${contacts.list.filter(item => item.publicKey === el)
                         .length > 0 &&
                         contacts.list.filter(item => item.publicKey === el)[0]

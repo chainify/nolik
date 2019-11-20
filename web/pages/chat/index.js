@@ -64,12 +64,13 @@ class ChatIndex extends React.Component {
                 <Icon type="usergroup-add" />
               </button>
               <Badge
-                dot={chat.onlineMembers !== null}
-                status={
-                  chat.onlineMembers && chat.onlineMembers.length > 0
-                    ? 'success'
-                    : 'error'
-                }
+                dot={null}
+                // dot={chat.onlineMembers !== null}
+                // status={
+                //   chat.onlineMembers && chat.onlineMembers.length > 0
+                //     ? 'success'
+                //     : 'error'
+                // }
               >
                 <button
                   type="button"
