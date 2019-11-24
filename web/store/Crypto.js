@@ -6,12 +6,16 @@ import {
   messageDecrypt,
   sharedKey,
   base58Encode,
-  publicKey,
 } from '@waves/ts-lib-crypto';
 
 import getConfig from 'next/config';
 const { publicRuntimeConfig } = getConfig();
-const { CDM_VERSION, CLIENT_PREFIX, NETWORK, CLIENT_SEED } = publicRuntimeConfig;
+const {
+  CDM_VERSION,
+  CLIENT_PREFIX,
+  NETWORK,
+  CLIENT_SEED,
+} = publicRuntimeConfig;
 
 class CryptoStore {
   stores = null;
@@ -102,7 +106,6 @@ class CryptoStore {
 
   @action
   message(data) {
-    const { app } = this.stores;
     let msg = '';
     const subject = data.rawSubject
       ? data.rawSubject
@@ -223,9 +226,13 @@ class CryptoStore {
     let { recipient } = cdm;
     let { logicalSender } = cdm;
 
+    // if (cdm.version === '0.7') {
+    //   const sharedWith = cdm.sharedWith.map(el => el.publicKey);
+    //   thisCdm.sharedWith = sharedWith;
+    // }
+    console.log('decryptCdm');
     if (cdm.version === '0.7') {
-      const sharedWith = cdm.sharedWith.map(el => el.publicKey);
-      thisCdm.sharedWith = sharedWith;
+      console.log('cdm v0.7', cdm);
     }
 
     if (cdm.version !== '0.7') {
@@ -290,10 +297,15 @@ class CryptoStore {
     const { onliners } = heartbeat;
     const thisItem = item;
 
+    console.log('decrypThread 2');
+    
+
     for (let i = 0; i < item.cdms.length; i += 1) {
       const cdm = this.decryptCdm(item.cdms[i]);
       cdms.push(cdm);
     }
+
+    console.log('decrypThread 2');
 
     for (let i = 0; i < cdms[0].sharedWith.length; i += 1) {
       const member = cdms[0].sharedWith[i];
@@ -301,6 +313,9 @@ class CryptoStore {
         onliners.push(sha256(member));
       }
     }
+
+    console.log('decrypThread 3');
+
 
     thisItem.members = cdms[0].sharedWith;
     thisItem.cdms = cdms.reverse();
