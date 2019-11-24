@@ -45,6 +45,11 @@ class App extends React.Component {
 
     autorun(() => {
       if (app.seed && threads.list === null && contacts.list !== null) {
+        app.getAppSettings('cdmVersion').then(currentVersion => {
+          if (currentVersion && currentVersion === '0.7') {
+            threads.dropList();
+          }
+        });
         threads.readList();
       }
     });
