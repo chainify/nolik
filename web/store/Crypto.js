@@ -6,6 +6,7 @@ import {
   messageDecrypt,
   sharedKey,
   base58Encode,
+  publicKey,
 } from '@waves/ts-lib-crypto';
 
 import getConfig from 'next/config';
@@ -222,14 +223,16 @@ class CryptoStore {
     let { recipient } = cdm;
     let { logicalSender } = cdm;
 
-    if (cdm.version === '0.8') {
+    if (cdm.version === '0.7') {
+      const sharedWith = cdm.sharedWith.map(el => el.publicKey);
+      thisCdm.sharedWith = sharedWith;
+    }
+
+    if (cdm.version !== '0.7') {
       recipient = this.decryptPublicKey(
         cdm.recipient,
         keyPair(CLIENT_SEED).publicKey,
       );
-      // console.log('CLIENT_SEED', CLIENT_SEED);
-      // console.log('recipient', recipient);
-      // console.log('cdm.recipient', cdm.recipient);
       if (recipient) {
         thisCdm.rawRecipient = recipient;
         thisCdm.recipient = recipient.replace(/@[\w]{64}$/gim, '');
