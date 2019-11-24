@@ -75,7 +75,8 @@ def get_threads(alice_hash, last_tx_id = None):
                     members = record[1]
                     cdms = get_cdms(alice_hash, thread_hash)
                     thread = {
-                        'members': [member for member in members if member not in [alice_hash, sponsor]] if cdm_version == '0.8' else [],
+                        # 'members': [member for member in members if member not in [alice_hash, sponsor]] if cdm_version == '0.8' else [],
+                        'members': [],
                         'threadHash': thread_hash,
                         'cdms': cdms
                     }

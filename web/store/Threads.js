@@ -65,8 +65,11 @@ class ThreadsStore {
     this.listDB
       .createReadStream()
       .on('data', data => {
+        // const k = stringFromUTF8Array(data.key);
+        // this.listDB.del(k);
         const v = stringFromUTF8Array(data.value);
         const item = JSON.parse(v);
+
         const listItem = crypto.decrypThread(item);
         list.push(listItem);
 

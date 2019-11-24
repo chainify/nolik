@@ -54,7 +54,7 @@ class HeartbeatStore {
         .then(res => {
           const listThreads = res.data.threads;
 
-          this.dropList('cdmVersion', res.data.cdmVersion);
+          // this.dropList('cdmVersion', res.data.cdmVersion);
           this.dropList('apiVersion', res.data.apiVersion);
 
           chat.onlineMembers = res.data.onlineMembers;

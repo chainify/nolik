@@ -31,7 +31,7 @@ class Welcome extends React.Component {
               <div>
                 <Row gutter={8}>
                   <Col>
-                    <p>Создай свой пароль (каждого устройства свой)</p>
+                    <p>Создай свой пароль (для каждого устройства свой)</p>
                   </Col>
                 </Row>
                 <Row gutter={8}>

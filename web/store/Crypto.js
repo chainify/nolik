@@ -227,15 +227,22 @@ class CryptoStore {
         cdm.recipient,
         keyPair(CLIENT_SEED).publicKey,
       );
-      thisCdm.rawRecipient = recipient;
-      thisCdm.recipient = recipient.replace(/@[\w]{64}$/gim, '');
+      // console.log('CLIENT_SEED', CLIENT_SEED);
+      // console.log('recipient', recipient);
+      // console.log('cdm.recipient', cdm.recipient);
+      if (recipient) {
+        thisCdm.rawRecipient = recipient;
+        thisCdm.recipient = recipient.replace(/@[\w]{64}$/gim, '');
+      }
 
       logicalSender = this.decryptPublicKey(
         cdm.logicalSender,
         keyPair(CLIENT_SEED).publicKey,
       );
-      thisCdm.rawLogicalSender = logicalSender;
-      thisCdm.logicalSender = logicalSender.replace(/@[\w]{64}$/gim, '');
+      if (logicalSender) {
+        thisCdm.rawLogicalSender = logicalSender;
+        thisCdm.logicalSender = logicalSender.replace(/@[\w]{64}$/gim, '');
+      }
 
       const sharedWith = [];
       for (let i = 0; i < cdm.sharedWith.length; i += 1) {
@@ -247,7 +254,7 @@ class CryptoStore {
           sharedWith.push(publicKey);
         }
       }
-      thisCdm.sharedWith = sharedWith;  
+      thisCdm.sharedWith = sharedWith;
     }
 
     if (cdm.subject) {

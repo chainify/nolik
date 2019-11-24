@@ -301,7 +301,7 @@ class AppStore {
 
   @action
   saveAccount(seed) {
-    const { notifiers } = this.stores;
+    const { notifiers, threads } = this.stores;
     const { publicKey } = keyPair(seed);
     const { password } = this;
 
@@ -326,6 +326,9 @@ class AppStore {
           this.accountsDB.put(publicKey, ciphertextPassword);
           notifiers.success('Account has been saved');
           this.readAccounts();
+          this.seed = seed;
+          threads.initLevelDB();
+          threads.dropList();
         }
         if (res === true) {
           notifiers.error('Account is already in the list');
