@@ -49,8 +49,8 @@ class App extends React.Component {
           if (currentVersion && currentVersion === '0.7') {
             threads.dropList();
           }
+          threads.readList();
         });
-        threads.readList();
       }
     });
 
