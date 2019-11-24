@@ -308,6 +308,8 @@ class CryptoStore {
     console.log('decrypThread 2');
 
     for (let i = 0; i < cdms[0].sharedWith.length; i += 1) {
+      console.log('sharedWith', cdms[0].sharedWith);
+      
       const member = cdms[0].sharedWith[i];
       if (onliners.indexOf(member) < 0) {
         onliners.push(sha256(member));
