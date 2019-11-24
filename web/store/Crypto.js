@@ -230,11 +230,6 @@ class CryptoStore {
     //   const sharedWith = cdm.sharedWith.map(el => el.publicKey);
     //   thisCdm.sharedWith = sharedWith;
     // }
-    console.log('decryptCdm');
-    if (cdm.version === '0.7') {
-      console.log('cdm v0.7', cdm);
-    }
-
     if (cdm.version !== '0.7') {
       recipient = this.decryptPublicKey(
         cdm.recipient,
