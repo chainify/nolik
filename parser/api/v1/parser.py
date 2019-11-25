@@ -92,6 +92,8 @@ class Parser:
                             continue
                         
                         for message in messages:
+                            to_public_key = None
+                            cc_public_key = None
                             to_public_key_ciphertext = None
                             to_public_key_sha256hash = None
                             cc_public_key_ciphertext = None
@@ -100,9 +102,11 @@ class Parser:
                             to = message.findall('to')[0] if len(message.findall('to')) > 0 else None
                             cc = message.findall('cc')[0] if len(message.findall('cc')) > 0 else None
                             if to:
+                                to_public_key = to.findall('publickey')[0].text if len(to.findall('publickey')) > 0 else None
                                 to_public_key_ciphertext = to.findall('ciphertext')[0].text if len(to.findall('ciphertext')) > 0 else None
                                 to_public_key_sha256hash = to.findall('sha256')[0].text if len(to.findall('sha256')) > 0 else None
                             if cc:
+                                cc_public_key = to.findall('publickey')[0].text if len(to.findall('publickey')) > 0 else None
                                 cc_public_key_ciphertext = cc.findall('ciphertext')[0].text if len(cc.findall('ciphertext')) > 0 else None
                                 cc_public_key_sha256hash = cc.findall('sha256')[0].text if len(cc.findall('sha256')) > 0 else None
 
@@ -120,9 +124,10 @@ class Parser:
                                 body_ciphertext = body.findall('ciphertext')[0].text if len(body.findall('ciphertext')) > 0 else None
                                 body_sha256hash = body.findall('sha256')[0].text if len(body.findall('sha256')) > 0 else None
 
-                            recipient_public_key_ciphertext = to_public_key_ciphertext if to_public_key_ciphertext else cc_public_key_ciphertext
-                            recipient_public_key_sha256hash = to_public_key_sha256hash if to_public_key_sha256hash else cc_public_key_sha256hash
-                            recipient_type = 'to' if to_public_key_ciphertext else 'cc'
+                            recipient_public_key = to_public_key if to else cc_public_key
+                            recipient_public_key_ciphertext = to_public_key_ciphertext if to else cc_public_key_ciphertext
+                            recipient_public_key_sha256hash = to_public_key_sha256hash if to else cc_public_key_sha256hash
+                            recipient_type = 'to' if to else 'cc'
                             
                             thread_hash = hashlib.sha256(''.join([subject_sha256hash or '', body_sha256hash or '']).encode('utf-8')).hexdigest()
 
@@ -142,7 +147,9 @@ class Parser:
                                 fwd_subject_hash = forwarded.findall('subjecthash')[0].text if len(forwarded.findall('subjecthash')) > 0 else None
                                 fwd_message_hash = forwarded.findall('messagehash')[0].text if len(forwarded.findall('messagehash')) > 0 else None
             
-                            
+                            recipient_public_key_ciphertext = recipient_public_key_ciphertext or recipient_public_key
+                            recipient_public_key_sha256hash = recipient_public_key_sha256hash or hashlib.sha256(recipient_public_key).encode('utf-8').hexdigest()
+
                             cdm_id = 'cdm-' + str(uuid.uuid4())
                             self.sql_data_cdms.append((
                                 cdm_id,
@@ -169,9 +176,13 @@ class Parser:
                             if from_block:
                                 senders = from_block.findall('sender') if len(from_block.findall('sender')) > 0 else None
                                 for sender in senders:
+                                    sender_public_key = sender.findall('publickey')[0].text if len(sender.findall('publickey')) > 0 else None
                                     sender_public_key_ciphertext = sender.findall('ciphertext')[0].text if len(sender.findall('ciphertext')) > 0 else None
                                     sender_public_key_sha256hash = sender.findall('sha256')[0].text if len(sender.findall('sha256')) > 0 else None
                                     sender_signature = sender.findall('signature')[0].text if len(sender.findall('signature')) > 0 else None
+
+                                    sender_public_key_ciphertext = sender_public_key_ciphertext or sender_public_key
+                                    sender_public_key_sha256hash = sender_public_key_sha256hash or hashlib.sha256(sender_public_key).encode('utf-8').hexdigest(),
 
                                     sender_id = str(uuid.uuid4())                                    
                                     self.sql_data_senders.append((
