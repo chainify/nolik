@@ -106,7 +106,7 @@ class Parser:
                                 to_public_key_ciphertext = to.findall('ciphertext')[0].text if len(to.findall('ciphertext')) > 0 else None
                                 to_public_key_sha256hash = to.findall('sha256')[0].text if len(to.findall('sha256')) > 0 else None
                             if cc:
-                                cc_public_key = to.findall('publickey')[0].text if len(to.findall('publickey')) > 0 else None
+                                cc_public_key = cc.findall('publickey')[0].text if len(cc.findall('publickey')) > 0 else None
                                 cc_public_key_ciphertext = cc.findall('ciphertext')[0].text if len(cc.findall('ciphertext')) > 0 else None
                                 cc_public_key_sha256hash = cc.findall('sha256')[0].text if len(cc.findall('sha256')) > 0 else None
 
