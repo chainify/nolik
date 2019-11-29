@@ -124,11 +124,15 @@ class Parser:
                                 body_ciphertext = body.findall('ciphertext')[0].text if len(body.findall('ciphertext')) > 0 else None
                                 body_sha256hash = body.findall('sha256')[0].text if len(body.findall('sha256')) > 0 else None
 
-                            recipient_public_key = to_public_key if to else cc_public_key
-                            recipient_public_key_ciphertext = to_public_key_ciphertext if to else cc_public_key_ciphertext
-                            recipient_public_key_sha256hash = to_public_key_sha256hash if to else cc_public_key_sha256hash
-                            recipient_type = 'to' if to else 'cc'
+                            if version == '0.7':
+                                recipient_public_key = to_public_key if to else cc_public_key
+                                recipient_public_key_ciphertext = recipient_public_key
+                                recipient_public_key_sha256hash = hashlib.sha256(recipient_public_key).encode('utf-8').hexdigest()
+                            else:
+                                recipient_public_key_ciphertext = to_public_key_ciphertext if to else cc_public_key_ciphertext
+                                recipient_public_key_sha256hash = to_public_key_sha256hash if to else cc_public_key_sha256hash
                             
+                            recipient_type = 'to' if to else 'cc'
                             thread_hash = hashlib.sha256(''.join([subject_sha256hash or '', body_sha256hash or '']).encode('utf-8')).hexdigest()
 
                             re_subject_hash = None
@@ -147,9 +151,7 @@ class Parser:
                                 fwd_subject_hash = forwarded.findall('subjecthash')[0].text if len(forwarded.findall('subjecthash')) > 0 else None
                                 fwd_message_hash = forwarded.findall('messagehash')[0].text if len(forwarded.findall('messagehash')) > 0 else None
             
-                            recipient_public_key_ciphertext = recipient_public_key_ciphertext or recipient_public_key
-                            recipient_public_key_sha256hash = recipient_public_key_sha256hash or hashlib.sha256(recipient_public_key).encode('utf-8').hexdigest()
-
+                          
                             cdm_id = 'cdm-' + str(uuid.uuid4())
                             self.sql_data_cdms.append((
                                 cdm_id,
@@ -169,7 +171,7 @@ class Parser:
                                 fwd_subject_hash,
                                 fwd_message_hash,
                                 datetime.fromtimestamp(tx['timestamp'] / 1e3),
-                                str(os.environ['CDM_VERSION'])
+                                version
                             ))
                             
                             from_block = message.findall('from')[0] if len(message.findall('from')) > 0 else None
@@ -180,9 +182,10 @@ class Parser:
                                     sender_public_key_ciphertext = sender.findall('ciphertext')[0].text if len(sender.findall('ciphertext')) > 0 else None
                                     sender_public_key_sha256hash = sender.findall('sha256')[0].text if len(sender.findall('sha256')) > 0 else None
                                     sender_signature = sender.findall('signature')[0].text if len(sender.findall('signature')) > 0 else None
-
-                                    sender_public_key_ciphertext = sender_public_key_ciphertext or sender_public_key
-                                    sender_public_key_sha256hash = sender_public_key_sha256hash or hashlib.sha256(sender_public_key).encode('utf-8').hexdigest(),
+                                    
+                                    if version == '0.7':
+                                        sender_public_key_ciphertext = sender_public_key
+                                        sender_public_key_sha256hash = hashlib.sha256(sender_public_key).encode('utf-8').hexdigest()
 
                                     sender_id = str(uuid.uuid4())                                    
                                     self.sql_data_senders.append((
