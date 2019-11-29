@@ -129,7 +129,7 @@ class Parser:
                             if version == '0.7':
                                 recipient_public_key = to_public_key if to else cc_public_key
                                 recipient_public_key_ciphertext = recipient_public_key
-                                recipient_public_key_sha256hash = hashlib.sha256(recipient_public_key).encode('utf-8').hexdigest()
+                                recipient_public_key_sha256hash = hashlib.sha256(recipient_public_key.encode('utf-8')).hexdigest()
                             else:
                                 recipient_public_key_ciphertext = to_public_key_ciphertext if to else cc_public_key_ciphertext
                                 recipient_public_key_sha256hash = to_public_key_sha256hash if to else cc_public_key_sha256hash
@@ -187,7 +187,7 @@ class Parser:
                                     
                                     if version == '0.7':
                                         sender_public_key_ciphertext = sender_public_key
-                                        sender_public_key_sha256hash = hashlib.sha256(sender_public_key).encode('utf-8').hexdigest()
+                                        sender_public_key_sha256hash = hashlib.sha256(sender_public_key.encode('utf-8')).hexdigest()
 
                                     sender_id = str(uuid.uuid4())                                    
                                     self.sql_data_senders.append((
