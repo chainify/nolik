@@ -81,6 +81,8 @@ class Parser:
                         if attachment == None:
                             logger.warning('CONTINUE ON IPFS HASH {0}'.format(attachment_base58) )
                             continue
+                        else:
+                            logger.info('Transactoin detected at height {0}'.format(self.height))
 
                         root = ET.fromstring(attachment)
                         version = root.findall('version')[0].text if len(root.findall('version')) > 0 else None
