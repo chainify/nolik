@@ -327,8 +327,6 @@ class AppStore {
           notifiers.success('Account has been saved');
           this.readAccounts();
           this.seed = seed;
-          threads.initLevelDB();
-          threads.dropList();
         }
         if (res === true) {
           notifiers.error('Account is already in the list');

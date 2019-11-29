@@ -22,11 +22,9 @@ class HeartbeatStore {
   dropList(key, value) {
     const { app, threads } = this.stores;
     app.getAppSettings(key).then(currentVersion => {
-      if (currentVersion !== value) {
-        if (currentVersion !== null) {
-          threads.dropList();
-          this.lastTxId = null;
-        }
+      if (currentVersion && currentVersion !== value) {
+        threads.dropList();
+        this.lastTxId = null;
         app.setAppSettings(key, value);
       }
     });
@@ -54,7 +52,7 @@ class HeartbeatStore {
         .then(res => {
           const listThreads = res.data.threads;
 
-          // this.dropList('cdmVersion', res.data.cdmVersion);
+          this.dropList('cdmVersion', res.data.cdmVersion);
           this.dropList('apiVersion', res.data.apiVersion);
 
           chat.onlineMembers = res.data.onlineMembers;
