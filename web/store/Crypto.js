@@ -143,7 +143,7 @@ class CryptoStore {
         if (reMessageHash) {
           msg += `\r\n<messagehash>${reMessageHash}</messagehash>`;
         }
-        msg += `\r\n</regarding>>`;
+        msg += `\r\n</regarding>`;
       }
       if (data.forwarded && (fwdSubjectHash || fwdMessageHash)) {
         msg += `\r\n<forwarded>`;
