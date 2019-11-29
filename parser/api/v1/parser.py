@@ -82,7 +82,7 @@ class Parser:
                             logger.warning('CONTINUE ON IPFS HASH {0}'.format(attachment_base58) )
                             continue
                         else:
-                            logger.info('TX detected. Height: {0}, IPFS hash: {1}'.format(self.height, attachment_base58))
+                            logger.info('TX detected. Height: {0}, IPFS Hash: {1}'.format(self.height, attachment_base58))
 
                         root = ET.fromstring(attachment)
                         version = root.findall('version')[0].text if len(root.findall('version')) > 0 else None
@@ -90,8 +90,8 @@ class Parser:
                         network = root.findall('network')[0].text if len(root.findall('network')) > 0 else None
                         messages = root.findall('messages')[0] if len(root.findall('messages')) > 0 else []
 
-                        if str(version) != str(os.environ['CDM_VERSION']):
-                            continue
+                        # if str(version) != str(os.environ['CDM_VERSION']):
+                        #     continue
                         
                         for message in messages:
                             to_public_key = None
@@ -264,14 +264,14 @@ class Parser:
                         if cur.rowcount > 0:
                             self.transactions_inserted += cur.rowcount
 
-                        print('\nself.sql_data_transactions')
-                        print(self.sql_data_transactions)
+                        # print('\nself.sql_data_transactions')
+                        # print(self.sql_data_transactions)
 
                         sql = """INSERT INTO proofs (tx_id, proof, id) VALUES %s ON CONFLICT DO NOTHING"""
                         execute_values(cur, sql, self.sql_data_proofs)
 
-                        print('\nself.sql_data_proofs')
-                        print(self.sql_data_proofs)
+                        # print('\nself.sql_data_proofs')
+                        # print(self.sql_data_proofs)
 
                         sql = """INSERT INTO cdms (
                             id,
@@ -295,8 +295,8 @@ class Parser:
                         ) VALUES %s ON CONFLICT DO NOTHING"""
                         execute_values(cur, sql, self.sql_data_cdms)       
 
-                        print('\nself.sql_data_cdms')
-                        print(self.sql_data_cdms) 
+                        # print('\nself.sql_data_cdms')
+                        # print(self.sql_data_cdms) 
 
                         if len(self.sql_data_senders) > 0:
                             sql = """INSERT INTO senders (
@@ -309,8 +309,8 @@ class Parser:
                             VALUES %s ON CONFLICT DO NOTHING"""
                             execute_values(cur, sql, self.sql_data_senders)
 
-                            print('\nself.sql_data_senders')
-                            print(self.sql_data_senders) 
+                            # print('\nself.sql_data_senders')
+                            # print(self.sql_data_senders) 
 
                     conn.commit()
                     logger.info('Saved {0} transactions'.format(self.transactions_inserted))
