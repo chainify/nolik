@@ -114,13 +114,6 @@ def get_cdms(alice_hash, thread_hash):
                 cdms = []
                 print('\nrecords', records)
                 for record in records:
-                    # cur.execute("""
-                    #     SELECT DISTINCT c.recipient, c.recipient_hash, c.tx_id, c.timestamp, c.type
-                    #     FROM cdms c
-                    #     WHERE c.message_hash='{hash}'
-                    # """.format(
-                    #     hash=record[9]
-                    # ))
                     cur.execute("""
                         SELECT DISTINCT
                             c.recipient,
@@ -134,7 +127,6 @@ def get_cdms(alice_hash, thread_hash):
                         hash=record[9]
                     ))
                     members = cur.fetchall()
-                    print('\nmembers', members)
                     shared_with = []
                     for member in members:
                         if member[0] and alice_hash != member[2] and member[0] not in shared_with:

@@ -101,7 +101,8 @@ class ThreadsStore {
   saveList(list) {
     const { notifiers } = this.stores;
     const records = [];
-    this.listDB
+    const thisListDB = this.listDB;
+    thisListDB
       .createReadStream()
       .on('data', data => {
         const k = parseInt(stringFromUTF8Array(data.key), 10);
@@ -112,12 +113,13 @@ class ThreadsStore {
         });
       })
       .on('end', () => {
-        const operations = [];
+        const toDelete = [];
+        const toSave = [];
         const newThreadHahses = list.map(el => el.threadHash);
 
         for (let i = 0; i < records.length; i += 1) {
           if (newThreadHahses.indexOf(records[i].value.threadHash) > -1) {
-            operations.push({
+            toDelete.push({
               type: 'del',
               key: records[i].key,
             });
@@ -127,7 +129,7 @@ class ThreadsStore {
         const initKey =
           records.length > 0 ? records[records.length - 1].key + 1 : 0;
         for (let i = 0; i < list.length; i += 1) {
-          operations.push({
+          toSave.push({
             type: 'put',
             key: i + initKey,
             value: JSON.stringify(list[i]),
@@ -135,11 +137,17 @@ class ThreadsStore {
         }
 
         // eslint-disable-next-line consistent-return
-        this.listDB.batch(operations, err => {
-          if (err) {
-            notifiers.error(err);
+        thisListDB.batch(toDelete, delErr => {
+          if (delErr) {
+            notifiers.error(delErr);
           }
-          this.readList();
+
+          thisListDB.batch(toSave, saveErr => {
+            if (saveErr) {
+              notifiers.error(saveErr);
+            }
+            this.readList();
+          });
         });
       });
   }

@@ -64,18 +64,14 @@ def get_threads(alice_hash, last_tx_id = None):
                 cur.execute(sql)
                 records = cur.fetchall()
 
-                sponsor = os.environ['SPONSOR_PUBLIC_KEY']
                 threads = []
                 thread_hashes = []
                 for record in records:
                     thread_hash = record[0]
-                    cdm_version = record[3]
                     if (thread_hash in thread_hashes):
                         continue
-                    members = record[1]
                     cdms = get_cdms(alice_hash, thread_hash)
                     thread = {
-                        # 'members': [member for member in members if member not in [alice_hash, sponsor]] if cdm_version == '0.8' else [],
                         'members': [],
                         'threadHash': thread_hash,
                         'cdms': cdms
