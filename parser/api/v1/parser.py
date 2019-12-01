@@ -42,6 +42,7 @@ class Parser:
 
         self.db_reconnects = 0
         self.db_max_reconnects = 10
+        self.transactions_in_batch = 0
         self.transactions_inserted = 0
 
         self.sql_data_transactions = []
@@ -262,16 +263,10 @@ class Parser:
                         ) VALUES %s ON CONFLICT (id) DO UPDATE SET height = EXCLUDED.height"""
                         execute_values(cur, sql, self.sql_data_transactions)
                         if cur.rowcount > 0:
-                            self.transactions_inserted += cur.rowcount
-
-                        # print('\nself.sql_data_transactions')
-                        # print(self.sql_data_transactions)
+                            self.transactions_in_batch = cur.rowcount
 
                         sql = """INSERT INTO proofs (tx_id, proof, id) VALUES %s ON CONFLICT DO NOTHING"""
                         execute_values(cur, sql, self.sql_data_proofs)
-
-                        # print('\nself.sql_data_proofs')
-                        # print(self.sql_data_proofs)
 
                         sql = """INSERT INTO cdms (
                             id,
@@ -293,10 +288,7 @@ class Parser:
                             timestamp,
                             version
                         ) VALUES %s ON CONFLICT DO NOTHING"""
-                        execute_values(cur, sql, self.sql_data_cdms)       
-
-                        # print('\nself.sql_data_cdms')
-                        # print(self.sql_data_cdms) 
+                        execute_values(cur, sql, self.sql_data_cdms)
 
                         if len(self.sql_data_senders) > 0:
                             sql = """INSERT INTO senders (
@@ -309,11 +301,12 @@ class Parser:
                             VALUES %s ON CONFLICT DO NOTHING"""
                             execute_values(cur, sql, self.sql_data_senders)
 
-                            # print('\nself.sql_data_senders')
-                            # print(self.sql_data_senders) 
+                        if cur.rowcount > 0:
+                            self.transactions_inserted += cur.rowcount   
 
                     conn.commit()
-                    logger.info('Saved {0} transactions'.format(self.transactions_inserted))
+                    logger.info('Transactions in batch: {0}'.format(self.transactions_in_batch))
+                    logger.info('Transactions saved: {0}'.format(self.transactions_inserted))
 
         except psycopg2.IntegrityError as error:
             logger.info('Error', error)
@@ -326,6 +319,7 @@ class Parser:
             logger.error('Batch insert error: {}'.format(error))
             await self.emergency_stop_loop('Batch insert error', error)
         finally:
+            self.transactions_in_batch = 0
             self.transactions_inserted = 0
             self.sql_data_transactions = []
             self.sql_data_proofs = []
