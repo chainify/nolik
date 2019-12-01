@@ -25,13 +25,13 @@ class Welcome extends React.Component {
               color="green"
               dot={<Icon type="check-circle" theme="filled" />}
             >
-              <p>Ключи шифрования созданы</p>
+              <p>Encryption keys generated</p>
             </Timeline.Item>
             <Timeline.Item color="green">
               <div>
                 <Row gutter={8}>
                   <Col>
-                    <p>Создай свой пароль (для каждого устройства свой)</p>
+                    <p>Create your password (once for every device)</p>
                   </Col>
                 </Row>
                 <Row gutter={8}>
@@ -39,7 +39,7 @@ class Welcome extends React.Component {
                     <p>
                       <Input.Password
                         autoFocus
-                        placeholder="Пароль"
+                        placeholder="Password"
                         onChange={e => {
                           app.password = e.target.value;
                         }}
@@ -51,7 +51,7 @@ class Welcome extends React.Component {
                   <Col xs={24} sm={12}>
                     <p>
                       <Input.Password
-                        placeholder="Повтори пароль"
+                        placeholder="Password again"
                         onChange={e => {
                           app.passwordRepeat = e.target.value;
                         }}
@@ -65,7 +65,7 @@ class Welcome extends React.Component {
                   <Col>
                     <p>
                       <TextArea
-                        placeholder="Подсказка пароля (не обязательно, но рекомендуется)"
+                        placeholder="Password hint (optional, but recommended)"
                         onChange={e => {
                           app.passwordHint = e.target.value;
                         }}
@@ -85,7 +85,7 @@ class Welcome extends React.Component {
                           app.password !== app.passwordRepeat
                         }
                       >
-                        Сохранить и начать переписываться
+                        Save and start messaging
                       </Button>
                     </p>
                   </Col>
@@ -97,7 +97,7 @@ class Welcome extends React.Component {
               dot={<FontAwesomeIcon icon={faFlagCheckered} />}
               style={{ paddingBottom: 0, marginBottom: 0, height: 18 }}
             >
-              <p>Начать переписываться</p>
+              <p>Start messaging</p>
             </Timeline.Item>
           </Timeline>
         </Modal>

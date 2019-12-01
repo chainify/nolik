@@ -101,13 +101,13 @@ class ChatNew extends React.Component {
                   icon={faPaperPlane}
                   style={{ marginRight: 10 }}
                 />
-                Отправить
+                Send
               </Button>,
             ]}
           />
           <div className="form">
             <div className="formField">
-              <div className="formLabel recpients">Кому:</div>
+              <div className="formLabel recpients">To:</div>
               <div className="formInput">
                 {chat.toRecipients.length > 0 && (
                   <div className="inputTags">
@@ -119,7 +119,7 @@ class ChatNew extends React.Component {
                         <Tag key={`tag_${el}`} type="to" index={index}>
                           {mathcedContacts.length > 0
                             ? mathcedContacts[0].contact
-                            : el === 'FqfKgRAtayyJDYiDDoeHTMcc8cNBx7QUyUD4UHMHT8zE' ? 'Фонд твоя территория' : el}
+                            : el}
                         </Tag>
                       );
                     })}
@@ -146,7 +146,7 @@ class ChatNew extends React.Component {
                 >
                   <Input
                     style={inputStyle}
-                    placeholder="Публичный ключ или имя сохраненного контакта"
+                    placeholder="Public key (address) or contact name"
                     onPressEnter={e => {
                       if (
                         e.target.value === '' ||
@@ -161,7 +161,7 @@ class ChatNew extends React.Component {
               </div>
             </div>
             <div className="formField">
-              <div className="formLabel sublect">Тема:</div>
+              <div className="formLabel sublect">Subject:</div>
               <div className="formInput subjectInput">
                 <TextArea
                   style={inputStyle}
