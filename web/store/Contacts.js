@@ -22,6 +22,7 @@ class ExplorerStore {
     this.saveContact = this.saveContact.bind(this);
     this.saveNewContact = this.saveNewContact.bind(this);
     this.clearNewContact = this.clearNewContact.bind(this);
+    this.toggleContactInfo = this.toggleContactInfo.bind(this);
   }
 
   @observable list = null;
@@ -30,6 +31,7 @@ class ExplorerStore {
   @observable showNewContactModal = false;
   @observable newPublicKey = '';
   @observable newContactName = '';
+  @observable contactPublicKey = null;
 
   @action
   initLevelDB() {
@@ -48,6 +50,11 @@ class ExplorerStore {
   toggleNewContactModal() {
     this.showNewContactModal = !this.showNewContactModal;
     this.clearNewContact();
+  }
+
+  @action
+  toggleContactInfo(publicKey) {
+    this.contactPublicKey = publicKey;
   }
 
   @action

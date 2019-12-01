@@ -40,7 +40,8 @@ class Message extends React.Component {
                 <button
                   type="button"
                   onClick={() => {
-                    chat.compose([item.logicalSender]);
+                    // chat.compose([item.logicalSender]);
+                    contacts.toggleContactInfo(item.logicalSender);
                   }}
                 >
                   {contacts.list &&
