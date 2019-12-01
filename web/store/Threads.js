@@ -1,4 +1,4 @@
-import { action, observable } from 'mobx';
+import { action, observable, toJS } from 'mobx';
 import { keyPair } from '@waves/ts-lib-crypto';
 import Router from 'next/router';
 import stringFromUTF8Array from '../utils/batostr';
@@ -60,7 +60,7 @@ class ThreadsStore {
 
   @action
   readList() {
-    const { crypto, contacts } = this.stores;
+    const { crypto } = this.stores;
     const list = [];
     this.listDB
       .createReadStream()
@@ -72,18 +72,6 @@ class ThreadsStore {
 
         const listItem = crypto.decrypThread(item);
         list.push(listItem);
-
-        for (let i = 0; i < listItem.members.length; i += 1) {
-          const publicKey = listItem.members[i];
-          const matches =
-            contacts.list &&
-            contacts.list.filter(el => el.publicKey === publicKey);
-          if (matches && matches.length === 0) {
-            const name = contacts.generateName();
-            contacts.saveContact(publicKey, name);
-            contacts.readSaved();
-          }
-        }
       })
       .on('end', () => {
         if (this.current) {

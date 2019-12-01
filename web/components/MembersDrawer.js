@@ -51,23 +51,23 @@ class MembersDrawer extends React.Component {
               key="addMember"
             >
               <div className="contacts">
-                {contacts.pinned && contacts.pinned.length === 0 && (
+                {contacts.list && contacts.list.length === 0 && (
                   <div>
                     <p>
-                      No pinned contacts.&nbsp;
+                      No contacts.&nbsp;
                       <Button
                         type="link"
                         onClick={() => {
                           chat.toggleContacts();
                         }}
                       >
-                        Add some
+                        Add one
                       </Button>
                     </p>
                   </div>
                 )}
-                {contacts.pinned &&
-                  contacts.pinned.map(el => (
+                {contacts.list &&
+                  contacts.list.map(el => (
                     <div key={`contact_${el.publicKey}`} className="contactRow">
                       <div className="contact">
                         {el.contact}&nbsp;
@@ -129,10 +129,12 @@ class MembersDrawer extends React.Component {
                         .length === 0 && (
                         <span className="offline">OFFLINE</span>
                       )}
-                      {`${contacts.list.filter(item => item.publicKey === el)
-                        .length > 0 &&
-                        contacts.list.filter(item => item.publicKey === el)[0]
-                          .contact}
+                      {`${
+                        contacts.list.filter(item => item.publicKey === el)
+                          .length > 0
+                          ? contacts.list.filter(item => item.publicKey === el)[0].contact
+                          : 'Unknown'
+                      }
                         <${el}>`}
                     </p>
                   ))}

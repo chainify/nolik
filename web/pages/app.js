@@ -27,19 +27,12 @@ class App extends React.Component {
         app.initSettingsDB();
         threads.initLevelDB();
         contacts.initLevelDB();
-        contacts.readPinned();
-        contacts.readSaved();
       }
     });
 
     autorun(() => {
-      if (
-        app.seed &&
-        contacts.list === null &&
-        contacts.pinned !== null &&
-        contacts.saved !== null
-      ) {
-        contacts.createList();
+      if (app.seed && contacts.list === null) {
+        contacts.readList();
       }
     });
 

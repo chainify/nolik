@@ -1,17 +1,17 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { observer, inject } from 'mobx-react';
-import { Icon, Typography, Row, Col, Button, Divider } from 'antd';
+import { Icon, Typography, Row, Col, Button, Divider, notification } from 'antd';
 
 import PageHeader from '../../components/PageHeader';
 import NewContactModal from '../app/modals/newContact';
 const { Paragraph } = Typography;
 
-@inject('chat', 'contacts')
+@inject('chat', 'contacts', 'notifiers')
 @observer
 class Contacts extends React.Component {
   render() {
-    const { chat, contacts } = this.props;
+    const { chat, contacts, notifiers } = this.props;
     return (
       <div>
         <NewContactModal />
@@ -42,67 +42,25 @@ class Contacts extends React.Component {
             ]}
           />
           <div className="container">
-            {contacts.pinned && contacts.pinned.length === 0 && (
-              <p>No pinned contacts</p>
+            {contacts.list && contacts.list.length === 0 && (
+              <p>No saved contacts</p>
             )}
-            {contacts.pinned &&
-              contacts.pinned.map(el => (
+            {contacts.list &&
+              contacts.list.map(el => (
                 <Row key={`contact_${el.publicKey}`}>
-                  <Col xs={4} md={2}>
-                    <div className="pin">
-                      <Button
-                        shape="circle"
-                        icon="pushpin"
-                        type="primary"
-                        onClick={() => {
-                          contacts.saveContact(el.publicKey, el.contact);
-                        }}
-                      />
-                    </div>
-                  </Col>
-                  <Col xs={20} md={8}>
+                  <Col xs={24} md={10}>
                     <div className="contactName">
                       <Paragraph
                         editable={{
                           onChange: value => {
-                            contacts.pinContact(el.publicKey, value);
-                          },
-                        }}
-                      >
-                        {el.contact}
-                      </Paragraph>
-                    </div>
-                  </Col>
-                  <Col xs={24} md={14}>
-                    <div className="publicKey">{el.publicKey}</div>
-                  </Col>
-                </Row>
-              ))}
-            <Divider />
-            {contacts.saved && contacts.saved.length === 0 && (
-              <p>All contacts has been pinned</p>
-            )}
-            {contacts.saved &&
-              contacts.saved.map(el => (
-                <Row key={`contact_${el.publicKey}`}>
-                  <Col xs={4} md={2}>
-                    <div className="pin">
-                      <Button
-                        shape="circle"
-                        icon="pushpin"
-                        type="default"
-                        onClick={() => {
-                          contacts.pinContact(el.publicKey, el.contact);
-                        }}
-                      />
-                    </div>
-                  </Col>
-                  <Col xs={20} md={8}>
-                    <div className="contactName">
-                      <Paragraph
-                        editable={{
-                          onChange: value => {
-                            contacts.saveContact(el.publicKey, value);
+                            contacts
+                              .saveContact(el.publicKey, value)
+                              .then(res => {
+                                notifiers.success(res);
+                              })
+                              .catch(e => {
+                                notifiers.error(e);
+                              });
                           },
                         }}
                       >
@@ -158,14 +116,8 @@ class Contacts extends React.Component {
             font-size: 14px;
           }
 
-          .pin {
-            cursor: pointer;
-            font-size: 20px;
-            line-height: 32px;
-          }
-
           .contactName {
-            padding-bottom: 1em;
+            padding-bottom: 0em;
             line-height: 32px;
             font-size: 14px;
           }
@@ -178,6 +130,7 @@ class Contacts extends React.Component {
 Contacts.propTypes = {
   chat: PropTypes.object,
   contacts: PropTypes.object,
+  notifiers: PropTypes.object,
 };
 
 export default Contacts;

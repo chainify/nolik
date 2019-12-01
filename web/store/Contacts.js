@@ -15,7 +15,7 @@ class ExplorerStore {
   stores = null;
   constructor(stores) {
     this.stores = stores;
-    this.readSaved = this.readSaved.bind(this);
+    this.readList = this.readList.bind(this);
     this.generateName = this.generateName.bind(this);
     this.camelize = this.camelize.bind(this);
     this.toggleNewContactModal = this.toggleNewContactModal.bind(this);
@@ -25,10 +25,7 @@ class ExplorerStore {
   }
 
   @observable list = null;
-  @observable pinned = null;
-  @observable saved = null;
   @observable contactsDB = null;
-  @observable pinnedDB = null;
 
   @observable showNewContactModal = false;
   @observable newPublicKey = '';
@@ -43,10 +40,7 @@ class ExplorerStore {
     const leveljs = require('level-js');
 
     this.contactsDB = levelup(
-      leveljs(`/root/.leveldb/contacts_${keyPair(app.seed).publicKey}`),
-    );
-    this.pinnedDB = levelup(
-      leveljs(`/root/.leveldb/pinned_${keyPair(app.seed).publicKey}`),
+      leveljs(`/root/.leveldb/contacts_book_${keyPair(app.seed).publicKey}`),
     );
   }
 
@@ -63,27 +57,7 @@ class ExplorerStore {
   }
 
   @action
-  readPinned() {
-    const promises = [];
-    this.pinnedDB
-      .createReadStream()
-      .on('data', data => {
-        const k = stringFromUTF8Array(data.key);
-        const p = this.getPinned(k).then(res => ({
-          publicKey: k,
-          contact: res,
-        }));
-        promises.push(p);
-      })
-      .on('end', () => {
-        Promise.all(promises).then(list => {
-          this.pinned = list.reverse();
-        });
-      });
-  }
-
-  @action
-  readSaved() {
+  readList() {
     const promises = [];
     this.contactsDB
       .createReadStream()
@@ -97,48 +71,29 @@ class ExplorerStore {
       })
       .on('end', () => {
         Promise.all(promises).then(list => {
-          this.saved = list.reverse();
+          this.list = list.reverse();
         });
       });
   }
 
   @action
-  createList() {
-    this.list = this.pinned.concat(this.saved);
-  }
-
-  @action
   saveContact(publicKey, contact) {
-    const { notifiers } = this.stores;
-    const isValidPublicKey = verifyPublicKey(publicKey);
-    if (!isValidPublicKey) {
-      notifiers.error('Public key is not valid');
-      return false;
-    }
+    return new Promise((resolve, reject) => {
+      const isValidPublicKey = verifyPublicKey(publicKey);
+      if (!isValidPublicKey) {
+        reject(new Error('Public key is not valid'));
+        return;
+      }
 
-    const ciphertext = CryptoJS.AES.encrypt(contact, CLIENT_SECRET).toString();
-    this.pinnedDB.del(publicKey);
-    this.contactsDB.put(publicKey, ciphertext);
-    this.readSaved();
-    this.readPinned();
-    this.createList();
-  }
-
-  @action
-  pinContact(publicKey, contact) {
-    const { notifiers } = this.stores;
-    const isValidPublicKey = verifyPublicKey(publicKey);
-    if (!isValidPublicKey) {
-      notifiers.error('Public key is not valid');
-      return false;
-    }
-
-    const ciphertext = CryptoJS.AES.encrypt(contact, CLIENT_SECRET).toString();
-    this.contactsDB.del(publicKey);
-    this.pinnedDB.put(publicKey, ciphertext);
-    this.readSaved();
-    this.readPinned();
-    this.createList();
+      const ciphertext = CryptoJS.AES.encrypt(
+        contact,
+        CLIENT_SECRET,
+      ).toString();
+      this.contactsDB.put(publicKey, ciphertext, () => {
+        this.readList();
+        resolve('Contact saved');
+      });
+    });
   }
 
   @action
@@ -155,11 +110,15 @@ class ExplorerStore {
       return false;
     }
 
-    this.pinContact(this.newPublicKey, this.newContactName);
-    this.toggleNewContactModal();
-    this.readSaved();
-    this.readPinned();
-    notifiers.success('Contact saved');
+    this.saveContact(this.newPublicKey, this.newContactName)
+      .then(res => {
+        notifiers.success(res);
+        this.readList();
+        this.toggleNewContactModal();
+      })
+      .catch(e => {
+        notifiers.error(e);
+      });
   }
 
   @action
@@ -168,8 +127,9 @@ class ExplorerStore {
       length: 2,
       separator: ' ',
     });
-    const camelized = this.camelize(name);
-    return camelized;
+    // const camelized = this.camelize(name);
+    // return camelized;
+    return 'Unknown sender';
   }
 
   @action
@@ -204,25 +164,6 @@ class ExplorerStore {
   }
 
   @action
-  getPinned(publicKey) {
-    return new Promise((resolve, reject) => {
-      this.pinnedDB
-        .get(publicKey)
-        .then(ciphertext => {
-          const contact = this.decryptContact(ciphertext);
-          resolve(contact);
-        })
-        .catch(e => {
-          if (e.name === 'NotFoundError') {
-            resolve(null);
-          } else {
-            reject(e);
-          }
-        });
-    });
-  }
-
-  @action
   decryptContact(ciphertext) {
     const contact = CryptoJS.AES.decrypt(
       stringFromUTF8Array(ciphertext),
@@ -231,13 +172,13 @@ class ExplorerStore {
     return contact;
   }
 
-  @action
-  pinBaseContacts() {
-    this.pinContact(
-      'Ft5eAxcCmzfQnv1CznLqR9MZ2Vt7ewfD8caHzpcLM23x',
-      'Founder of Nolik',
-    );
-  }
+  // @action
+  // pinBaseContacts() {
+  //   this.pinContact(
+  //     'Ft5eAxcCmzfQnv1CznLqR9MZ2Vt7ewfD8caHzpcLM23x',
+  //     'Founder of Nolik',
+  //   );
+  // }
 }
 
 export default ExplorerStore;

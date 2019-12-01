@@ -481,8 +481,6 @@ class AppStore {
             el => el.publicKey === this.switchTo,
           )[0];
           const seed = this.unlockAccount(ciphertext);
-          contacts.pinned = null;
-          contacts.saved = null;
           contacts.list = null;
           this.seed = seed;
           this.clearPassword();

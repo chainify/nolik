@@ -3,6 +3,7 @@ import PropTypes from 'prop-types';
 import { observer, inject } from 'mobx-react';
 import { Button, Icon } from 'antd';
 import * as moment from 'moment';
+import { toJS } from 'mobx';
 import { keyPair } from '@waves/ts-lib-crypto';
 import getConfig from 'next/config';
 import mdcss from '../styles/MarkDown.css';
@@ -23,9 +24,6 @@ class Message extends React.Component {
   render() {
     const { item, focus, chat, app, contacts } = this.props;
     const css = `<style>${mdcss}</style>`;
-    const matchedContacts =
-      contacts.list &&
-      contacts.list.filter(el => el.publicKey === item.logicalSender);
     return (
       <div className="messageRow">
         <div className={`timestamp ${focus ? 'focus' : ''}`}>
@@ -45,9 +43,12 @@ class Message extends React.Component {
                     chat.compose([item.logicalSender]);
                   }}
                 >
-                  {matchedContacts && matchedContacts.length > 0
-                    ? matchedContacts[0].contact
-                    : ''}
+                  {contacts.list &&
+                  contacts.list.filter(
+                    el => el.publicKey === item.logicalSender,
+                  ).length > 0
+                    ? contacts.list.filter(el => el.publicKey === item.logicalSender)[0].contact
+                    : 'Unknown sender'}
                 </button>
               )}
             </div>
