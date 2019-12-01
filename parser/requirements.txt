@@ -6,3 +6,4 @@ psycopg2-binary
 configparser
 base58
 python-axolotl-curve25519
+termcolor

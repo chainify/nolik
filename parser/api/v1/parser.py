@@ -17,6 +17,7 @@ import uuid
 import signal
 import base58
 import xml.etree.ElementTree as ET
+from termcolor import colored
 
 config = configparser.ConfigParser()
 config.read('config.ini')
@@ -32,7 +33,6 @@ dsn = {
     "target_session_attrs": config['DB']['target_session_attrs']
 }
 
-
 class Parser:
     def __init__(self):
         self.height = 1
@@ -44,6 +44,7 @@ class Parser:
         self.db_max_reconnects = 10
         self.transactions_in_batch = 0
         self.transactions_inserted = 0
+        self.valid_transactions = 0
 
         self.sql_data_transactions = []
         self.sql_data_proofs = []
@@ -83,6 +84,7 @@ class Parser:
                             logger.warning('CONTINUE ON IPFS HASH {0}'.format(attachment_base58) )
                             continue
                         else:
+                            self.transactions_in_batch += 1
                             logger.info('TX detected. Height: {0}, IPFS Hash: {1}'.format(self.height, attachment_base58))
 
                         root = ET.fromstring(attachment)
@@ -241,72 +243,79 @@ class Parser:
         try:
             with conn:
                 with conn.cursor() as cur:
-                    if len(self.sql_data_transactions) > 0:
-                        sql = """INSERT INTO transactions (
-                            id,
-                            height,
-                            type,
-                            sender,
-                            sender_public_key,
-                            sender_public_key_hash,
-                            recipient,
-                            amount,
-                            asset_id,
-                            fee_asset_id,
-                            fee_asset,
-                            fee,
-                            attachment,
-                            version,
-                            timestamp,
-                            cnfy_id,
-                            attachment_hash
-                        ) VALUES %s ON CONFLICT (id) DO UPDATE SET height = EXCLUDED.height"""
-                        execute_values(cur, sql, self.sql_data_transactions)
-                        if cur.rowcount > 0:
-                            self.transactions_in_batch = cur.rowcount
+                    self.valid_transactions = min(
+                        len(self.sql_data_transactions),
+                        len(self.sql_data_proofs),
+                        len(self.sql_data_cdms),
+                        len(self.sql_data_senders))
 
-                        sql = """INSERT INTO proofs (tx_id, proof, id) VALUES %s ON CONFLICT DO NOTHING"""
-                        execute_values(cur, sql, self.sql_data_proofs)
+                    sql = """INSERT INTO transactions (
+                        id,
+                        height,
+                        type,
+                        sender,
+                        sender_public_key,
+                        sender_public_key_hash,
+                        recipient,
+                        amount,
+                        asset_id,
+                        fee_asset_id,
+                        fee_asset,
+                        fee,
+                        attachment,
+                        version,
+                        timestamp,
+                        cnfy_id,
+                        attachment_hash
+                    ) VALUES %s ON CONFLICT (id) DO UPDATE SET height = EXCLUDED.height"""
+                    execute_values(cur, sql, self.sql_data_transactions)
 
-                        sql = """INSERT INTO cdms (
-                            id,
-                            tx_id,
-                            recipient,
-                            recipient_hash,
-                            subject,
-                            subject_hash,
-                            message,
-                            message_hash,
-                            thread_hash,
-                            blockchain,
-                            network,
-                            type,
-                            re_subject_hash,
-                            re_message_hash,
-                            fwd_subject_hash,
-                            fwd_message_hash,
-                            timestamp,
-                            version
-                        ) VALUES %s ON CONFLICT DO NOTHING"""
-                        execute_values(cur, sql, self.sql_data_cdms)
+                    sql = """INSERT INTO proofs (tx_id, proof, id) VALUES %s ON CONFLICT DO NOTHING"""
+                    execute_values(cur, sql, self.sql_data_proofs)
 
-                        if len(self.sql_data_senders) > 0:
-                            sql = """INSERT INTO senders (
-                                id,
-                                cdm_id,
-                                sender,
-                                sender_hash,
-                                signature,
-                                verified)
-                            VALUES %s ON CONFLICT DO NOTHING"""
-                            execute_values(cur, sql, self.sql_data_senders)
+                    sql = """INSERT INTO cdms (
+                        id,
+                        tx_id,
+                        recipient,
+                        recipient_hash,
+                        subject,
+                        subject_hash,
+                        message,
+                        message_hash,
+                        thread_hash,
+                        blockchain,
+                        network,
+                        type,
+                        re_subject_hash,
+                        re_message_hash,
+                        fwd_subject_hash,
+                        fwd_message_hash,
+                        timestamp,
+                        version
+                    ) VALUES %s ON CONFLICT DO NOTHING"""
+                    execute_values(cur, sql, self.sql_data_cdms)
 
-                        if cur.rowcount > 0:
-                            self.transactions_inserted += cur.rowcount   
+                    sql = """INSERT INTO senders (
+                        id,
+                        cdm_id,
+                        sender,
+                        sender_hash,
+                        signature,
+                        verified)
+                    VALUES %s ON CONFLICT DO NOTHING"""
+                    execute_values(cur, sql, self.sql_data_senders)
+
+                    if cur.rowcount > 0:
+                        self.transactions_inserted += cur.rowcount
 
                     conn.commit()
                     logger.info('Transactions in batch: {0}'.format(self.transactions_in_batch))
-                    logger.info('Transactions saved: {0}'.format(self.transactions_inserted))
+                    if self.transactions_in_batch > 0:
+                        color = 'green' if self.valid_transactions == self.transactions_in_batch else 'red'
+                        logger.info('Valid ransactions: {0}'.format(colored(self.valid_transactions, color)))
+                    if self.transactions_inserted > 0 and self.transactions_inserted >= self.valid_transactions:
+                        logger.info(colored('Saved {0} transaction(s)'.format(self.valid_transactions), 'green'))
+
 
         except psycopg2.IntegrityError as error:
             logger.info('Error', error)
@@ -321,6 +330,7 @@ class Parser:
         finally:
             self.transactions_in_batch = 0
             self.transactions_inserted = 0
+            self.valid_transactions = 0
             self.sql_data_transactions = []
             self.sql_data_proofs = []
             self.sql_data_cdms = []
