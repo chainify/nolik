@@ -184,6 +184,12 @@ class CdmStore {
       ),
     );
 
+    if (threads.current.members.length === 0) {
+      if (initCdm.recipient === initCdm.logicalSender) {
+        threads.current.members = [initCdm.recipient];
+      }
+    }
+
     const re = {
       subject: chat.subject.trim(),
       message: chat.message.trim(),
