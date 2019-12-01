@@ -311,8 +311,9 @@ class Parser:
                     conn.commit()
                     logger.info('Transactions in batch: {0}'.format(self.transactions_in_batch))
                     if self.transactions_in_batch > 0:
-                        color = 'green' if self.valid_transactions == self.transactions_in_batch else 'red'
-                        logger.info('Valid ransactions: {0}'.format(colored(self.valid_transactions, color)))
+                        extra_text = colored('OK', 'green') if self.valid_transactions == self.transactions_in_batch else colored('ERR', 'red')
+                        text = 'Valid ransactions: {0} '.format(self.valid_transactions)
+                        logger.info(text + extra_text)
                     if self.transactions_inserted > 0 and self.transactions_inserted >= self.valid_transactions:
                         logger.info(colored('Saved {0} transaction(s)'.format(self.valid_transactions), 'green'))
 
