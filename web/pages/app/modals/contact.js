@@ -51,7 +51,9 @@ class About extends React.Component {
             </Paragraph>
           </h2>
           <p>Address / public key</p>
-          <h2>{contacts.contactPublicKey}</h2>
+          <h2>
+            <Paragraph copyable>{contacts.contactPublicKey}</Paragraph>
+          </h2>
           <Divider />
           <h3>Active threads</h3>
           {threads.list &&
