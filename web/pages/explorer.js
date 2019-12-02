@@ -11,7 +11,7 @@ import UnlockSeed from './app/modals/unlockSeed';
 const { verifySignature, keyPair } = require('@waves/ts-lib-crypto');
 
 const { publicRuntimeConfig } = getConfig();
-const { NETWORK, API_HOST, CLIENT_SEED } = publicRuntimeConfig;
+const { NETWORK, API_HOST } = publicRuntimeConfig;
 
 @inject('explorer', 'crypto')
 @observer
@@ -35,7 +35,7 @@ class Explorer extends React.Component {
   }
 
   render() {
-    const { explorer, crypto } = this.props;
+    const { explorer } = this.props;
     let rawSubjectVerified = null;
     let rawMessageVerified = null;
     let sigVerified = null;
@@ -50,21 +50,16 @@ class Explorer extends React.Component {
         rawMessageVerified =
           sha256(explorer.cdm.rawMessage) === explorer.cdm.messageHash;
       }
-      const logicalSender = crypto.decryptPublicKey(
-        explorer.cdm.logicalSender,
-        keyPair(CLIENT_SEED).publicKey,
-      );
 
       const subjectHash = explorer.cdm.subjectHash || '';
       const messageHash = explorer.cdm.messageHash || '';
       signedText = sha256(`${subjectHash}${messageHash}`);
       const bytes = Uint8Array.from(signedText);
-      const verified = verifySignature(
-        logicalSender,
+      sigVerified = verifySignature(
+        explorer.cdm.logicalSender,
         bytes,
         explorer.cdm.signature,
       );
-      sigVerified = verified;
     }
 
     return (
@@ -202,13 +197,26 @@ class Explorer extends React.Component {
                 </p>
                 <p>
                   {explorer.cdm.logicalSender !== explorer.cdm.realSender && (
-                    <b>Signature is valid:</b>
+                    <span>
+                      <b>Public key:</b>
+                      &nbsp;
+                      {explorer.cdm.logicalSender}
+                    </span>
                   )}
-                  &nbsp;
-                  {explorer.cdm.logicalSender !== explorer.cdm.realSender &&
-                    sigVerified === true && <span className="valid">TRUE</span>}
-                  {explorer.cdm.logicalSender !== explorer.cdm.realSender &&
-                    sigVerified === false && <span className="notValid">FALSE</span>}
+                </p>
+                <p>
+                  {explorer.cdm.logicalSender !== explorer.cdm.realSender && (
+                    <span>
+                      <b>Signature is valid:</b>
+                      &nbsp;
+                      {sigVerified === true && (
+                        <span className="valid">TRUE</span>
+                      )}
+                      {sigVerified === false && (
+                        <span className="notValid">FALSE</span>
+                      )}
+                    </span>
+                  )}
                 </p>
               </div>
             )}

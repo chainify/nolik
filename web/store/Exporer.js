@@ -15,6 +15,7 @@ class ExplorerStore {
   }
 
   @observable cdm = null;
+  @observable initCdm = null;
   @observable cdmId = null;
   @observable getCdmStatus = 'init';
   @observable showSeedModal = false;
@@ -34,13 +35,14 @@ class ExplorerStore {
       cdm.rawSubject = '';
       cdm.rawMessage = '';
       this.cdm = cdm;
+      this.initCdm = cdm;
     });
   }
 
   @action
   importSubmit() {
     const { crypto } = this.stores;
-    const cdm = crypto.decryptCdm(this.cdm);
+    const cdm = crypto.decryptCdm(this.initCdm);
     this.cdm = cdm;
     this.toggleSeedModal();
   }
