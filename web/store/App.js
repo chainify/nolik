@@ -487,6 +487,7 @@ class AppStore {
           this.switchTo = null;
           this.toggleDrawer();
           threads.setThread(null);
+          threads.dropList();
           threads.readList();
           notifiers.success('Switched account');
         }
