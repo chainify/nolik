@@ -18,7 +18,7 @@ class Index extends React.Component {
     return (
       <div>
         <div className="main">
-          <div className="header">
+          {/* <div className="header">
             {app.accounts ? (
               <button
                 type="button"
@@ -43,46 +43,45 @@ class Index extends React.Component {
                 <Icon type="loading" />
               </div>
             )}
-          </div>
+          </div> */}
           <div className="container">
             <div className="text">
               <h1>
                 <b>Nolik</b> instant messenger
               </h1>
               <p>
-                It is the fastest way to create immutable and secure
-                conversations. What makes Nolik unique is auditable protection
-                from data leakages.
+                It is the private messenger for your community or business with
+                provable protection from unauthorized access and data leakages.
               </p>
-            </div>
-          </div>
-          <div className="footer">
-            <div className="footerItem">
-              <Icon type="github" />
-              &nbsp;
-              <a href="https://github.com/chainify/nolik" target="_blank">
-                Github
-              </a>
-            </div>
-            <div className="footerItem">
-              <button
-                type="button"
-                onClick={() => {
-                  Router.push('/for-business');
-                }}
-              >
-                For business
-              </button>
-            </div>
-            <div className="footerItem">
-              <button
-                type="button"
-                onClick={() => {
-                  Router.push('/what-is-nolik');
-                }}
-              >
-                About
-              </button>
+              <div className="links">
+                <div className="link">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      Router.push('/for-business');
+                    }}
+                  >
+                    For business
+                  </button>
+                </div>
+                <div className="link">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      Router.push('/app');
+                    }}
+                  >
+                    Demo
+                  </button>
+                </div>
+                <div className="link">
+                  <Icon type="github" />
+                  &nbsp;
+                  <a href="https://github.com/chainify/nolik" target="_blank">
+                    About
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -121,7 +120,8 @@ class Index extends React.Component {
           }
 
           .container {
-            height: calc(100vh - 32px - 2em - 20px - 2em);
+            // height: calc(100vh - 32px - 2em - 20px - 2em);
+            height: 100vh;
             max-width: 800px;
             margin-left: auto;
             margin-right: auto;
@@ -148,26 +148,26 @@ class Index extends React.Component {
             text-decoration: none;
           }
 
-          .footer {
+          .links {
             height: 20px;
             width: 100%;
-            padding: 0 2em 2em 2em;
+            padding-top: 4em;
             max-width: 800px;
             margin-left: auto;
             margin-right: auto;
           }
 
-          .footerItem {
+          .link {
             display: inline-block;
             margin-right: 20px;
           }
 
-          .footerItem a {
+          .link a {
             text-decoration: underline;
             color: #eee;
           }
 
-          .footerItem button {
+          .link button {
             border: none;
             background: transparent;
             padding: 0;
