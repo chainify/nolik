@@ -262,6 +262,10 @@ class CryptoStore {
       thisCdm.sharedWith = sharedWith;
     }
 
+    if (cdm.logicalSender === null) {
+      thisCdm.logicalSender = cdm.realSender;
+    }
+
     if (cdm.subject) {
       const subject =
         this.decryptMessage(
