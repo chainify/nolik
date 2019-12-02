@@ -7,20 +7,19 @@ import { Divider, Button } from 'antd';
 import { sha256 } from 'js-sha256';
 import * as moment from 'moment';
 import getConfig from 'next/config';
-import LogIn from './app/modals/login';
-import Switch from './app/modals/switch';
+import UnlockSeed from './app/modals/unlockSeed';
 const { verifySignature, keyPair } = require('@waves/ts-lib-crypto');
 
 const { publicRuntimeConfig } = getConfig();
 const { NETWORK, API_HOST, CLIENT_SEED } = publicRuntimeConfig;
 
-@inject('app', 'explorer', 'crypto')
+@inject('explorer', 'crypto')
 @observer
 class Explorer extends React.Component {
   constructor(props) {
     super(props);
 
-    const { explorer, app } = props;
+    const { explorer } = props;
 
     autorun(() => {
       if (props.router.query.cdmId) {
@@ -33,23 +32,10 @@ class Explorer extends React.Component {
         explorer.getCdm();
       }
     });
-
-    autorun(() => {
-      if (app.seed) {
-        explorer.decodeCdm();
-      }
-    });
-  }
-
-  componentDidMount() {
-    const { app } = this.props;
-    app.initAccountsDB();
-    app.initAppDB();
-    app.readAccounts();
   }
 
   render() {
-    const { explorer, app, crypto } = this.props;
+    const { explorer, crypto } = this.props;
     let rawSubjectVerified = null;
     let rawMessageVerified = null;
     let sigVerified = null;
@@ -83,26 +69,25 @@ class Explorer extends React.Component {
 
     return (
       <div>
-        <LogIn />
-        <Switch />
+        <UnlockSeed />
         <div className="main">
           <div className="header">
-            {app.seed ? (
+            {explorer.seed ? (
               <Button type="link" disabled>
-                {`${keyPair(app.seed).publicKey.substring(
+                {`${keyPair(explorer.seed).publicKey.substring(
                   0,
                   4,
-                )}••••••••${keyPair(app.seed).publicKey.substring(
-                  keyPair(app.seed).publicKey.length - 4,
+                )}••••••••${keyPair(explorer.seed).publicKey.substring(
+                  keyPair(explorer.seed).publicKey.length - 4,
                 )}`}
               </Button>
             ) : (
               <Button
                 type="primary"
                 onClick={() => {
-                  app.togglePasswordModal();
+                  explorer.toggleSeedModal();
                 }}
-                disabled={app.accounts === null || app.accounts.length === 0}
+                // disabled={app.accounts === null || app.accounts.length === 0}
               >
                 Unlock
               </Button>
@@ -139,7 +124,7 @@ class Explorer extends React.Component {
                 </p>
                 <Divider />
                 <p>
-                  <b>Sender:</b>&nbsp;{explorer.cdm.logicalSender}
+                  <b>Sender:</b>&nbsp;{explorer.cdm.logicalSender || explorer.cdm.realSender}
                 </p>
                 <p>
                   <b>Recipient:</b>&nbsp;{explorer.cdm.recipient}
@@ -152,19 +137,19 @@ class Explorer extends React.Component {
                   <b>Subject:</b>&nbsp;{explorer.cdm.subject || '-'}
                 </p>
                 <p>
-                  <b>Raw subject:</b>&nbsp;{app.seed ? explorer.cdm.rawSubject || '-' : 'Please unlock'}
+                  <b>Raw subject:</b>&nbsp;{explorer.seed ? explorer.cdm.rawSubject || '-' : 'Please unlock'}
                 </p>
                 <p>
                   <b>Subject SHA256 hash:</b>&nbsp;{explorer.cdm.subjectHash || '-'}
                 </p>
                 <p>
                   <b>Hash is valid:</b>&nbsp;
-                  {!app.seed && 'Please unlock'}
-                  {app.seed && rawSubjectVerified === null && <span>-</span>}
-                  {app.seed && rawSubjectVerified === true && (
+                  {!explorer.seed && 'Please unlock'}
+                  {explorer.seed && rawSubjectVerified === null && <span>-</span>}
+                  {explorer.seed && rawSubjectVerified === true && (
                     <span className="valid">TRUE</span>
                   )}
-                  {app.seed && rawSubjectVerified === false && (
+                  {explorer.seed && rawSubjectVerified === false && (
                     <span className="notValid">FALSE</span>
                   )}
                 </p>
@@ -173,19 +158,19 @@ class Explorer extends React.Component {
                   <b>Message:</b>&nbsp;{explorer.cdm.message || '-'}
                 </p>
                 <p>
-                  <b>Raw message:</b>&nbsp;{app.seed ? explorer.cdm.rawMessage || '-' : 'Please unlock'}
+                  <b>Raw message:</b>&nbsp;{explorer.seed ? explorer.cdm.rawMessage || '-' : 'Please unlock'}
                 </p>
                 <p>
                   <b>Message SHA256 hash:</b>&nbsp;{explorer.cdm.messageHash || '-'}
                 </p>
                 <p>
                   <b>Hash is valid:</b>&nbsp;
-                  {!app.seed && 'Please unlock'}
-                  {app.seed && rawMessageVerified === null && <span>-</span>}
-                  {app.seed && rawMessageVerified === true && (
+                  {!explorer.seed && 'Please unlock'}
+                  {explorer.seed && rawMessageVerified === null && <span>-</span>}
+                  {explorer.seed && rawMessageVerified === true && (
                     <span className="valid">TRUE</span>
                   )}
-                  {app.seed && rawMessageVerified === false && (
+                  {explorer.seed && rawMessageVerified === false && (
                     <span className="notValid">FALSE</span>
                   )}
                 </p>
@@ -197,20 +182,33 @@ class Explorer extends React.Component {
                     : 'Sponsored (CDM proof)'}
                 </p>
                 <p>
-                  <b>Signed by:</b>&nbsp;{explorer.cdm.logicalSender}
+                  <b>Signed by:</b>&nbsp;
+                  {explorer.cdm.logicalSender === explorer.cdm.realSender
+                    ? explorer.cdm.realSender
+                    : 'Sponsored (CDM proof)'}
                 </p>
                 <p>
-                  <b>Signed text:</b>&nbsp;{signedText}
+                  <b>Signed text:</b>&nbsp;
+                  {explorer.cdm.logicalSender === explorer.cdm.realSender
+                    ? 'Blockchain proof'
+                    : signedText}
                 </p>
                 <p>
-                  <b>Signature:</b>&nbsp;{explorer.cdm.signature}
+                  <b>Signature:</b>
+                  &nbsp;
+                  {explorer.cdm.logicalSender === explorer.cdm.realSender
+                    ? 'Blockchain signature'
+                    : explorer.cdm.signature}
                 </p>
                 <p>
-                  <b>Signature is valid:</b>&nbsp;
-                  {sigVerified === true && <span className="valid">TRUE</span>}
-                  {sigVerified === false && (
-                    <span className="notValid">FALSE</span>
+                  {explorer.cdm.logicalSender !== explorer.cdm.realSender && (
+                    <b>Signature is valid:</b>
                   )}
+                  &nbsp;
+                  {explorer.cdm.logicalSender !== explorer.cdm.realSender &&
+                    sigVerified === true && <span className="valid">TRUE</span>}
+                  {explorer.cdm.logicalSender !== explorer.cdm.realSender &&
+                    sigVerified === false && <span className="notValid">FALSE</span>}
                 </p>
               </div>
             )}
@@ -255,7 +253,6 @@ class Explorer extends React.Component {
 }
 
 Explorer.propTypes = {
-  app: PropTypes.object,
   explorer: PropTypes.object,
   crypto: PropTypes.object,
   router: PropTypes.object,

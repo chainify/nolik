@@ -189,8 +189,8 @@ class CryptoStore {
 
   @action
   decryptMessage(cipherText, publicKey) {
-    const { app } = this.stores;
-    const keys = keyPair(app.seed);
+    const { app, explorer } = this.stores;
+    const keys = keyPair(app.seed || explorer.seed);
     let decryptedMessage;
     try {
       decryptedMessage = messageDecrypt(
@@ -226,13 +226,9 @@ class CryptoStore {
     let { recipient } = cdm;
     let { logicalSender } = cdm;
 
-    // if (cdm.version === '0.7') {
-    //   const sharedWith = cdm.sharedWith.map(el => el.publicKey);
-    //   thisCdm.sharedWith = sharedWith;
-    // }
-    if (cdm.version !== '0.7') {
+    if (thisCdm.version !== '0.7') {
       recipient = this.decryptPublicKey(
-        cdm.recipient,
+        thisCdm.recipient,
         keyPair(CLIENT_SEED).publicKey,
       );
       if (recipient) {
@@ -241,7 +237,7 @@ class CryptoStore {
       }
 
       logicalSender = this.decryptPublicKey(
-        cdm.logicalSender,
+        thisCdm.logicalSender,
         keyPair(CLIENT_SEED).publicKey,
       );
       if (logicalSender) {
@@ -250,9 +246,9 @@ class CryptoStore {
       }
 
       const sharedWith = [];
-      for (let i = 0; i < cdm.sharedWith.length; i += 1) {
+      for (let i = 0; i < thisCdm.sharedWith.length; i += 1) {
         const publicKey = this.decryptPublicKey(
-          cdm.sharedWith[i],
+          thisCdm.sharedWith[i],
           keyPair(CLIENT_SEED).publicKey,
         );
         if (sharedWith.indexOf(publicKey) < 0) {
@@ -262,25 +258,30 @@ class CryptoStore {
       thisCdm.sharedWith = sharedWith;
     }
 
-    if (cdm.logicalSender === null) {
-      thisCdm.logicalSender = cdm.realSender;
+    if (thisCdm.logicalSender === null) {
+      thisCdm.logicalSender = thisCdm.realSender;
+      thisCdm.logicalSenderHash = sha256(thisCdm.realSender);
     }
 
-    if (cdm.subject) {
+    if (thisCdm.subject) {
       const subject =
         this.decryptMessage(
-          cdm.subject,
-          cdm.direction === 'outgoing' ? cdm.recipient : cdm.logicalSender,
+          thisCdm.subject,
+          thisCdm.direction === 'outgoing'
+            ? thisCdm.recipient
+            : thisCdm.logicalSender,
         ) || decodingError;
       thisCdm.rawSubject = subject;
       thisCdm.subject = subject.replace(/@[\w]{64}$/gim, '');
     }
 
-    if (cdm.message) {
+    if (thisCdm.message) {
       const message =
         this.decryptMessage(
-          cdm.message,
-          cdm.direction === 'outgoing' ? cdm.recipient : cdm.logicalSender,
+          thisCdm.message,
+          thisCdm.direction === 'outgoing'
+            ? thisCdm.recipient
+            : thisCdm.logicalSender,
         ) || decodingError;
       thisCdm.rawMessage = message;
       thisCdm.message = message.replace(/@[\w]{64}$/gim, '');

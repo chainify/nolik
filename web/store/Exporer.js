@@ -10,12 +10,20 @@ class ExplorerStore {
   stores = null;
   constructor(stores) {
     this.stores = stores;
-    this.decodeCdm = this.decodeCdm.bind(this);
+    this.importSubmit = this.importSubmit.bind(this);
+    this.toggleSeedModal = this.toggleSeedModal.bind(this);
   }
 
   @observable cdm = null;
   @observable cdmId = null;
   @observable getCdmStatus = 'init';
+  @observable showSeedModal = false;
+  @observable seed = '';
+
+  @action
+  toggleSeedModal() {
+    this.showSeedModal = !this.showSeedModal;
+  }
 
   @action
   getCdm() {
@@ -29,36 +37,12 @@ class ExplorerStore {
     });
   }
 
-  decodeCdm() {
-    const { app, crypto } = this.stores;
-    const { cdm } = this;
-    const alice = keyPair(app.seed).publicKey;
-
-    const logicalSender = crypto.decryptPublicKey(
-      cdm.logicalSender,
-      keyPair(CLIENT_SEED).publicKey,
-    );
-
-    const recipient = crypto.decryptPublicKey(
-      cdm.recipient,
-      keyPair(CLIENT_SEED).publicKey,
-    );
-
-    const publicKey = alice === logicalSender ? recipient : logicalSender;
-
-    if (cdm.subject) {
-      const subject = crypto.decryptMessage(cdm.subject, publicKey);
-      cdm.subject = subject.replace(/@[\w]{64}$/gim, '');
-      cdm.rawSubject = subject;
-    }
-
-    if (cdm.message) {
-      const message = crypto.decryptMessage(cdm.message, publicKey);
-      cdm.message = message.replace(/@[\w]{64}$/gim, '');
-      cdm.rawMessage = message;
-    }
-
+  @action
+  importSubmit() {
+    const { crypto } = this.stores;
+    const cdm = crypto.decryptCdm(this.cdm);
     this.cdm = cdm;
+    this.toggleSeedModal();
   }
 }
 
