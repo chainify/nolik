@@ -1,4 +1,4 @@
-import { action, observable, toJS } from 'mobx';
+import { action, observable } from 'mobx';
 import axios from 'axios';
 import { keyPair, signBytes } from '@waves/ts-lib-crypto';
 import getConfig from 'next/config';
@@ -127,6 +127,7 @@ class CdmStore {
           })
           .catch(e => {
             console.log('err', e);
+            notifiers.error('Message is not sent. Something went wrong...');
             this.sendCdmStatus = 'error';
           });
       });
