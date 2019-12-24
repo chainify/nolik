@@ -1,202 +1,125 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import { autorun, toJS } from 'mobx';
 import { observer, inject } from 'mobx-react';
-import { Icon } from 'antd';
-import Router from 'next/router';
 
-@inject('app')
+import Main from './app/main';
+import Drawer from './app/drawer';
+import Loading from './app/loading';
+import Share from './app/modals/share';
+import Welcome from './app/modals/welcome';
+import LogIn from './app/modals/login';
+import Backup from './app/modals/backup';
+import Switch from './app/modals/switch';
+import Password from './app/modals/password';
+import DropAccounts from './app/modals/dropAccounts';
+import ImportBackupPhrase from './app/modals/import';
+import ContactInfo from './app/modals/contact';
+
+@inject('app', 'threads', 'heartbeat', 'chat', 'contacts')
 @observer
-class Index extends React.Component {
+class App extends React.Component {
+  constructor(props) {
+    super(props);
+    const { app, threads, heartbeat, contacts } = this.props;
+
+    autorun(() => {
+      if (app.seed) {
+        app.initSettingsDB();
+        threads.initLevelDB();
+        contacts.initLevelDB();
+      }
+    });
+
+    autorun(() => {
+      if (app.seed && contacts.list === null) {
+        contacts.readList();
+      }
+    });
+
+    autorun(() => {
+      if (app.seed && threads.list === null && contacts.list !== null) {
+        app.getAppSettings('cdmVersion').then(currentVersion => {
+          if (currentVersion && currentVersion === '0.7') {
+            threads.dropList();
+          }
+          threads.readList();
+        });
+      }
+    });
+
+    autorun(() => {
+      if (
+        app.seed &&
+        heartbeat.heartbeatStatus === 'init' &&
+        threads.list !== null
+      ) {
+        heartbeat.push();
+      }
+    });
+
+    this.heartbeatPeriodic = autorun(() => {
+      if (
+        app.seed &&
+        ['success', 'error'].indexOf(heartbeat.heartbeatStatus) > -1
+      ) {
+        heartbeat.push();
+      }
+    });
+  }
+
   componentDidMount() {
     const { app } = this.props;
     app.initAccountsDB();
-    app.readAccounts();
+    app.initAppDB();
+    app.init();
+  }
+
+  componentWillUnmount() {
+    const { app } = this.props;
+    this.heartbeatPeriodic();
+    app.logOut();
   }
 
   render() {
-    const { app } = this.props;
+    const { app, threads, chat } = this.props;
     return (
       <div>
-        <div className="main">
-          {/* <div className="header">
-            {app.accounts ? (
-              <button
-                type="button"
-                className="menuButton"
-                onClick={() => {
-                  Router.push('/app');
-                }}
-              >
-                {app.accounts.length === 0 ? (
-                  <div>
-                    <span>Start</span>&nbsp;
-                    <Icon type="user" />
-                  </div>
-                ) : (
-                  <div>
-                    <Icon type="user" />
-                  </div>
-                )}
-              </button>
-            ) : (
-              <div className="loadingIcon">
-                <Icon type="loading" />
-              </div>
-            )}
-          </div> */}
+        <Welcome />
+        <LogIn />
+        <Backup />
+        <Switch />
+        <Password />
+        <ImportBackupPhrase />
+        <DropAccounts />
+        <ContactInfo />
+        {app.seed && <Share />}
+        {app.accounts && <Drawer />}
+        <div className={`main ${chat.focusMode ? 'focused' : ''}`}>
           <div className="container">
-            <div className="text">
-              <h1>
-                <b>Nolik</b> instant messenger
-              </h1>
-              <p>
-                It is the private messenger for your community or business with
-                provable protection from unauthorized access and data leakages.
-              </p>
-              <div className="links">
-                <div className="link">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      Router.push('/for-business');
-                    }}
-                  >
-                    For business
-                  </button>
-                </div>
-                <div className="link">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      Router.push('/app');
-                    }}
-                  >
-                    Demo
-                  </button>
-                </div>
-                <div className="link">
-                  <Icon type="github" />
-                  &nbsp;
-                  <a href="https://github.com/chainify/nolik" target="_blank">
-                    About
-                  </a>
-                </div>
-              </div>
-            </div>
+            {app.accounts !== null && threads.list !== null ? (
+              <Main />
+            ) : (
+              <Loading />
+            )}
           </div>
         </div>
         <style jsx>{`
           .main {
             height: 100vh;
-            background: #2196f3;
-            color: #fff;
-            font-family: 'Montserrat', sans-serif;
+            background: #f5f5f5;
           }
 
-          .header {
-            height: calc(32px + 2em);
-            padding: 2em 2em 0 2em;
-            text-align: right;
-          }
-
-          .menuButton {
-            border: none;
-            background: transparent;
-            padding: 0;
-            margin: 0;
-            text-align: left;
-            box-shadow: none;
-            outline: 0;
-            cursor: pointer;
-            height: 32px;
-            font-size: 32px;
-            line-height: 32px;
-            text-align: right;
-          }
-
-          .menuButton span {
-            text-decoration: underline;
-            line-height: 32px;
+          .main.focused {
+            background: #fff;
           }
 
           .container {
-            // height: calc(100vh - 32px - 2em - 20px - 2em);
             height: 100vh;
-            max-width: 800px;
+            max-width: 1024px;
             margin-left: auto;
             margin-right: auto;
-            display: flex;
-          }
-
-          .container .text {
-            align-self: center;
-            max-width: 600px;
-            padding: 2em;
-          }
-
-          .text h1 {
-            font-size: 2.4em;
-            color: #000;
-            margin: 0 0 1em 0;
-          }
-          .text p {
-            font-size: 1.65em;
-            line-height: 1.4em;
-          }
-          .text p a {
-            color: #fff;
-            text-decoration: none;
-          }
-
-          .links {
-            height: 20px;
-            width: 100%;
-            padding-top: 4em;
-            max-width: 800px;
-            margin-left: auto;
-            margin-right: auto;
-          }
-
-          .link {
-            display: inline-block;
-            margin-right: 20px;
-          }
-
-          .link a {
-            text-decoration: underline;
-            color: #eee;
-          }
-
-          .link button {
-            border: none;
-            background: transparent;
-            padding: 0;
-            margin: 0;
-            text-align: center;
-            box-shadow: none;
-            outline: 0;
-            cursor: pointer;
-            color: #fff;
-            font-weight: 400;
-            text-decoration: underline;
-          }
-
-          .menu {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 100vh;
-            width: 100%;
-            z-index: 100;
-            display: none;
-          }
-
-          .menu.active {
-            display: block;
-          }
-
-          .loadingIcon {
-            font-size: 2em;
+            background: #fff;
           }
         `}</style>
       </div>
@@ -204,8 +127,12 @@ class Index extends React.Component {
   }
 }
 
-Index.propTypes = {
+App.propTypes = {
   app: PropTypes.object,
+  threads: PropTypes.object,
+  heartbeat: PropTypes.object,
+  chat: PropTypes.object,
+  contacts: PropTypes.object,
 };
 
-export default Index;
+export default App;

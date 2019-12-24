@@ -17,14 +17,8 @@ app.prepare().then(() => {
   server.use(cors());
 
   server.get('/', (req, res) => app.render(req, res, '/index'));
-  server.get('/app', (req, res) => app.render(req, res, '/app'));
-
-  server.get('/app/th/:threadHash', (req, res) => {
-    res.redirect('/app');
-  });
-
   server.get('/pk/:publicKey', (req, res) =>
-    app.render(req, res, '/app', {
+    app.render(req, res, '/', {
       publicKey: req.params.publicKey,
       subject: req.query.s,
       message: req.query.m,

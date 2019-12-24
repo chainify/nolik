@@ -146,8 +146,6 @@ class AppStore {
         this.togglePasswordModal();
       }
     });
-
-    // notifiers.sound = new Audio('/static/assets/notification.mp3');
   }
 
   @action
@@ -177,6 +175,7 @@ class AppStore {
     threads.current = null;
     this.clearPassword();
     Router.push('/');
+    this.init();
   }
 
   @action
