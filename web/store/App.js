@@ -138,8 +138,6 @@ class AppStore {
   init() {
     const { threads } = this.stores;
     this.demoMode = DEMO_MODE === 'on';
-    console.log('demoMode', this.demoMode);
-
     this.readAccounts().then(accounts => {
       threads.init();
       if (accounts.length === 0) {
