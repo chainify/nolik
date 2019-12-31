@@ -136,8 +136,9 @@ class AppStore {
 
   @action
   init() {
-    const { threads, notifiers } = this.stores;
+    const { threads } = this.stores;
     this.demoMode = DEMO_MODE === 'on';
+    console.log('demoMode', this.demoMode);
 
     this.readAccounts().then(accounts => {
       threads.init();
@@ -148,8 +149,6 @@ class AppStore {
         this.togglePasswordModal();
       }
     });
-
-    // notifiers.sound = new Audio('/static/assets/notification.mp3');
   }
 
   @action
