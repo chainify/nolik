@@ -5,7 +5,7 @@ import Router from 'next/router';
 import stringFromUTF8Array from '../utils/batostr';
 
 const { publicRuntimeConfig } = getConfig();
-const { CLIENT_SECRET } = publicRuntimeConfig;
+const { CLIENT_SECRET, DEMO_MODE } = publicRuntimeConfig;
 const CryptoJS = require('crypto-js');
 
 class AppStore {
@@ -30,6 +30,7 @@ class AppStore {
   @observable accounts = null;
   @observable recipient = null;
   @observable switchTo = null;
+  @observable demoMode = false;
 
   @observable password = '';
   @observable newPassword = '';
@@ -136,6 +137,7 @@ class AppStore {
   @action
   init() {
     const { threads, notifiers } = this.stores;
+    this.demoMode = DEMO_MODE === 'on';
 
     this.readAccounts().then(accounts => {
       threads.init();
@@ -458,7 +460,11 @@ class AppStore {
 
   @action
   copyPublicKey() {
-    const { utils, notifiers } = this.stores;
+    const { utils, notifiers, app } = this.stores;
+    if (app.demoMode) {
+      notifiers.warning('Not allowed in demo mode');
+      return;
+    }
     const { publicKey } = keyPair(this.seed);
     utils.clipboardTextarea(publicKey);
     notifiers.info('Public key has been copied');

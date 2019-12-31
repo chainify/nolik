@@ -17,7 +17,7 @@ import MembersDrawer from '../../components/MembersDrawer';
 
 // import Menu from './menu';
 
-@inject('chat', 'threads')
+@inject('chat', 'threads', 'app', 'notifiers')
 @observer
 class Main extends React.Component {
   constructor(props) {
@@ -38,6 +38,13 @@ class Main extends React.Component {
         chat.toggleCompose();
       }
     });
+  }
+
+  componentDidMount() {
+    const { app, notifiers } = this.props;
+    if (app.demoMode) {
+      notifiers.demoMode();
+    }
   }
 
   render() {
@@ -91,6 +98,8 @@ Main.propTypes = {
   chat: PropTypes.object,
   threads: PropTypes.object,
   router: PropTypes.object,
+  app: PropTypes.object,
+  notifiers: PropTypes.object,
 };
 
 export default withRouter(Main);

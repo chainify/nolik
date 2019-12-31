@@ -33,6 +33,11 @@ class MenuStore {
 
   @action
   toggleShareModal() {
+    const { app, notifiers } = this.stores;
+    if (app.demoMode) {
+      notifiers.warning('Not allowed in demo mode');
+      return;
+    }
     this.showShareModal = !this.showShareModal;
   }
 
@@ -43,6 +48,12 @@ class MenuStore {
 
   @action
   toggleBackupModal() {
+    const { app, notifiers } = this.stores;
+    if (app.demoMode) {
+      notifiers.warning('Not allowed in demo mode');
+      return;
+    }
+
     this.backupUnlocked = false;
     this.showBackupModal = !this.showBackupModal;
   }

@@ -1,5 +1,5 @@
 import { action, observable } from 'mobx';
-import { message, notification } from 'antd';
+import { message, notification, Button } from 'antd';
 
 class NotifiersStore {
   stores = null;
@@ -51,6 +51,32 @@ class NotifiersStore {
       duration: 7,
       message: 'Password recovery',
       description: `It is sad to say, but we will not be able to restore your password because at Nolik we do not store your passwords, decryption keys or any personal data.`,
+    });
+  }
+
+  @action
+  demoMode() {
+    const { chat } = this.stores;
+    const key = `open${Date.now()}`;
+    const btn = (
+      <Button
+        type="primary"
+        size="default"
+        onClick={() => {
+          chat.writeToNolik();
+          notification.close(key);
+        }}
+      >
+        Contact Founder
+      </Button>
+    );
+    notification.info({
+      duration: 7,
+      message: 'Nolik is in demo mode',
+      description:
+        "It means that you can't export your backup phrase and share your address. To try out Nolik send a message to Founder.",
+      key,
+      btn,
     });
   }
 }

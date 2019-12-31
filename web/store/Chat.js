@@ -39,6 +39,11 @@ class ChatStore {
 
   @action
   toggleCompose() {
+    const { app, notifiers } = this.stores;
+    if (app.demoMode && this.composeMode === false) {
+      notifiers.warning('Not allowed in demo mode');
+      return;
+    }
     this.composeMode = !this.composeMode;
     if (this.composeMode === false) {
       this.dropCompose();
@@ -114,7 +119,7 @@ class ChatStore {
     const publicKey = 'Ft5eAxcCmzfQnv1CznLqR9MZ2Vt7ewfD8caHzpcLM23x';
     this.toRecipients = [publicKey];
     this.composeMode = true;
-    app.toggleDrawer();
+    app.showDrawer = false;
     Router.push('/app', `/pk/${publicKey}`);
   }
 

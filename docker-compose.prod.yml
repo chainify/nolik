@@ -39,6 +39,7 @@ services:
       - WS_PORT=${WS_PORT}
       - SPONSOR_HOST=${SPONSOR_HOST}
       - CLIENT_SEED=${CLIENT_SEED}
+      - DEMO_MODE=${DEMO_MODE}
     restart: always
     networks:
       internal:
