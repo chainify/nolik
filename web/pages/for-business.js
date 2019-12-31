@@ -39,7 +39,7 @@ class WhatIsNolik extends React.Component {
             </p>
             <p>
               <a
-                href={`${API_HOST}/pk/cEdRrkTRMkd61UdQHvs1c2pwLfuCXVTA4GaABmiEqrP?s=Sales%20Request`}
+                href={`${API_HOST}/pk/Ft5eAxcCmzfQnv1CznLqR9MZ2Vt7ewfD8caHzpcLM23x?s=Sales%20Request`}
                 target="_blank"
               >
                 Contact sales
@@ -59,7 +59,7 @@ class WhatIsNolik extends React.Component {
             </p>
             <p>
               <a
-                href={`${API_HOST}/pk/cEdRrkTRMkd61UdQHvs1c2pwLfuCXVTA4GaABmiEqrP?s=Sales%20Request`}
+                href={`${API_HOST}/pk/Ft5eAxcCmzfQnv1CznLqR9MZ2Vt7ewfD8caHzpcLM23x?s=Sales%20Request`}
                 target="_blank"
               >
                 Contact sales
