@@ -37,14 +37,6 @@ class WhatIsNolik extends React.Component {
               modified. Each message is signed with digital signature and has a
               timestamp. That could be used for making contracts remotely.
             </p>
-            <p>
-              <a
-                href={`${API_HOST}/pk/Ft5eAxcCmzfQnv1CznLqR9MZ2Vt7ewfD8caHzpcLM23x?s=Sales%20Request`}
-                target="_blank"
-              >
-                Contact sales
-              </a>
-            </p>
             <h2>What exactly do we offer</h2>
             <ul>
               <li>Branded Nolik with a corporate domain name</li>
@@ -56,14 +48,6 @@ class WhatIsNolik extends React.Component {
             <p>
               We will also take care of cryptocurrency economics*, data backups
               and software updates
-            </p>
-            <p>
-              <a
-                href={`${API_HOST}/pk/Ft5eAxcCmzfQnv1CznLqR9MZ2Vt7ewfD8caHzpcLM23x?s=Sales%20Request`}
-                target="_blank"
-              >
-                Contact sales
-              </a>
             </p>
             <p className="cryptoDescr">
               * - payment of fees for sending blockchain transactions
