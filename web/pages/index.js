@@ -55,14 +55,11 @@ class Index extends React.Component {
               </p>
               <div className="links">
                 <div className="link">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      Router.push('/for-business');
-                    }}
-                  >
-                    For business
-                  </button>
+                  <Icon type="github" />
+                  &nbsp;
+                  <a href="https://github.com/chainify/nolik" target="_blank">
+                    About
+                  </a>
                 </div>
                 <div className="link">
                   <button
@@ -73,13 +70,6 @@ class Index extends React.Component {
                   >
                     Demo
                   </button>
-                </div>
-                <div className="link">
-                  <Icon type="github" />
-                  &nbsp;
-                  <a href="https://github.com/chainify/nolik" target="_blank">
-                    About
-                  </a>
                 </div>
               </div>
             </div>
