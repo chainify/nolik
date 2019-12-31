@@ -5,7 +5,7 @@ import Router from 'next/router';
 import stringFromUTF8Array from '../utils/batostr';
 
 const { publicRuntimeConfig } = getConfig();
-const { CLIENT_SECRET } = publicRuntimeConfig;
+const { CLIENT_SECRET, DEMO_MODE } = publicRuntimeConfig;
 const CryptoJS = require('crypto-js');
 
 class AppStore {
@@ -30,6 +30,7 @@ class AppStore {
   @observable accounts = null;
   @observable recipient = null;
   @observable switchTo = null;
+  @observable demoMode = false;
 
   @observable password = '';
   @observable newPassword = '';
@@ -135,7 +136,8 @@ class AppStore {
 
   @action
   init() {
-    const { threads, notifiers } = this.stores;
+    const { threads } = this.stores;
+    this.demoMode = DEMO_MODE === 'on';
 
     this.readAccounts().then(accounts => {
       threads.init();
@@ -445,6 +447,7 @@ class AppStore {
   @action
   copySeedPhrase() {
     const { menu, notifiers, utils } = this.stores;
+
     if (menu.backupUnlocked !== true) {
       notifiers.error(`Backup phrase can't be copied. Please unlock first.`);
     }

@@ -2,6 +2,7 @@ import React from 'react';
 import PropTypes from 'prop-types';
 import { autorun, toJS } from 'mobx';
 import { observer, inject } from 'mobx-react';
+import getConfig from 'next/config';
 
 import Main from './app/main';
 import Drawer from './app/drawer';
@@ -15,6 +16,9 @@ import Password from './app/modals/password';
 import DropAccounts from './app/modals/dropAccounts';
 import ImportBackupPhrase from './app/modals/import';
 import ContactInfo from './app/modals/contact';
+
+const { publicRuntimeConfig } = getConfig();
+const { DEMO_MODE } = publicRuntimeConfig;
 
 @inject('app', 'threads', 'heartbeat', 'chat', 'contacts')
 @observer

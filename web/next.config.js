@@ -14,6 +14,7 @@ module.exports = withCss({
     CDM_VERSION: process.env.CDM_VERSION,
     SPONSOR_HOST: process.env.SPONSOR_HOST,
     CLIENT_SEED: process.env.CLIENT_SEED,
+    DEMO_MODE: process.env.DEMO_MODE,
   },
   onDemandEntries: {
     maxInactiveAge: 25 * 1000,

@@ -43,7 +43,12 @@ class MenuStore {
 
   @action
   toggleBackupModal() {
+    const { app, notifiers } = this.stores;
     this.backupUnlocked = false;
+    if (app.demoMode) {
+      notifiers.warning('Not allowed in demo mode');
+      return;
+    }
     this.showBackupModal = !this.showBackupModal;
   }
 

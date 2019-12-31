@@ -39,6 +39,13 @@ class ChatStore {
 
   @action
   toggleCompose() {
+    const { app, notifiers } = this.stores;
+
+    if (app.demoMode) {
+      notifiers.warning('Not allowed in demo mode');
+      return;
+    }
+
     this.composeMode = !this.composeMode;
     if (this.composeMode === false) {
       this.dropCompose();

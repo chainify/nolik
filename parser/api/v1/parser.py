@@ -243,6 +243,8 @@ class Parser:
         try:
             with conn:
                 with conn.cursor() as cur:
+
+                    # FIX: sql_data_senders равен нулю, при директ оправке
                     self.valid_transactions = min(
                         len(self.sql_data_transactions),
                         len(self.sql_data_proofs),
