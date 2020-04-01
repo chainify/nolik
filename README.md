@@ -1,21 +1,13 @@
 # Nolik Instant messenger
 
-Nolik is a decentralized P2P messegnger.
+Nolik is a decentralized P2P messegnger with a provable protection from unauthorized access.
 
-Unlike email or Slack, can:
+The protocol allows to:
 * guarantee the sending and receiving of messages
 * ensure that the content of messages is not accessed by third parties, even by the application developers team
 * ensure that the sending time and content of the message will not be modified in the future
 * accompany each message with a digital signature
 * create a local copy of your encrypted files
-
-Perfect use cases:
-* corporate messaging
-* private online consulting (for example medical/psychological chat)
-* privacy-first communications (for example chat of a journalist with the source)
-* making contracts remotely (because a digital signature is used for every message)
-
-You can use the public version of Nolik a [https://nolik.im](https://nolik.im) or deploy private messenger in your environment.
 
 ### Chainify IPFS nodes:
 * /ip4/165.22.150.171/tcp/4001/ipfs/QmUTByvwDUfbPbrvNs7PGRkitvwsUbtpGxE8XFSdUYdcw2
@@ -23,10 +15,10 @@ You can use the public version of Nolik a [https://nolik.im](https://nolik.im) o
 
 ## Content
 * [Quick Start](https://github.com/chainify/nolik#quick-start)
-* [CDM Protocol](https://github.com/chainify/nolik#cdm-protocol)
+* [The Protocol](https://github.com/chainify/nolik#the-protocol)
   * [How it works](https://github.com/chainify/nolik#how-it-works)
-  * [CDM file sample](https://github.com/chainify/nolik#cdm-file-sample)
-  * [CDM file structure](https://github.com/chainify/nolik#cdm-file-structure)
+  * [File sample](https://github.com/chainify/nolik#cdm-file-sample)
+  * [File structure](https://github.com/chainify/nolik#xml-file-structure)
   * [Proofs](https://github.com/chainify/nolik#proofs)
 * [Microservices architecture](https://github.com/chainify/nolik#microservices-architecture)
   * [Microservices description](https://github.com/chainify/nolik#microservices-description)
@@ -124,7 +116,7 @@ If everithong installed correclry you sould see something like this
 
 You can visit your Nolik client and send your first message.
 
-## CDM protocol
+## The protocol
 
 CDM (Chainify Decentralized Messaging) protocol is designed for privacy-first communicatoins.
 
@@ -140,66 +132,56 @@ for anyone to verify that a message (i) was dispatched by a particular user, (ii
 
 ### How it works
 
-1. Alice and Bob are going to have a conversation using Nolik. Each of them already installed the [Waves Keeper](https://wavesplatform.com/products-keeper) browser extension and created accounts. To use Nolik Alice and Bob simply log in with Waves Keeper and get personalized content without any registration.
-2. Alice needs to know Bob's public key, which she can get directly from Bob or public sources.
-3. Alice wrights a message and encrypts it with Bob's public key. To do that Alice creates a shared key based on Diffie Hellman algorithm.
-4. Alice creates a CDM file of a certain structure (an example is below).
+1. Alice and Bob are going to have a conversation using Nolik.
+2. Alice needs to know Bob's public key, which she can get directly from Bob.
+3. Alice wrights a message and encrypts it with Bob's public key. To do that Alice creates a shared key based on Diffie-Hellman algorithm.
+4. Alice creates a XML file of a certain structure (an example is below).
 5. Alice saves that file to IPFS network and gets the IPFS hash (a unique hash based on file content). That hash is also used to read file content in IPFS network.
-6. That IPFS hash is attached to the blockchain transaction and broadcasts to the blockchain network. That transaction is *colored* with a custom token (at Chainify we use [CNFY token](https://wavesexplorer.com/tx/6U3wmEJQzoeeYmCLvwCEWwQY17HwXLRYiMnST9wKBSL5)). Coloring allows to pick relevant transactions, parse them and save them to the database.
-7. Bob receives the transaction, which is delivered by API and decodes it with Waves Keeper extension.
+6. That IPFS hash is attached to the blockchain transaction and broadcasts to the blockchain network. That transaction is *colored* with a custom token (at Chainify we use [CNFY token](https://wavesexplorer.com/tx/6U3wmEJQzoeeYmCLvwCEWwQY17HwXLRYiMnST9wKBSL5)). Coloring allows to pick relevant transactions, parse them and save them to the caching database.
+7. Bob receives the transaction, which is delivered by API and decrypts it with a private key.
 
 ### CDM file sample
 
 CDM file is a regular XML file with a certain structure. The file is saved to IPFS network and can be reached with a unique address which is generated based on the file content. The same file content will generate the same address (IPFS Hash).
 
-CDM file example: [https://nolik.im/ipfs/QmYLWaaWKesqGTdRjggLkRa25xgBZVqWi56tyfKqpD3pU6](https://nolik.im/ipfs/QmYLWaaWKesqGTdRjggLkRa25xgBZVqWi56tyfKqpD3pU6)
+CDM file example: [https://nolik.im/ipfs/QmSb3Q5eGRJMC9gynDbvb5dNnifvvN4fKrtc4YH4Doef6m](https://nolik.im/ipfs/QmSb3Q5eGRJMC9gynDbvb5dNnifvvN4fKrtc4YH4Doef6m)
 
 
 ```
 <?xml version="1.0"?>
 <cdm>
-    <version>0.7</version>
+    <version>0.8</version>
     <blockchain>Waves</blockchain>
     <network>Mainnet</network>
     <messages>
         <message>
-            <subject>
-                <ciphertext>
-                  f43y5Mc88CS7cE8AXWGU7h9RbgqnUWwJW1j1w9RYDGKJgTk1pgq99VSHiyev2hd5QtrDKtj6AktCnH5njCPrGWqpmZZubdviqNCEsMGNGrFAjVEwRm4WCVwHoqjXRjsMaBafcYWfBddxc22q6Rhfbe1ioXPWnv9mPLBPmptLyu5nU8yMXFMBBURSS87QuZyoX8iWGkswzCNtaiMBeJ8LXfw21WcV5PH4eT2UEFreooHY1shejC25ZjzWTuK4uj2jYrgF7dGkUBWG72rZUocpcaAztJYt3sRKFrWK1AY8JUhocmQSMUFXWDy5ebbLb
-                </ciphertext>
-                <sha256>
-                  32a5ffa09db0d79f5c688bd7873872f63e1c83554459ee4212833378700263c5
-                </sha256>
-            </subject>
             <cc>
-                <publickey>
-                  cEdRrkTRMkd61UdQHvs1c2pwLfuCXVTA4GaABmiEqrP
-                </publickey>
+                <ciphertext>
+                  uBGWXqVWJDgZe66bDTVYkuNFEYWiY68QafyBqrcHs2DqtnkzYVA2tnBZWu7shoGcKRwRmnuvCknjmnDWGrAS1HKMJ8yAUeopNT2xmicJPsziJcgqyon8P1qJYT34QmhUWzJ7uRy6UQYEbkak9TZ2fzouSxaJCiKGMUWb97P7kojKodE8fnCoC2hRVNpKee4CZxC1mDw1f8edSp5DrvxJfddxUh3pPTPX9EzPBsunZYh
+                </ciphertext>
+                <sha256>190e43f4cfecd45c028b01ddfe3148800a19db619332e9289472207844fd57cc</sha256>
             </cc>
             <body>
                 <ciphertext>
-                  ZTxLXhXZfKvybjxMqj1kQkkyt8RYtVkXTGNCQm3PS84cyMoDSCjRGczGJPtAnzC1EYhT7Doaw7r3CvaSz1prP9jEjuxJRrh8csWYdx2MSw59htUhdQEc3K4MPkbQJDPUp2vFzWwaF1xPFWcexstv34tMa29XNNafesN93jeMoejcVFXrcw8nV8qKHmdxPUXmeSBwnC2YXKn3zFUYXRU8iYKe4YnLsgdjLzdmR1RVnMEm5ntSSH56dkgZztFWTW3SHgWNMZ6Ndb4L2giE6csTXz3y7qMFNiEXgZMxoC4j6NBD7Wmaqiw7Xx7aK7sBwa3dujsQkFHMF7ni
+                  dBnTsLvQoVmDJmJ2s69QvMA8CcDj9TxTUzFTAdQBpyrAXsxuuHJX3wNJBEvUrySrBe14mjoZSNZkk3ftstN64nWycPdZ7KincFZJkWbLpU1yEYoKicd68on9WKbmXKkBY3uvihGnyUtLSrQejSpvSuGmAoFdjAauXhoSSWhaLRaeT5H9Z1AAn5dqYec943axL9guKUyzeaKifr7yuTS3KF7Bc2zjZZpB69pniCKYfC3gqt4Q1B34nafcxPtbyxPQcK1onMFZDNB22MXBwzGg
                 </ciphertext>
-                <sha256>
-                  42664969222d1c0d3f0c39d456085598baf1a9a92945e6a6c07dd281ce8d9603
-                </sha256>
+                <sha256>7f1639041841c64fe59a4698157532f6eee251b859fd3ebe59d346ef7175ce9c</sha256>
             </body>
             <regarding>
-                <subjecthash>
-                  195a2c235dbf2e810351e2bd7854d932c9f4e9af594141770f37a7a6ba2b8009
-                </subjecthash>
-                <messagehash>
-                  4f82a327abe79be67dfa128efe275b8f49dbb6392385fd658bebcb1e6be60f25
-                </messagehash>
-            </regarding>>
-            <forwarded>
-                <subjecthash>
-                  d39c9c8b36aec904cd11b7608d19a531bae328c0759bd93c9a9246c8cccd70ec
-                </subjecthash>
-                <messagehash>
-                  42664969222d1c0d3f0c39d456085598baf1a9a92945e6a6c07dd281ce8d9603
-                </messagehash>
-            </forwarded>
+                <subjecthash>214a579ed1a636ac47ae1cee31d9556a9ebb6734b307b202a704d5ca3e56a89c</subjecthash>
+                <messagehash>6b5f55b85b39a1303b75443e42c42b059a6b081ca21b4231bcf0d1b36736f322</messagehash>
+            </regarding>
+            <from>
+                <sender>
+                    <ciphertext>
+                      23tnt85AmLhit4DVB8V86kJhasNxc4QrZDi5cENrhqwPHm4s2UjUTMUdWBC4DPeBbDRbP2VCcbk3pqNuhcLNRJwzFkz1opaLE9X41J8Y9yK2NhCh5VNZbXd2ojV2SQXbVxUJa9o6u9gMcA4QJX7VdhDbjqEZjLwxmCdBXoDB6BgQyn3dWa6qAh34U61oHG4yqGL2wKhTrwcoU4RQSs3JmuamfY516cLhUZA62kAvYn19
+                    </ciphertext>
+                    <sha256>54e23e690bc57b8d72f57e8432a78d79c550cf0ef33ce25bd68b1c5cd6ea666b</sha256>
+                    <signature>
+                      K4NJUQtHyVWknEFqawLrsdUtxA67GDbVvPPdrHTtoUkYAhJndQz4MpiMnjJjcLEH1eE5syDPFoUkDNwGkXYQjA7
+                    </signature>
+                </sender>
+            </from>
         </message>
     </messages>
 </cdm>
@@ -219,9 +201,11 @@ CDM file example: [https://nolik.im/ipfs/QmYLWaaWKesqGTdRjggLkRa25xgBZVqWi56tyfK
   * **ciphertext** - the message text encrypted with recipient's public key. 
   * **sha256** - the SHA256 hash of original unencrypted message text. Can be used for validating that the sent information was not modified. It can also be used for making sure that every recipient received the same message text.
 * **to** - a `direct` recipient of a message.
-  * **publickey** - the public key of the recipient.
+  * **ciphertext** - recipient's public key encrypted with Nolik Client public key. 
+  * **sha256** - the SHA256 hash of encrypted recipient's public key.
 * **cc** - a recipient that is informed with a `carbon copy`.
-  * **publickey** - the public key of the recipient.
+  * **ciphertext** - recipient's public key encrypted with Nolik Client public key. 
+  * **sha256** - the SHA256 hash of encrypted recipient's public key.
 * **regarding** - the message that is `replied` with the current message.
   * **subjecthash** - the SHA256 of the subject.
   * **messagehash** - the SHA256 of the message text.
@@ -240,16 +224,16 @@ That is done for better security. Without salt, it would be possible to hack the
 
 ### Proofs
 
-With CDM protocol it is possible to cryptographically prove that:
-1. That Nolik (or anybody else) has access to the content of messages. Every CDM file is public and can be reviewed by anyone. The content of `subject` and `body` fields is encrypted. Nolik as a service provider did not generate and distribute encryption keys and does not store any encryption keys as well. Alice can double-check that Nolik did not modify data by validating the signature. Also, Alice and Bob can deploy a personal version of Nolik.
+With Nolik it is possible to cryptographically prove that:
+1. That Nolik (or anybody else) has access to the content of messages. Every generated xml file is public and can be reviewed by anyone. The content of `subject` and `body` fields is encrypted. Nolik as a service provider did not generate and distribute encryption keys and does not store any encryption keys as well. Alice can double-check that Nolik did not modify data by validating the signature. Also, Alice and Bob can deploy a personal version of Nolik.
 2. The message was sent by Alice and only Alice. The IPFS hash is attached to the blockchain transaction which is signed by Alice. It means that anyone can validate the signature knowing the transaction data, the signature and Alice's public key. All that information is publicly available. Example: [https://wavesexplorer.com/tx/5e9Vj6hqpQxmzkDBSMW9WN8uz16U6jRNXSAkLDnvDCKJ](https://wavesexplorer.com/tx/5e9Vj6hqpQxmzkDBSMW9WN8uz16U6jRNXSAkLDnvDCKJ)
 3. The message was sent on a particular date. Every transaction is part of a particular block with a particular height (serial number). Each block is generated periodically based on blockchain architecture and consensus algorithm. It is publicly known when each block isgenerated and added to the distributed ledger. Example: [https://wavesexplorer.com/blocks/1666988](https://wavesexplorer.com/blocks/1666988)
 4. The message was not modified. The blockchain transaction is stored forever on every blockchain node, and cannot be deleted or modified.
-5. The message was sent by Alice and received by Bob. The CDM file is attached to the blockchain transaction, which can be reviewed by anyone. If the CDM file is publicly available it means that anyone can see it, which proves:
+5. The message was sent by Alice and received by Bob. The xml file is attached to the blockchain transaction, which can be reviewed by anyone. If the xml file is publicly available it means that anyone can see it, which proves:
   * that the message that was sent by Alice
   * that the message that was sent to Bob or Bob, Carol, and Dave
   * that the message has a particular content (can be checked with SHA256 algorithm)
-6. The message was replied or forwarded. Each message is salted and has a unique hash. If the message is replied or forwarded, the same hash will appear in the CDM file, that is attached to a new blockchain transaction.
+6. The message was replied or forwarded. Each message is salted and has a unique hash. If the message is replied or forwarded, the same hash will appear in the xml file, that is attached to a new blockchain transaction.
 
 
 ## Microservices architecture
@@ -281,11 +265,11 @@ In the current architecture, all microservices run on the same node. That is don
 
 ### Microservices description
 
-* **web** - is a web client for Nolik. It is built with Next.js and Mobx frameworks. In development mode this container uses web sockets, and as a default uses 3001 port for that. It can be configured in `.env` file. In development mode, web-client will run a local server and auto-refresh a page on code update. In production mode, web-client will build and run the static files, which is much faster option. To use Nolik, each user has to install Waves Keeper - a browser extension that securely stores private keys. The incoming and outgoing messages are encrypted and decrypted on a client-side. For better performance, Nolik has a built-in caching layer based on LevelDB. Currently, users broadcast transaction directly from Nolik client.
+* **web** - is a web client for Nolik. It is built with Next.js and Mobx frameworks. In development mode this container uses web sockets, and as a default uses 3001 port for that. It can be configured in `.env` file. In development mode, web-client will run a local server and auto-refresh a page on code update. In production mode, web-client will build and run the static files, which is much faster option. The incoming and outgoing messages are encrypted and decrypted on a client-side. For better performance, Nolik has a built-in caching layer based on LevelDB. Currently, users broadcast transaction directly from Nolik client.
 
 * **server** - is an API endpoint for Nolik. It allows getting structured information about incoming and outgoing messages. API is also can be used for dropping client cache. In order to do that just update the `API_VERSION` parameter from `.env` file.
 
-* **parser** - is a tool for finding your transactions in the blockchain and saving them to the database. The message is encrypted and Nolik does not know the decryption keys (only Alice and Bob know them and store them in Waves Keeper extension). Parser saves the blockchain transaction only to increasing productivity.
+* **parser** - is a tool for finding your transactions in the blockchain and saving them to the database. The message is encrypted and Nolik does not know the decryption keys (only Alice and Bob know). Parser saves the blockchain transaction only to increasing productivity.
 
 * **ipfs** - is an IPFS node that allows saving and storing files based on IPFS protocol. After successful saving IPFS endpoint returns a unique hash - the file address that is generated based on file content (same file => same hash). That address is used for reading the file content. The IPFS hash is attached to blockchain transaction that is broadcasted to the blockchain network.
 
@@ -416,7 +400,7 @@ CLIENT_SECRET=nolik_dev_secret
 * **REDIS_URL** your Redis database connection string.
 
 * **CLIENT_PREFIX** is a prefix for encryption and decryption of your messages.
-* **CLIENT_SECRET** is a random string that is used for authentication in Waves Keeper.
+* **CLIENT_SECRET** is a random string that is used for encryption.
 
 After updating `.env` file changes will take effect only after restarting related containers. You can easily do that with the following commands:
 * For development mode:
@@ -429,10 +413,6 @@ docker-compose up -d
 cd ./nolik
 docker-compose -f docker-compose.prod.yml up -d
 ```
-
-
-<!-- *  **web** - a container for Nolik web-client. In development mode will run a local server and auto-refresh a page on code update. In production mode will build and run static invironment, which is much faster to use.
-* **nginx** - a proxy -->
 
 ## Production mode
 
