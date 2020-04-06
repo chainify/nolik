@@ -87,7 +87,7 @@ class ChatIndex extends React.Component {
           <div className="form">
             <div className="textArea">
               <TextArea
-                placeholder="White your message"
+                placeholder="Write your message"
                 value={chat.message}
                 onChange={e => {
                   chat.message = e.target.value;
