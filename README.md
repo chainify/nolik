@@ -1,4 +1,8 @@
 # Nolik Instant messenger
+> CURRENTLY, THE PROJECT IS UNDER DEVELOPMENT ON TOP OF [SUBSTRATE](https://substrate.dev) FRAMEWORK
+
+> Checkout more at the W3F [Nolik application](https://github.com/w3f/Grants-Program/blob/master/applications/Nolik.md).
+
 
 Nolik is a decentralized P2P messegnger with a provable protection from unauthorized access.
 
@@ -9,9 +13,6 @@ The protocol allows to:
 * accompany each message with a digital signature
 * create a local copy of your encrypted files
 
-### Chainify IPFS nodes:
-* /ip4/165.22.150.171/tcp/4001/ipfs/QmUTByvwDUfbPbrvNs7PGRkitvwsUbtpGxE8XFSdUYdcw2
-* /ip4/206.81.23.202/tcp/4001/ipfs/QmZwT8BebHoQFjcBLMR6Y3novMqD9Q8bz13oC5v3yfUBGx
 
 ## Content
 * [Quick Start](https://github.com/chainify/nolik#quick-start)
