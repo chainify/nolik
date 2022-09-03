@@ -1,4 +1,4 @@
-version: "2"
+version: "3"
 
 services:
   node:
@@ -8,7 +8,7 @@ services:
       - "9944:9944"
     tty: true
     stdin_open: true
-    command: bash -c "./target/release/node-nolik --base-path /tmp/alice --chain local --alice --port 30333 --ws-port 9944 --rpc-port 9933 --node-key 0000000000000000000000000000000000000000000000000000000000000001 --validator"
+    command: bash -c "./target/release/node-nolik --ws-external --base-path /tmp/alice --chain local --alice --node-key 0000000000000000000000000000000000000000000000000000000000000001 --validator --rpc-methods=unsafe"
 
   ipfs:
     image: ipfs/go-ipfs:master-latest
