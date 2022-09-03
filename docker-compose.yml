@@ -1,196 +1,24 @@
 version: "2"
 
 services:
-  nginx:
-    build: ./nginx
-    image: chainify/nolik-nginx
-    container_name: nolik-nginx
+  node:
+    image: chainify/substrate-nolik-dev
+    container_name: nolik-node
     ports:
-      - 80:80
-      - 3001:3001
-    volumes:
-      - ./nginx/nginx.dev.conf:/etc/nginx/nginx.conf
-    depends_on:
-      - web
-      - api
-      - parser
-      - ipfs
-      - postgres
-      - redis
-      - sponsor
-    networks:
-      internal:
-        ipv4_address: 10.7.0.2
-    restart: unless-stopped
-
-  web:
-    build: ./web
-    image: chainify/nolik-web
-    container_name: nolik-web
-    volumes:
-      - ./web:/opt
-    environment:
-      - CDM_VERSION=${CDM_VERSION}
-      - ASSET_ID=${ASSET_ID}
-      - CLIENT_SEED=${CLIENT_SEED}
-      - CLIENT_SECRET=${CLIENT_SECRET}
-      - CLIENT_PREFIX=${CLIENT_PREFIX}
-      - SPONSOR_HOST=${SPONSOR_HOST}
-      - SPONSOR_PUBLIC_KEY=${SPONSOR_PUBLIC_KEY}
-      - API_HOST=${API_HOST}
-      - NETWORK=${NETWORK}
-      - WS_PORT=${WS_PORT}
-      - DEMO_MODE=${DEMO_MODE}
-    restart: unless-stopped
-    networks:
-      internal:
-        ipv4_address: 10.7.0.3
-    command: bash -c "npm install -y && npm run dev"
-
-  api:
-    build: ./server
-    image: chainify/nolik-api
-    container_name: nolik-api
-    volumes:
-      - ./server:/opt
-    environment:
-      - ENV=${ENV}
-      - CDM_VERSION=${CDM_VERSION}
-      - API_VERSION=${API_VERSION}
-      - ORIGINS=${ORIGINS}
-      - ASSET_ID=${ASSET_ID}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-      - REDIS_URL=${REDIS_URL}
-      - SPONSOR_PUBLIC_KEY=${SPONSOR_PUBLIC_KEY}
-    depends_on:
-      - ipfs
-      - postgres
-      - redis
+      - "9944:9944"
     tty: true
     stdin_open: true
-    networks:
-      internal:
-        ipv4_address: 10.7.0.4
-    restart: unless-stopped
-    command: bash -c "python3.7 server.py"
-
-  parser:
-    build: ./parser
-    image: chainify/nolik-parser
-    container_name: nolik-parser
-    volumes:
-      - ./parser:/opt
-    depends_on:
-      - postgres
-      - ipfs
-    environment:
-      - ENV=${ENV}
-      - CDM_VERSION=${CDM_VERSION}
-      - ASSET_ID=${ASSET_ID}
-      - NODE_URL=${NODE_URL}
-      - START_HEIGHT=${START_HEIGHT}
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    command: bash -c "python3.7 server.py"
-    tty: true
-    stdin_open: true
-    networks:
-      internal:
-        ipv4_address: 10.7.0.5
-    labels:
-      - "autoheal=true"
-    restart: unless-stopped
-
-  postgres:
-    build: ./postgresql
-    image: chainify/nolik-postgres
-    container_name: nolik-postgres
-    volumes:
-      - ~/.data/nolik/postgres:/var/lib/postgresql/data
-    ports:
-      - 5432:5432
-    environment:
-      - POSTGRES_DB=${POSTGRES_DB}
-      - POSTGRES_USER=${POSTGRES_USER}
-      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-    tty: true
-    stdin_open: true
-    networks:
-      internal:
-        ipv4_address: 10.7.0.6
-    restart: unless-stopped
+    command: bash -c "./target/release/node-nolik --base-path /tmp/alice --chain local --alice --port 30333 --ws-port 9944 --rpc-port 9933 --node-key 0000000000000000000000000000000000000000000000000000000000000001 --validator"
 
   ipfs:
-    image: ipfs/go-ipfs:latest
-    container_name: nolik-ipfs
+    image: ipfs/go-ipfs:master-latest
+    container_name: ipfs
     volumes:
-      - ~/.data/nolik/ipfs/data:/data/ipfs
-      - ~/.data/nolik/ipfs/staging:/export
+      - ~/.ipfs:/data/ipfs
     ports:
-      - 4001:4001
-      - 5001:5001
-      - 8080:8080
-    networks:
-      internal:
-        ipv4_address: 10.7.0.7
+      - "4001:4001"
+      - "4003:4003"
+      - "8080:8080"
+      - "5001:5001"
     tty: true
     stdin_open: true
-    restart: unless-stopped
-
-  redis:
-    build: ./redis
-    image: chainify/nolik-redis
-    container_name: nolik-redis
-    volumes:
-      - ~/.data/nolik/redis:/data
-    tty: true
-    stdin_open: true
-    networks:
-      internal:
-        ipv4_address: 10.7.0.8
-    restart: unless-stopped
-
-  autoheal:
-    image: willfarrell/autoheal:latest
-    container_name: nolik-autoheal
-    restart: always
-    networks:
-      internal:
-        ipv4_address: 10.7.0.9
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-    environment:
-      - AUTOHEAL_CONTAINER_LABEL=autoheal
-
-  sponsor:
-    build: ./sponsor
-    image: chainify/nolik-sponsor
-    container_name: nolik-sponsor
-    volumes:
-      - ./sponsor:/usr/src/app
-    environment:
-      - SPONSOR_SEED=${SPONSOR_SEED}
-      - CLIENT_PUBLIC_KEY=${CLIENT_PUBLIC_KEY}
-      - ASSET_ID=${ASSET_ID}
-      - NETWORK=${NETWORK}
-      - NODE_URL=${NODE_URL}
-      - CLIENT_PREFIX=${CLIENT_PREFIX}
-      - CDM_VERSION=${CDM_VERSION}
-    networks:
-      internal:
-        ipv4_address: 10.7.0.10
-    tty: true
-    stdin_open: true
-    restart: unless-stopped
-    command: bash -c "npm install -y && node server.js"
-    
-
-networks:
-  internal:
-    driver: bridge
-    ipam:
-     config:
-       - subnet: 10.7.0.0/16

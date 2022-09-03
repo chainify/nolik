@@ -1,6 +1,0 @@
-FROM node
-
-WORKDIR /opt
-COPY . /opt
-
-EXPOSE 3000 3001

@@ -1,8 +1,0 @@
-sanic==19.6.2
-requests
-psycopg2-binary
-ipfshttpclient
-configparser
-base58
-sanic-cors
-redis
