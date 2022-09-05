@@ -2,17 +2,19 @@ version: "3"
 
 services:
   node:
-    image: chainify/substrate-nolik-dev
+    build: ./node
     container_name: nolik-node
     ports:
+      - "9933:9933"
       - "9944:9944"
+      - "30333:30333"
     tty: true
     stdin_open: true
     command: bash -c "./target/release/node-nolik --ws-external --base-path /tmp/alice --chain local --alice --node-key 0000000000000000000000000000000000000000000000000000000000000001 --validator --rpc-methods=unsafe"
 
   ipfs:
     image: ipfs/go-ipfs:master-latest
-    container_name: ipfs
+    container_name: nolik-ipfs
     volumes:
       - ~/.ipfs:/data/ipfs
     ports:
