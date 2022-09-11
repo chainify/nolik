@@ -1,5 +1,18 @@
 # Nolik
 
+Nolik is a protocol that allows to send data from peer to peer without a third party.
+To achieve that the protocol uses the combination of Blockchain and IPFS technologies.
+The blockchain is build based on a [Substrate framework](https://github.com/chainify/substrate-nolik-dev.git) with a custom [pallet](https://github.com/chainify/pallet-nolik.git).
+The project supported by Web3 Foundation Grant program.
+To know more about the protocol feel free to check the [grant application](https://github.com/w3f/Grants-Program/blob/master/applications/Nolik.md) documentation.
+
+To interact with the node, send and receive messages use [nolik-cli](https://github.com/chainify/nolik-cli.git) app.
+
+### Important disclosure
+This project is still in the development phase.
+At this point it can be used as a proof of concept.
+Feel free to try it out, but use it at your own risk.
+
 
 ## Setup
 Clone Nolik repository
