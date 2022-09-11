@@ -1,8 +1,0 @@
-target/
-
-.git
-.github
-.idea
-.vscode
-.devcontainer
-
