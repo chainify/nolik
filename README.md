@@ -1,13 +1,15 @@
 # Nolik
 
-1. Clone Nolik repository
+
+## Setup
+Clone Nolik repository
  
 `git clone https://github.com/chainify/nolik`
  
-2. Pull docker images
+Pull docker images
  
 `docker compose pull`
 
-3. Run Substrate ans IPFS nodes
+Run Substrate ans IPFS nodes
 
 `docker compose -f docker-compose.bob.yml up -d`
