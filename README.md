@@ -116,3 +116,9 @@ After the node starts you can see the similar output in the logs:
 Notice that the node name is Bob with a role Authority.
 The Idle (1 peers) means that this Client node successfully connected to the BootNode.
 
+To configure a custom network and connection to your BootNode update the command in the `docker-compose.bob.yml` file.
+
+`command: bash -c "./target/release/node-nolik --ws-external --base-path /tmp/bob --chain local --bob --port 30333 --bootnodes /ip4/77.223.96.13/tcp/30333/p2p/12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp --validator --rpc-methods=unsafe"`
+
+You need to replace a BootNode IP `77.223.96.13` address and a BootNode ID `12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp` with your configuration.
+
