@@ -1,16 +1,16 @@
 # Nolik
 
-Nolik is a protocol that allows to send data from peer to peer without a third party.
-To achieve that the protocol uses the combination of Blockchain and IPFS technologies.
-The blockchain is build based on a [Substrate framework](https://github.com/chainify/substrate-nolik-dev.git) with a custom [pallet](https://github.com/chainify/pallet-nolik.git).
-The project supported by Web3 Foundation Grant program.
-To know more about the protocol feel free to check the [grant application](https://github.com/w3f/Grants-Program/blob/master/applications/Nolik.md) documentation.
+Nolik is a protocol that allows sending data from peer to peer without a third party.
+The protocol uses a combination of Blockchain and IPFS technologies.
+The blockchain is built based on a [Substrate framework](https://github.com/chainify/substrate-nolik-dev.git) with a custom [pallet](https://github.com/chainify/pallet-nolik.git).
+The project is supported by the Web3 Foundation Grant program.
+Feel free to check the [grant application](https://github.com/w3f/Grants-Program/blob/master/applications/Nolik.md) documentation to know more about the protocol.
 
-To interact with the node, send and receive messages use [nolik-cli](https://github.com/chainify/nolik-cli.git) app.
+To interact with the node, send and receive data use [nolik-cli](https://github.com/chainify/nolik-cli.git) app.
 
 ### Important disclosure
 This project is still in the development phase.
-At this point it can be used as a proof of concept.
+At this point, it is a working proof of concept.
 Feel free to try it out, but use it at your own risk.
 
 
@@ -29,14 +29,14 @@ Run Substrate ans IPFS nodes
 
 `docker compose -f docker-compose.alice.yml up -d`
 
-This will run a PoA-based blockchain node with a validator role.
-It will start generation blocks if at least one peer will connect to the node.
+Running this command will run a PoA-based blockchain node with a validator role.
+It will start generation blocks if at least one peer connects to the node.
 
-To print and follow the logs run
+To print and follow the logs, run
 
 `docker logs -f nolik-node --tail 200`
 
-After the node starts you can see the similar output in the logs:
+After the node starts, you can see the similar output in the logs:
 ```
 2022-09-11 20:53:47 Substrate Node
 2022-09-11 20:53:47 ✌️  version 0.1.3-dev-unknown
@@ -71,8 +71,8 @@ After the node starts you can see the similar output in the logs:
 
 Please notice that this node has a Local Identity `12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp`.
 It is required to connect to the node from the Client node (see below).
-Also notice that the node name is Alice with a role Authority.
-The Idle (2 peers) output shows how many Client nodes are connected to the BootNode.
+Also, notice that the node name is Alice with the role Authority.
+The Idle (2 peers) output shows how many Client nodes have connected to the BootNode.
 
 ### Setting a client node
 This node should run locally on your computer.
@@ -81,14 +81,14 @@ Pull docker images
 
 `docker compose -f docker-compose.bob.yml pull`
 
-Run Substrate ans IPFS nodes
+Run Substrate and IPFS nodes
 
 `docker compose -f docker-compose.bob.yml up -d`
 
-This will start a PoA-based blockchain node with a validator role. 
+Running this command will start a PoA-based blockchain node with a validator role. 
 It will start generation blocks after connecting to the BootNode.
 
-To print and follow the logs run
+To print and follow the logs, run
 
 `docker logs -f nolik-node --tail 200`
 
@@ -126,12 +126,22 @@ After the node starts you can see the similar output in the logs:
 2022-09-11 21:00:04 💤 Idle (1 peers), best: #1527 (0xe40a…7f89), finalized #1525 (0x1224…400f), ⬇ 2.8kiB/s ⬆ 2.4kiB/s
 ```
 
-Notice that the node name is Bob with a role Authority.
-The Idle (1 peers) means that this Client node successfully connected to the BootNode.
+Notice that the node name is Bob with the role Authority.
+The Idle (1 peers) means that this Client node has successfully connected to the BootNode.
 
 To configure a custom network and connection to your BootNode update the command in the `docker-compose.bob.yml` file.
 
 `command: bash -c "./target/release/node-nolik --ws-external --base-path /tmp/bob --chain local --bob --port 30333 --bootnodes /ip4/77.223.96.13/tcp/30333/p2p/12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp --validator --rpc-methods=unsafe"`
 
 You need to replace a BootNode IP `77.223.96.13` address and a BootNode ID `12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp` with your configuration.
+
+### Testing in dev mode
+
+There is also an option to test the app on a single computer.
+
+`docker compose -f docker-compose.dev.yml up -d`
+That will launch a blockchain and IPFS nodes in dev mode.
+With that, you can create several accounts and send data between them.
+In this case, sending and receiving data is identical to the one with multiple nodes.
+The only difference is that Alice and Bob will use the same blockchain node to transfer the data and the same IPFS node to store the data.
 
