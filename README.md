@@ -16,13 +16,13 @@ Feel free to try it out, but use it at your own risk.
 
 ## Setup
 Clone Nolik repository
- 
+
 `git clone https://github.com/chainify/nolik`
 
 ### Setting a bootstrap node
- 
+
 Pull docker images
- 
+
 `docker compose -f docker-compose.alice.yml pull`
 
 Run Substrate ans IPFS nodes
@@ -85,7 +85,7 @@ Run Substrate and IPFS nodes
 
 `docker compose -f docker-compose.bob.yml up -d`
 
-Running this command will start a PoA-based blockchain node with a validator role. 
+Running this command will start a PoA-based blockchain node with a validator role.
 It will start generation blocks after connecting to the BootNode.
 
 To print and follow the logs, run
@@ -144,4 +144,3 @@ That will launch a blockchain and IPFS nodes in dev mode.
 With that, you can create several accounts and send data between them.
 In this case, sending and receiving data is identical to the one with multiple nodes.
 The only difference is that Alice and Bob will use the same blockchain node to transfer the data and the same IPFS node to store the data.
-
