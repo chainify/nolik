@@ -1,146 +1,233 @@
-# Nolik
+# Substrate Node Nolik
 
-Nolik is a protocol that allows sending data from peer to peer without a third party.
-The protocol uses a combination of Blockchain and IPFS technologies.
-The blockchain is built based on a [Substrate framework](https://github.com/chainify/substrate-nolik-dev.git) with a custom [pallet](https://github.com/chainify/substrate-nolik-dev/tree/main/pallets/nolik).
-The project is supported by the Web3 Foundation Grant program.
-Feel free to check the [grant application](https://github.com/w3f/Grants-Program/blob/master/applications/Nolik.md) documentation to know more about the protocol.
+[![Try on playground](https://img.shields.io/badge/Playground-Node_Template-brightgreen?logo=Parity%20Substrate)](https://docs.substrate.io/playground/) [![Matrix](https://img.shields.io/matrix/substrate-technical:matrix.org)](https://matrix.to/#/#substrate-technical:matrix.org)
 
-To interact with the node, send and receive data use [nolik-cli](https://github.com/chainify/nolik-cli.git) app.
+A FRAME-based [Substrate](https://www.substrate.io/) node with a [Nolik Pallet](https://github.com/chainify/substrate-nolik-dev/tree/main/pallets/nolik).
 
-### Important disclosure
-This project is still in the development phase.
-At this point, it is a working proof of concept.
-Feel free to try it out, but use it at your own risk.
+## Getting Started
 
+Follow the steps below to get started with the Node Nolik, or get it up and running right from
+your browser in just a few clicks using
+the [Substrate Playground](https://docs.substrate.io/playground/) :hammer_and_wrench:
 
-## Setup
-Clone Nolik repository
+### Using Nix
 
-`git clone https://github.com/chainify/nolik`
+Install [nix](https://nixos.org/) and optionally [direnv](https://github.com/direnv/direnv) and
+[lorri](https://github.com/target/lorri) for a fully plug and play experience for setting up the
+development environment. To get all the correct dependencies activate direnv `direnv allow` and
+lorri `lorri shell`.
 
-### Setting a bootstrap node
+### Rust Setup
 
-Pull docker images
+First, complete the [basic Rust setup instructions](./docs/rust-setup.md).
 
-`docker compose -f docker-compose.alice.yml pull`
+### Run
 
-Run Substrate ans IPFS nodes
+Use Rust's native `cargo` command to build and launch the nolik node:
 
-`docker compose -f docker-compose.alice.yml up -d`
-
-Running this command will run a PoA-based blockchain node with a validator role.
-It will start generation blocks if at least one peer connects to the node.
-
-To print and follow the logs, run
-
-`docker logs -f nolik-node --tail 200`
-
-After the node starts, you can see the similar output in the logs:
-```
-2022-09-11 20:53:47 Substrate Node
-2022-09-11 20:53:47 ✌️  version 0.1.3-dev-unknown
-2022-09-11 20:53:47 ❤️  by Chainify <https://github.com/chainify>, 2017-2022
-2022-09-11 20:53:47 📋 Chain specification: Local Testnet
-2022-09-11 20:53:47 🏷  Node name: Alice
-2022-09-11 20:53:47 👤 Role: AUTHORITY
-2022-09-11 20:53:47 💾 Database: RocksDb at /tmp/alice/chains/local_testnet/db/full
-2022-09-11 20:53:47 ⛓  Native runtime: node-nolik-100 (node-nolik-1.tx1.au1)
-2022-09-11 20:53:49 Using default protocol ID "sup" because none is configured in the chain specs
-2022-09-11 20:53:49 🏷  Local node identity is: 12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp
-2022-09-11 20:53:49 💻 Operating system: linux
-2022-09-11 20:53:49 💻 CPU architecture: x86_64
-2022-09-11 20:53:49 💻 Target environment: gnu
-2022-09-11 20:53:49 💻 CPU: Intel(R) Xeon(R) CPU E5-2630 v4 @ 2.20GHz
-2022-09-11 20:53:49 💻 CPU cores: 2
-2022-09-11 20:53:49 💻 Memory: 1977MB
-2022-09-11 20:53:49 💻 Kernel: 5.15.0-40-generic
-2022-09-11 20:53:49 💻 Linux distribution: Ubuntu 22.04.1 LTS
-2022-09-11 20:53:49 💻 Virtual machine: yes
-2022-09-11 20:53:49 📦 Highest known block at #1465
-2022-09-11 20:53:49 〽️ Prometheus exporter started at 127.0.0.1:9615
-2022-09-11 20:53:49 Running JSON-RPC HTTP server: addr=127.0.0.1:9933, allowed origins=Some(["http://localhost:*", "http://127.0.0.1:*", "https://localhost:*", "https://127.0.0.1:*", "https://polkadot.js.org"])
-2022-09-11 20:53:49 Running JSON-RPC WS server: addr=0.0.0.0:9944, allowed origins=Some(["http://localhost:*", "http://127.0.0.1:*", "https://localhost:*", "https://127.0.0.1:*", "https://polkadot.js.org"])
-2022-09-11 20:53:49 creating instance on iface 172.18.0.3
-2022-09-11 20:53:49 discovered: 12D3KooWRDHQNBDTKi69VkkcmnPtZpbJwrPEaXMowAju8TpRPPi3 /ip4/172.18.0.2/tcp/4001
-2022-09-11 20:53:49 discovered: 12D3KooWRDHQNBDTKi69VkkcmnPtZpbJwrPEaXMowAju8TpRPPi3 /ip4/127.0.0.1/tcp/4001
-2022-09-11 20:53:49 discovered: 12D3KooWRDHQNBDTKi69VkkcmnPtZpbJwrPEaXMowAju8TpRPPi3 /ip4/172.18.0.2/udp/4001/quic
-2022-09-11 20:53:49 discovered: 12D3KooWRDHQNBDTKi69VkkcmnPtZpbJwrPEaXMowAju8TpRPPi3 /ip4/127.0.0.1/udp/4001/quic
-2022-09-11 20:53:54 💤 Idle (2 peers), best: #1465 (0x9e7c…3551), finalized #1463 (0xc9a8…f3b8), ⬇ 1.3kiB/s ⬆ 1.3kiB/s
+```sh
+cargo run --release -- --dev --tmp
 ```
 
-Please notice that this node has a Local Identity `12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp`.
-It is required to connect to the node from the Client node (see below).
-Also, notice that the node name is Alice with the role Authority.
-The Idle (2 peers) output shows how many Client nodes have connected to the BootNode.
+### Build
 
-### Setting a client node
-This node should run locally on your computer.
+The `cargo run` command will perform an initial build. Use the following command to build the node
+without launching it:
 
-Pull docker images
-
-`docker compose -f docker-compose.bob.yml pull`
-
-Run Substrate and IPFS nodes
-
-`docker compose -f docker-compose.bob.yml up -d`
-
-Running this command will start a PoA-based blockchain node with a validator role.
-It will start generation blocks after connecting to the BootNode.
-
-To print and follow the logs, run
-
-`docker logs -f nolik-node --tail 200`
-
-After the node starts you can see the similar output in the logs:
-
-```
-2022-09-11 20:59:55 Substrate Node
-2022-09-11 20:59:55 ✌️  version 0.1.3-dev-unknown
-2022-09-11 20:59:55 ❤️  by Chainify <https://github.com/chainify>, 2017-2022
-2022-09-11 20:59:55 📋 Chain specification: Local Testnet
-2022-09-11 20:59:55 🏷  Node name: Bob
-2022-09-11 20:59:55 👤 Role: AUTHORITY
-2022-09-11 20:59:55 💾 Database: RocksDb at /tmp/bob/chains/local_testnet/db/full
-2022-09-11 20:59:55 ⛓  Native runtime: node-nolik-100 (node-nolik-1.tx1.au1)
-2022-09-11 20:59:56 You're running on a system with a broken `madvise(MADV_DONTNEED)` implementation. This will result in lower performance.
-2022-09-11 20:59:59 Using default protocol ID "sup" because none is configured in the chain specs
-2022-09-11 20:59:59 🏷  Local node identity is: 12D3KooWSApPpRFBJg6QiG1wupC5PPezKaHT5F33goffDSDXD2DM
-2022-09-11 20:59:59 💻 Operating system: linux
-2022-09-11 20:59:59 💻 CPU architecture: x86_64
-2022-09-11 20:59:59 💻 Target environment: gnu
-2022-09-11 20:59:59 💻 Memory: 7951MB
-2022-09-11 20:59:59 💻 Kernel: 5.10.76-linuxkit
-2022-09-11 20:59:59 💻 Linux distribution: Ubuntu 22.04.1 LTS
-2022-09-11 20:59:59 💻 Virtual machine: no
-2022-09-11 20:59:59 📦 Highest known block at #1525
-2022-09-11 20:59:59 〽️ Prometheus exporter started at 127.0.0.1:9615
-2022-09-11 20:59:59 Running JSON-RPC HTTP server: addr=127.0.0.1:9933, allowed origins=Some(["http://localhost:*", "http://127.0.0.1:*", "https://localhost:*", "https://127.0.0.1:*", "https://polkadot.js.org"])
-2022-09-11 20:59:59 Running JSON-RPC WS server: addr=0.0.0.0:9944, allowed origins=Some(["http://localhost:*", "http://127.0.0.1:*", "https://localhost:*", "https://127.0.0.1:*", "https://polkadot.js.org"])
-2022-09-11 20:59:59 creating instance on iface 172.28.0.2
-2022-09-11 20:59:59 discovered: 12D3KooWQBxcvq7qHsPgE3hakuQmMWUZYFWjt1ssYXioeg341S9L /ip4/172.28.0.3/tcp/4001
-2022-09-11 20:59:59 discovered: 12D3KooWQBxcvq7qHsPgE3hakuQmMWUZYFWjt1ssYXioeg341S9L /ip4/127.0.0.1/tcp/4001
-2022-09-11 20:59:59 discovered: 12D3KooWQBxcvq7qHsPgE3hakuQmMWUZYFWjt1ssYXioeg341S9L /ip4/172.28.0.3/udp/4001/quic
-2022-09-11 20:59:59 discovered: 12D3KooWQBxcvq7qHsPgE3hakuQmMWUZYFWjt1ssYXioeg341S9L /ip4/127.0.0.1/udp/4001/quic
-2022-09-11 20:59:59 Accepting new connection 1/100
-2022-09-11 21:00:04 💤 Idle (1 peers), best: #1527 (0xe40a…7f89), finalized #1525 (0x1224…400f), ⬇ 2.8kiB/s ⬆ 2.4kiB/s
+```sh
+cargo build --release
 ```
 
-Notice that the node name is Bob with the role Authority.
-The Idle (1 peers) means that this Client node has successfully connected to the BootNode.
+### Embedded Docs
 
-To configure a custom network and connection to your BootNode update the command in the `docker-compose.bob.yml` file.
+Once the project has been built, the following command can be used to explore all parameters and
+subcommands:
 
-`command: bash -c "./target/release/node-nolik --ws-external --base-path /tmp/bob --chain local --bob --port 30333 --bootnodes /ip4/<BOOTNODE_IP>/tcp/30333/p2p/12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp --validator --rpc-methods=unsafe"`
+```sh
+./target/release/node-nolik -h
+```
 
-You need to replace a BootNode IP <BOOTNODE_IP> address and a BootNode ID `12D3KooWEyoppNCUx8Yx66oV9fJnriXwCcXwDDUA2kj6vnc6iDEp` with your configuration.
+## Run
 
-### Testing in dev mode
+The provided `cargo run` command will launch a temporary node and its state will be discarded after
+you terminate the process. After the project has been built, there are other ways to launch the
+node.
 
-There is also an option to test the app on a single computer.
+### Single-Node Development Chain
 
-`docker compose -f docker-compose.dev.yml up -d`
-That will launch a blockchain and IPFS nodes in dev mode.
-With that, you can create several accounts and send data between them.
-In this case, sending and receiving data is identical to the one with multiple nodes.
-The only difference is that Alice and Bob will use the same blockchain node to transfer the data and the same IPFS node to store the data.
+This command will start the single-node development chain with non-persistent state:
+
+```bash
+./target/release/node-nolik --dev
+```
+
+Purge the development chain's state:
+
+```bash
+./target/release/node-nolik purge-chain --dev
+```
+
+Start the development chain with detailed logging:
+
+```bash
+RUST_BACKTRACE=1 ./target/release/node-nolik -ldebug --dev
+```
+
+> Development chain means that the state of our chain will be in a tmp folder while the nodes are
+> running. Also, **alice** account will be authority and sudo account as declared in the
+> [genesis state](https://github.com/chainify/substrate-nolik-dev/blob/main/node/src/chain_spec.rs#L49).
+> At the same time the following accounts will be pre-funded:
+> - Alice
+> - Bob
+> - Alice//stash
+> - Bob//stash
+
+In case of being interested in maintaining the chain' state between runs a base path must be added
+so the db can be stored in the provided folder instead of a temporal one. We could use this folder
+to store different chain databases, as a different folder will be created per different chain that
+is ran. The following commands shows how to use a newly created folder as our db base path.
+
+```bash
+// Create a folder to use as the db base path
+$ mkdir my-chain-state
+
+// Use of that folder to store the chain state
+$ ./target/release/node-nolik --dev --base-path ./my-chain-state/
+
+// Check the folder structure created inside the base path after running the chain
+$ ls ./my-chain-state
+chains
+$ ls ./my-chain-state/chains/
+dev
+$ ls ./my-chain-state/chains/dev
+db keystore network
+```
+
+
+### Connect with Polkadot-JS Apps Front-end
+
+Once the node nolik is running locally, you can connect it with **Polkadot-JS Apps** front-end
+to interact with your chain. [Click
+here](https://polkadot.js.org/apps/#/explorer?rpc=ws://localhost:9944) connecting the Apps to your
+local node nolik.
+
+### Multi-Node Local Testnet
+
+If you want to see the multi-node consensus algorithm in action, refer to our
+[Start a Private Network tutorial](https://docs.substrate.io/tutorials/v3/private-network).
+
+## Template Structure
+
+A Substrate project such as this consists of a number of components that are spread across a few
+directories.
+
+### Node
+
+A blockchain node is an application that allows users to participate in a blockchain network.
+Substrate-based blockchain nodes expose a number of capabilities:
+
+- Networking: Substrate nodes use the [`libp2p`](https://libp2p.io/) networking stack to allow the
+  nodes in the network to communicate with one another.
+- Consensus: Blockchains must have a way to come to
+  [consensus](https://docs.substrate.io/v3/advanced/consensus) on the state of the
+  network. Substrate makes it possible to supply custom consensus engines and also ships with
+  several consensus mechanisms that have been built on top of
+  [Web3 Foundation research](https://research.web3.foundation/en/latest/polkadot/NPoS/index.html).
+- RPC Server: A remote procedure call (RPC) server is used to interact with Substrate nodes.
+
+There are several files in the `node` directory - take special note of the following:
+
+- [`chain_spec.rs`](./node/src/chain_spec.rs): A
+  [chain specification](https://docs.substrate.io/v3/runtime/chain-specs) is a
+  source code file that defines a Substrate chain's initial (genesis) state. Chain specifications
+  are useful for development and testing, and critical when architecting the launch of a
+  production chain. Take note of the `development_config` and `testnet_genesis` functions, which
+  are used to define the genesis state for the local development chain configuration. These
+  functions identify some
+  [well-known accounts](https://docs.substrate.io/v3/tools/subkey#well-known-keys)
+  and use them to configure the blockchain's initial state.
+- [`service.rs`](./node/src/service.rs): This file defines the node implementation. Take note of
+  the libraries that this file imports and the names of the functions it invokes. In particular,
+  there are references to consensus-related topics, such as the
+  [longest chain rule](https://docs.substrate.io/v3/advanced/consensus#longest-chain-rule),
+  the [Aura](https://docs.substrate.io/v3/advanced/consensus#aura) block authoring
+  mechanism and the
+  [GRANDPA](https://docs.substrate.io/v3/advanced/consensus#grandpa) finality
+  gadget.
+
+After the node has been [built](#build), refer to the embedded documentation to learn more about the
+capabilities and configuration parameters that it exposes:
+
+```shell
+./target/release/node-nolik --help
+```
+
+### Runtime
+
+In Substrate, the terms
+"[runtime](https://docs.substrate.io/v3/getting-started/glossary#runtime)" and
+"[state transition function](https://docs.substrate.io/v3/getting-started/glossary#state-transition-function-stf)"
+are analogous - they refer to the core logic of the blockchain that is responsible for validating
+blocks and executing the state changes they define. The Substrate project in this repository uses
+the [FRAME](https://docs.substrate.io/v3/runtime/frame) framework to construct a
+blockchain runtime. FRAME allows runtime developers to declare domain-specific logic in modules
+called "pallets". At the heart of FRAME is a helpful
+[macro language](https://docs.substrate.io/v3/runtime/macros) that makes it easy to
+create pallets and flexibly compose them to create blockchains that can address
+[a variety of needs](https://www.substrate.io/substrate-users/).
+
+Review the [FRAME runtime implementation](./runtime/src/lib.rs) included in this template and note
+the following:
+
+- This file configures several pallets to include in the runtime. Each pallet configuration is
+  defined by a code block that begins with `impl $PALLET_NAME::Config for Runtime`.
+- The pallets are composed into a single runtime by way of the
+  [`construct_runtime!`](https://crates.parity.io/frame_support/macro.construct_runtime.html)
+  macro, which is part of the core
+  [FRAME Support](https://docs.substrate.io/v3/runtime/frame#support-crate)
+  library.
+
+### Pallets
+
+The runtime in this project is constructed using many FRAME pallets that ship with the
+[core Substrate repository](https://github.com/paritytech/substrate/tree/master/frame) and a
+nolik pallet that is [defined in the `./runtime/Cargo.toml`](./runtime/Cargo.toml) file as an
+external pallet which is [described here](https://github.com/chainify/substrate-nolik-dev/tree/main/pallets/nolik).
+
+A FRAME pallet is compromised of a number of blockchain primitives:
+
+- Storage: FRAME defines a rich set of powerful
+  [storage abstractions](https://docs.substrate.io/v3/runtime/storage) that makes
+  it easy to use Substrate's efficient key-value database to manage the evolving state of a
+  blockchain.
+- Dispatchables: FRAME pallets define special types of functions that can be invoked (dispatched)
+  from outside of the runtime in order to update its state.
+- Events: Substrate uses [events and errors](https://docs.substrate.io/v3/runtime/events-and-errors)
+  to notify users of important changes in the runtime.
+- Errors: When a dispatchable fails, it returns an error.
+- Config: The `Config` configuration interface is used to define the types and parameters upon
+  which a FRAME pallet depends.
+
+### Run in Docker
+
+First, install [Docker](https://docs.docker.com/get-docker/) and
+[Docker Compose](https://docs.docker.com/compose/install/).
+
+Then run the following command to start a single node development chain.
+
+```
+docker compose up -d
+```
+
+This command will download the [substrate-nolik-dev](https://hub.docker.com/r/chainify/substrate-nolik-dev) docker image, and then start a local development network. You can
+also replace the default command
+(`./target/release/node-nolik --dev --ws-external`)
+by appending your own. A few useful ones are as follow.
+
+```
+# Compile the code
+docker compose build
+
+# Display and follow the logs
+docker logs -f node-nolik -n 200
+```
