@@ -35,7 +35,6 @@ impl Cypher for Message {
 				.entries
 				.iter()
 				.map(|x| x.decrypt(nonce, pk, sk))
-				.into_iter()
 				.collect::<Result<_, _>>()?,
 		})
 	}

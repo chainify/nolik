@@ -56,8 +56,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		}],
 	};
 
-	let (encrypted_metadata, secret_nonce) =
-		MessageMetadata::new_encrypted(&nonce, &sender_pk, &vec![&receiver_pk], &message);
+	let (encrypted_metadata, secret_nonce) = MessageMetadata::new_encrypted(
+		signer.account_id(),
+		&nonce,
+		&sender_pk,
+		&[&receiver_pk],
+		&message,
+	);
 
 	let encrypted_message = message.encrypt(&secret_nonce, &receiver_pk, &sender_sk);
 

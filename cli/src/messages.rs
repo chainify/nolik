@@ -5,16 +5,11 @@ use parity_scale_codec::{Decode, Encode};
 use scale_info::TypeInfo;
 
 #[allow(dead_code)]
-#[derive(Debug, Encode, Decode, TypeInfo, Clone, PartialEq)]
+#[derive(Debug, Encode, Decode, TypeInfo, Clone, PartialEq, Default)]
 pub enum MessageType {
-	File,
+	#[default]
 	RawData,
-}
-
-impl Default for MessageType {
-	fn default() -> Self {
-		MessageType::RawData
-	}
+	File,
 }
 
 #[derive(Debug, Encode, Decode, TypeInfo, Clone, PartialEq)]

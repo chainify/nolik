@@ -4,6 +4,7 @@
 	derive_for_all_types = "PartialEq, Clone"
 )]
 pub mod polkadot {}
+use subxt::utils::AccountId32;
 
 use crate::{
 	cypher::{BytesCypher, CypherError},
@@ -39,6 +40,7 @@ impl TryFromSlice for PublicKey {
 impl MessageMetadata {
 	/// Creates encrypted metadata using Diffie-Hellman scheme with extra secret nonce
 	pub fn new_encrypted(
+		origin: &AccountId32,
 		public_nonce: &Nonce,
 		sender_pk: &PublicKey,
 		recipients: &[&PublicKey],
@@ -66,6 +68,7 @@ impl MessageMetadata {
 				nonce: public_nonce.0,
 				broker: broker_pk.0,
 				hash: Self::compute_root_hash(
+					origin,
 					public_nonce,
 					sender_pk,
 					&broker_pk,
@@ -83,6 +86,7 @@ impl MessageMetadata {
 
 	/// Create a root hash of all metadata and message entries
 	pub fn compute_root_hash(
+		origin: &AccountId32,
 		public_nonce: &Nonce,
 		sender_pk: &PublicKey,
 		broker_pk: &PublicKey,
@@ -92,6 +96,7 @@ impl MessageMetadata {
 	) -> blake2::Blake2s256 {
 		let mut hash = blake2::Blake2s256::new();
 
+		let origin_hash = Self::hash_with_nonce(origin.as_ref(), secret_nonce);
 		let public_nonce_hash = Self::hash_with_nonce(public_nonce.as_ref(), secret_nonce);
 		let secret_nonce_hash = Self::hash_with_nonce(secret_nonce.as_ref(), secret_nonce);
 		let broker_pk_hash = Self::hash_with_nonce(broker_pk.as_ref(), secret_nonce);
@@ -113,6 +118,7 @@ impl MessageMetadata {
 		}
 		Update::update(&mut entries_hash, secret_nonce.as_ref());
 
+		Update::update(&mut hash, &origin_hash);
 		Update::update(&mut hash, &public_nonce_hash);
 		Update::update(&mut hash, &secret_nonce_hash);
 		Update::update(&mut hash, &broker_pk_hash);
@@ -151,7 +157,6 @@ impl MessageMetadata {
 					.parties
 					.iter()
 					.map(|p| p.decrypt(&secret_nonce, &broker_pk, receiver_sk))
-					.into_iter()
 					.collect::<Result<_, _>>()?,
 			});
 		}
@@ -167,6 +172,8 @@ mod tests {
 		cypher::Cypher,
 		messages::{Message, MessageEntry, MessageType},
 	};
+	use sp_keyring;
+	use subxt::utils::AccountId32;
 
 	#[test]
 	fn encrypt_decrypt_with_metadata() {
@@ -183,8 +190,9 @@ mod tests {
 			}],
 		};
 
+		let signer: AccountId32 = sp_keyring::sr25519::Keyring::Alice.public().into();
 		let (encrypted_metadata, secret_nonce) =
-			MessageMetadata::new_encrypted(&nonce, &sender_pk, &vec![&receiver_pk], &message);
+			MessageMetadata::new_encrypted(&signer, &nonce, &sender_pk, &[&receiver_pk], &message);
 
 		let encrypted_message = message.encrypt(&secret_nonce, &receiver_pk, &sender_sk);
 
