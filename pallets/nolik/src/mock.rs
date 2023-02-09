@@ -17,8 +17,8 @@ frame_support::construct_runtime!(
 		NodeBlock = Block,
 		UncheckedExtrinsic = UncheckedExtrinsic,
 	{
-		System: frame_system::{Pallet, Call, Config, Storage, Event<T>},
-		Nolik: pallet_nolik::{Pallet, Call, Storage, Event<T>},
+		System: frame_system,
+		Nolik: pallet_nolik,
 	}
 );
 
@@ -32,8 +32,8 @@ impl system::Config for Test {
 	type BlockWeights = ();
 	type BlockLength = ();
 	type DbWeight = ();
-	type Origin = Origin;
-	type Call = Call;
+	type RuntimeOrigin = RuntimeOrigin;
+	type RuntimeCall = RuntimeCall;
 	type Index = u64;
 	type BlockNumber = u64;
 	type Hash = H256;
@@ -41,7 +41,7 @@ impl system::Config for Test {
 	type AccountId = u64;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Header = Header;
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
@@ -59,7 +59,7 @@ parameter_types! {
 }
 
 impl pallet_nolik::Config for Test {
-	type Event = Event;
+	type RuntimeEvent = RuntimeEvent;
 	// type MaxWhiteListAddress = MaxWhiteListAddress;
 }
 

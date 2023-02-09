@@ -1,9 +1,4 @@
 [workspace]
-members = [
-    "node",
-    "runtime",
-	"pallets/nolik",
-	"cli"
-]
+members = ["node", "runtime", "pallets/nolik", "cli"]
 [profile.release]
 panic = "unwind"

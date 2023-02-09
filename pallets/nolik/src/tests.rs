@@ -33,12 +33,12 @@ fn send_message() {
 	ext.execute_with(|| {
 		// try to send unsigned
 		assert_err!(
-			Nolik::send_message(Origin::none(), metadata.clone(), message.clone()),
+			Nolik::send_message(RuntimeOrigin::none(), metadata.clone(), message.clone()),
 			BadOrigin
 		);
 
 		assert_eq!(Nolik::message_counter(), counter);
-		assert_ok!(Nolik::send_message(Origin::signed(address), metadata, message.clone()));
+		assert_ok!(Nolik::send_message(RuntimeOrigin::signed(address), metadata, message.clone()));
 		assert_eq!(Nolik::message_counter(), counter + 1);
 		key = Nolik::derived_key(&address, counter);
 	});

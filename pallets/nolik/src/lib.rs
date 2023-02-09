@@ -14,14 +14,13 @@ pub mod pallet {
 	use scale_info::prelude::vec::Vec;
 
 	#[pallet::pallet]
-	#[pallet::without_storage_info]
 	#[pallet::generate_store(pub(super) trait Store)]
 	pub struct Pallet<T>(_);
 
 	#[pallet::config]
 	pub trait Config: frame_system::Config {
 		/// Because this pallet emits events, it depends on the runtime's definition of an event.
-		type Event: From<Event<Self>> + IsType<<Self as frame_system::Config>::Event>;
+		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 	}
 
 	#[pallet::error]
@@ -92,6 +91,7 @@ pub mod pallet {
 		/// * `message` - Encrypted message data, possibly having a big size. We pass message as raw
 		///   bytes so no encoding and no heap allocation is needed prior to putting the message to
 		///   off-chain storage.
+		#[pallet::call_index(0)]
 		#[pallet::weight(10_000)]
 		pub fn send_message(
 			origin: OriginFor<T>,
