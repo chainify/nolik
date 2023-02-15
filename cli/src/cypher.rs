@@ -24,19 +24,23 @@ where
 	fn decrypt(&self, nonce: &Nonce, pk: &PublicKey, sk: &SecretKey) -> Result<Self, CypherError>;
 }
 
-impl Cypher for Message {
+impl<T: Cypher> Cypher for Vec<T> {
 	fn encrypt(&self, nonce: &Nonce, pk: &PublicKey, sk: &SecretKey) -> Self {
-		Message { entries: self.entries.iter().map(|x| x.encrypt(nonce, pk, sk)).collect() }
+		self.iter().map(|x| x.encrypt(nonce, pk, sk)).collect()
 	}
 
 	fn decrypt(&self, nonce: &Nonce, pk: &PublicKey, sk: &SecretKey) -> Result<Self, CypherError> {
-		Ok(Message {
-			entries: self
-				.entries
-				.iter()
-				.map(|x| x.decrypt(nonce, pk, sk))
-				.collect::<Result<_, _>>()?,
-		})
+		self.iter().map(|x| x.decrypt(nonce, pk, sk)).collect()
+	}
+}
+
+impl Cypher for Message {
+	fn encrypt(&self, nonce: &Nonce, pk: &PublicKey, sk: &SecretKey) -> Self {
+		Message { entries: self.entries.encrypt(nonce, pk, sk) }
+	}
+
+	fn decrypt(&self, nonce: &Nonce, pk: &PublicKey, sk: &SecretKey) -> Result<Self, CypherError> {
+		Ok(Message { entries: self.entries.decrypt(nonce, pk, sk)? })
 	}
 }
 
