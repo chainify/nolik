@@ -24,19 +24,23 @@ where
 	fn decrypt(&self, nonce: &Nonce, pk: &PublicKey, sk: &SecretKey) -> Result<Self, CypherError>;
 }
 
-impl Cypher for Message {
+impl<T: Cypher> Cypher for Vec<T> {
 	fn encrypt(&self, nonce: &Nonce, pk: &PublicKey, sk: &SecretKey) -> Self {
-		Message { entries: self.entries.iter().map(|x| x.encrypt(nonce, pk, sk)).collect() }
+		self.iter().map(|x| x.encrypt(nonce, pk, sk)).collect()
 	}
 
 	fn decrypt(&self, nonce: &Nonce, pk: &PublicKey, sk: &SecretKey) -> Result<Self, CypherError> {
-		Ok(Message {
-			entries: self
-				.entries
-				.iter()
-				.map(|x| x.decrypt(nonce, pk, sk))
-				.collect::<Result<_, _>>()?,
-		})
+		self.iter().map(|x| x.decrypt(nonce, pk, sk)).collect()
+	}
+}
+
+impl Cypher for Message {
+	fn encrypt(&self, nonce: &Nonce, pk: &PublicKey, sk: &SecretKey) -> Self {
+		Message { entries: self.entries.encrypt(nonce, pk, sk) }
+	}
+
+	fn decrypt(&self, nonce: &Nonce, pk: &PublicKey, sk: &SecretKey) -> Result<Self, CypherError> {
+		Ok(Message { entries: self.entries.decrypt(nonce, pk, sk)? })
 	}
 }
 
@@ -88,6 +92,7 @@ impl BytesCypher for [u8] {
 mod tests {
 	use super::*;
 	use crate::messages::MessageType;
+	use nolik_cli_proc_macro;
 	use sodiumoxide::crypto::box_;
 
 	#[test]
@@ -112,5 +117,26 @@ mod tests {
 			.expect("could not decrypt a test message");
 
 		assert_eq!(message, decrypted_message);
+	}
+
+	#[test]
+	fn cypher_simple() {
+		#[derive(nolik_cli_proc_macro::Cypher, Debug, PartialEq)]
+		struct My {
+			pub key: Vec<u8>,
+		}
+
+		let (sender_pk, sender_sk) = box_::gen_keypair();
+		let (receiver_pk, receiver_sk) = box_::gen_keypair();
+
+		let nonce = box_::gen_nonce();
+
+		let m = My { key: vec![1, 2, 3] };
+		let en = m.encrypt(&nonce, &receiver_pk, &sender_sk);
+		let dec = en
+			.decrypt(&nonce, &sender_pk, &receiver_sk)
+			.expect("could not decrypt a test message");
+
+		assert_eq!(m, dec);
 	}
 }
