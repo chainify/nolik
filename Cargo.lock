@@ -1109,6 +1109,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "cypher-macro"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "darling"
 version = "0.14.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3829,11 +3838,7 @@ dependencies = [
 name = "nolik-cypher"
 version = "0.0.0"
 dependencies = [
- "blake2",
- "proc-macro-crate",
- "proc-macro2",
- "quote",
- "syn",
+ "cypher-macro",
 ]
 
 [[package]]
