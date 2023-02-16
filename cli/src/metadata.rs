@@ -6,10 +6,11 @@
 pub mod polkadot {}
 use subxt::utils::AccountId32;
 
-use crate::messages::{BytesCypher, CypherError, Message, MessageEntry};
+use crate::messages::{Message, MessageEntry};
 use blake2::{digest::Update, Digest};
 pub use polkadot::runtime_types::pallet_nolik::pallet::{Channel, MessageMetadata};
 
+use nolik_cypher::{BytesCypher, CypherError};
 use sodiumoxide::crypto::{
 	box_,
 	box_::{Nonce, PublicKey, SecretKey},
@@ -165,7 +166,8 @@ impl MessageMetadata {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::messages::{Cypher, Message, MessageEntry, MessageType};
+	use crate::messages::{Message, MessageEntry, MessageType};
+	use nolik_cypher::Cypher;
 	use sp_keyring;
 	use subxt::utils::AccountId32;
 

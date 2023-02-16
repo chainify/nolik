@@ -1,8 +1,10 @@
 [package]
 name = "nolik-cypher"
-version = "0.0.0"
+version = "0.1.0"
 edition = "2021"
 publish = false
 
 [dependencies]
-cypher-macro = { version = "=0.1.0", path = "./proc-macro" }
+cypher-macro = { version = "=0.1.0", path = "./macro" }
+sodiumoxide = "0.2.7"
+thiserror = "1.0.38"

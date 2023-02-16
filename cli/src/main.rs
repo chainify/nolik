@@ -1,6 +1,7 @@
 mod messages;
 mod metadata;
 
+use nolik_cypher::Cypher;
 use parity_scale_codec::{Decode, Encode};
 use sodiumoxide::crypto::{box_, box_::Nonce};
 use sp_core::offchain::StorageKind;
@@ -14,7 +15,7 @@ use subxt::{
 	OnlineClient, PolkadotConfig,
 };
 
-use messages::{Cypher, Message, MessageEntry, MessageType};
+use messages::{Message, MessageEntry, MessageType};
 use metadata::{polkadot, MessageMetadata, TryFromSlice};
 
 fn to_hex(bytes: impl AsRef<[u8]>) -> String {

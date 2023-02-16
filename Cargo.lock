@@ -3829,16 +3829,17 @@ dependencies = [
  "sp-core 12.0.0",
  "sp-keyring 12.0.0",
  "subxt",
- "thiserror",
  "tokio",
  "tracing-subscriber 0.3.16",
 ]
 
 [[package]]
 name = "nolik-cypher"
-version = "0.0.0"
+version = "0.1.0"
 dependencies = [
  "cypher-macro",
+ "sodiumoxide",
+ "thiserror",
 ]
 
 [[package]]
