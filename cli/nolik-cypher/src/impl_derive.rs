@@ -6,7 +6,6 @@ use syn::{
 	parse_macro_input, parse_quote, spanned::Spanned, Data, DeriveInput, Fields, GenericParam,
 	Generics,
 };
-
 enum Direction {
 	Encrypt,
 	Decrypt,

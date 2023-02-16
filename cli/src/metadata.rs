@@ -6,10 +6,7 @@
 pub mod polkadot {}
 use subxt::utils::AccountId32;
 
-use crate::{
-	cypher::{BytesCypher, CypherError},
-	messages::{Message, MessageEntry},
-};
+use crate::messages::{BytesCypher, CypherError, Message, MessageEntry};
 use blake2::{digest::Update, Digest};
 pub use polkadot::runtime_types::pallet_nolik::pallet::{Channel, MessageMetadata};
 
@@ -168,10 +165,7 @@ impl MessageMetadata {
 #[cfg(test)]
 mod tests {
 	use super::*;
-	use crate::{
-		cypher::Cypher,
-		messages::{Message, MessageEntry, MessageType},
-	};
+	use crate::messages::{Cypher, Message, MessageEntry, MessageType};
 	use sp_keyring;
 	use subxt::utils::AccountId32;
 

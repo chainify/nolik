@@ -3812,7 +3812,7 @@ version = "0.1.3-dev"
 dependencies = [
  "blake2",
  "hex",
- "nolik-cli-proc-macro",
+ "nolik-cypher",
  "parity-scale-codec",
  "scale-info",
  "serde_json",
@@ -3826,7 +3826,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "nolik-cli-proc-macro"
+name = "nolik-cypher"
 version = "0.0.0"
 dependencies = [
  "blake2",

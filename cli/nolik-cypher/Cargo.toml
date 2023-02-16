@@ -1,5 +1,5 @@
 [package]
-name = "nolik-cli-proc-macro"
+name = "nolik-cypher"
 version = "0.0.0"
 edition = "2021"
 publish = false

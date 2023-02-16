@@ -1,4 +1,3 @@
-mod cypher;
 mod messages;
 mod metadata;
 
@@ -15,8 +14,7 @@ use subxt::{
 	OnlineClient, PolkadotConfig,
 };
 
-use cypher::Cypher;
-use messages::{Message, MessageEntry, MessageType};
+use messages::{Cypher, Message, MessageEntry, MessageType};
 use metadata::{polkadot, MessageMetadata, TryFromSlice};
 
 fn to_hex(bytes: impl AsRef<[u8]>) -> String {
