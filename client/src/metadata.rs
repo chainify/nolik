@@ -1,6 +1,6 @@
 /// subxt metadata -f bytes > substrate_metadata.scale
 #[subxt::subxt(
-	runtime_metadata_path = "../cli/substrate_metadata.scale",
+	runtime_metadata_path = "../client/substrate_metadata.scale",
 	derive_for_all_types = "PartialEq, Clone"
 )]
 pub mod polkadot {}
