@@ -3,12 +3,11 @@
 
 use nolik_cypher::{BytesCypher, Cypher, CypherError, SalsaNonce};
 use parity_scale_codec::{Decode, Encode};
-use scale_info::TypeInfo;
 
 use crypto_box::{PublicKey, SecretKey};
 
 #[allow(dead_code)]
-#[derive(Debug, Encode, Decode, TypeInfo, Clone, PartialEq, Default)]
+#[derive(Debug, Encode, Decode, Clone, PartialEq, Default)]
 pub enum MessageType {
 	#[default]
 	RawData,
@@ -25,12 +24,12 @@ impl Cypher for MessageType {
 	}
 }
 
-#[derive(Debug, Encode, Decode, TypeInfo, Clone, PartialEq, Cypher)]
+#[derive(Debug, Encode, Decode, Clone, PartialEq, Cypher)]
 pub struct Message {
 	pub entries: Vec<MessageEntry>,
 }
 
-#[derive(Debug, Encode, Decode, TypeInfo, Clone, PartialEq, Cypher)]
+#[derive(Debug, Encode, Decode, Clone, PartialEq, Cypher)]
 pub struct MessageEntry {
 	pub key: Vec<u8>,
 	pub value: Vec<u8>,
