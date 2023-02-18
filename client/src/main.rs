@@ -1,9 +1,12 @@
 mod messages;
 mod metadata;
 
-use nolik_cypher::Cypher;
+use crypto_box::{
+	aead::{AeadCore, OsRng},
+	SalsaBox, SecretKey,
+};
+use nolik_cypher::{Cypher, SalsaNonce};
 use parity_scale_codec::{Decode, Encode};
-use sodiumoxide::crypto::{box_, box_::Nonce};
 use sp_core::offchain::StorageKind;
 use sp_keyring::AccountKeyring;
 use std::sync::Arc;
@@ -16,7 +19,7 @@ use subxt::{
 };
 
 use messages::{Message, MessageEntry, MessageType};
-use metadata::{polkadot, MessageMetadata, TryFromSlice};
+use metadata::{polkadot, MessageMetadata};
 
 fn to_hex(bytes: impl AsRef<[u8]>) -> String {
 	format!("0x{}", hex::encode(bytes.as_ref()))
@@ -42,10 +45,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	let api = OnlineClient::<PolkadotConfig>::from_rpc_client(client.clone()).await?;
 	let signer = PairSigner::new(AccountKeyring::Alice.pair());
 
-	let nonce = box_::gen_nonce();
+	let nonce = SalsaBox::generate_nonce(&mut OsRng);
 
-	let (sender_pk, sender_sk) = box_::gen_keypair();
-	let (receiver_pk, receiver_sk) = box_::gen_keypair();
+	let sender_sk = SecretKey::generate(&mut OsRng);
+	let sender_pk = sender_sk.public_key();
+	let receiver_sk = SecretKey::generate(&mut OsRng);
+	let receiver_pk = receiver_sk.public_key();
 
 	let message = Message {
 		entries: vec![MessageEntry {
@@ -61,9 +66,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		&sender_pk,
 		&[&receiver_pk],
 		&message,
-	);
+	)?;
 
-	let encrypted_message = message.encrypt(&secret_nonce, &receiver_pk, &sender_sk);
+	let encrypted_message = message.encrypt(&secret_nonce, &receiver_pk, &sender_sk)?;
 
 	let tx = polkadot::tx()
 		.nolik()
@@ -83,10 +88,10 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
 		let decrypted_metadata = event.metadata.decrypt(&receiver_sk)?;
 
-		let decrypted_secret_nonce = Nonce::try_from_slice(
+		let decrypted_secret_nonce = SalsaNonce::from_slice(
 			&decrypted_metadata.channels.first().expect("Couldn't decrypt any channel").nonce,
-		)?;
-		assert_eq!(decrypted_secret_nonce, secret_nonce);
+		);
+		assert_eq!(decrypted_secret_nonce.as_slice(), secret_nonce.as_slice());
 
 		let receiver_data = get_offchain_storage(client.clone(), &event.key)
 			.await?

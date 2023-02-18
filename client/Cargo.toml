@@ -20,7 +20,7 @@ subxt = "0.26.0"
 tokio = { version = "1.25", features = ["full"] }
 # tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
-sodiumoxide = "0.2.7"
+crypto_box = "0.8"
 hex = "0.4.3"
 serde_json = { version = "1.0.64", features = ["raw_value"] }
 blake2 = "0.10.4"

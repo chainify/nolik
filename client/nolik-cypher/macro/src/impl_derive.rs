@@ -31,11 +31,11 @@ pub fn impl_derive_cypher(input: proc_macro::TokenStream) -> proc_macro::TokenSt
 	let expanded = quote! {
 		// The generated impl.
 		impl #impl_generics Cypher for #name #ty_generics #where_clause {
-			fn encrypt(&self, nonce: &Nonce, pk: &PublicKey, sk: &SecretKey) -> Self {
-				Self {#encrypted}
+			fn encrypt(&self, nonce: &SalsaNonce, pk: &PublicKey, sk: &SecretKey) -> Result<Self, CypherError> {
+				Ok(Self {#encrypted})
 			}
 
-			fn decrypt(&self, nonce: &Nonce, pk: &PublicKey, sk: &SecretKey) -> Result<Self, CypherError> {
+			fn decrypt(&self, nonce: &SalsaNonce, pk: &PublicKey, sk: &SecretKey) -> Result<Self, CypherError> {
 				Ok(Self{#decrypted})
 			}
 		}
@@ -63,7 +63,7 @@ fn cypher_fields(data: &Data, direction: Direction) -> proc_macro2::TokenStream 
 					let name = &f.ident;
 					match direction {
 						Direction::Encrypt => quote_spanned! {f.span()=>
-							#name: self.#name.encrypt(nonce, pk, sk)
+							#name: self.#name.encrypt(nonce, pk, sk)?
 						},
 						Direction::Decrypt => quote_spanned! {f.span()=>
 							#name: self.#name.decrypt(nonce, pk, sk)?
