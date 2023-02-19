@@ -10,7 +10,7 @@ codec = { package = "parity-scale-codec", version = "3.0.0", default-features = 
 scale-info = { version = "2.1.1", default-features = false, features = ["derive"] }
 
 crypto_box = { virsion = "0.8", optional = true }
-nolik-cypher = { path = "../nolik-cypher", optional = true }
+nolik-cypher = { path = "../cypher", optional = true }
 blake2 = { version = "0.10", optional = true, default-features = false }
 
 [features]
