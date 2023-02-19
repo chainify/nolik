@@ -1,9 +1,6 @@
-mod messages;
-mod metadata;
-
 use crypto_box::{
 	aead::{AeadCore, OsRng},
-	SalsaBox, SecretKey,
+	PublicKey, SalsaBox, SecretKey,
 };
 use nolik_cypher::{Cypher, SalsaNonce};
 use parity_scale_codec::{Decode, Encode};
@@ -18,8 +15,8 @@ use subxt::{
 	OnlineClient, PolkadotConfig,
 };
 
-use messages::{Message, MessageEntry, MessageType};
-use metadata::{polkadot, MessageMetadata};
+use metadata::{Message, MessageEntry, MessageType};
+use nolik_client::{polkadot, PolkadotMessageMetadata};
 
 fn to_hex(bytes: impl AsRef<[u8]>) -> String {
 	format!("0x{}", hex::encode(bytes.as_ref()))
@@ -60,8 +57,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		}],
 	};
 
-	let (encrypted_metadata, secret_nonce) = MessageMetadata::new_encrypted(
-		signer.account_id(),
+	let (encrypted_metadata, secret_nonce) = PolkadotMessageMetadata::new_encrypted(
+		&PublicKey::from(AccountKeyring::Alice.public().0),
 		&nonce,
 		&sender_pk,
 		&[&receiver_pk],

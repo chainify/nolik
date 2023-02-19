@@ -1,4 +1,5 @@
-use crate::{mock::*, Channel, MessageMetadata};
+use crate::{mock::*};
+use metadata::{Channel, MessageMetadata};
 use frame_support::{assert_err, assert_ok, sp_io};
 use sp_runtime::{offchain::StorageKind, traits::BadOrigin};
 

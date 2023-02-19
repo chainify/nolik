@@ -24,3 +24,4 @@ hex = "0.4.3"
 serde_json = { version = "1.0.64", features = ["raw_value"] }
 blake2 = "0.10.4"
 nolik-cypher = { path = "./nolik-cypher" }
+metadata = { path = "./metadata" }

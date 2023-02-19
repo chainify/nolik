@@ -1,10 +1,13 @@
 //! Describes a message format and encryption/decryption primitives for it.
 //! Encryption and decryption is done with a Diffie-Hellman algorithm.
 
-use nolik_cypher::{BytesCypher, Cypher, CypherError, SalsaNonce};
-use parity_scale_codec::{Decode, Encode};
-
+#[cfg(feature = "std")]
 use crypto_box::{PublicKey, SecretKey};
+#[cfg(feature = "std")]
+use nolik_cypher::{BytesCypher, Cypher, CypherError, SalsaNonce};
+
+use codec::{Decode, Encode};
+use scale_info::prelude::vec::Vec;
 
 #[allow(dead_code)]
 #[derive(Debug, Encode, Decode, Clone, PartialEq, Default)]
@@ -14,6 +17,7 @@ pub enum MessageType {
 	File,
 }
 
+#[cfg(feature = "std")]
 impl Cypher for MessageType {
 	fn encrypt(&self, _: &SalsaNonce, _: &PublicKey, _: &SecretKey) -> Result<Self, CypherError> {
 		Ok(self.clone())
@@ -24,18 +28,21 @@ impl Cypher for MessageType {
 	}
 }
 
-#[derive(Debug, Encode, Decode, Clone, PartialEq, Cypher)]
+#[cfg_attr(feature = "std", derive(Cypher))]
+#[derive(Debug, Encode, Decode, Clone, PartialEq)]
 pub struct Message {
 	pub entries: Vec<MessageEntry>,
 }
 
-#[derive(Debug, Encode, Decode, Clone, PartialEq, Cypher)]
+#[cfg_attr(feature = "std", derive(Cypher))]
+#[derive(Debug, Encode, Decode, Clone, PartialEq)]
 pub struct MessageEntry {
 	pub key: Vec<u8>,
 	pub value: Vec<u8>,
 	pub kind: MessageType,
 }
 
+#[cfg(feature = "std")]
 #[cfg(test)]
 mod tests {
 	use super::*;
