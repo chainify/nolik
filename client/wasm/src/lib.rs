@@ -14,14 +14,14 @@ use crypto_box::{
 	PublicKey, SalsaBox, SecretKey,
 };
 use js_sys::{Array, Map, Uint8Array};
-use nolik_metadata::{Channel, Message, MessageEntry, MessageMetadata, MessageType};
+use nolik_metadata::{Channel, Cypher, Message, MessageEntry, MessageMetadata, MessageType};
 
 fn js_value_to_array<const N: usize>(value: JsValue) -> Result<[u8; N], JsValue> {
 	let value: Uint8Array = value.dyn_into()?;
 	let value: [u8; N] = value
 		.to_vec()
 		.try_into()
-		.map_err(|_| JsError::new(&format!("wrong size of a array {}", N)))?;
+		.map_err(|_| JsError::new(&format!("wrong size of array {}", N)))?;
 	Ok(value)
 }
 
@@ -57,28 +57,58 @@ fn metadata_to_js_map(meta: &MessageMetadata) -> Map {
 }
 
 fn js_map_to_metadata(map: Map) -> Result<MessageMetadata, JsValue> {
-	let nonce = js_value_to_array::<24>(map.get(&"nonce".into()))?;
-	let broker = js_value_to_array::<32>(map.get(&"broker".into()))?;
-	let hash = js_value_to_array::<32>(map.get(&"hash".into()))?;
-
 	let mut channels = vec![];
 	let chans: Array = map.get(&"channels".into()).dyn_into()?;
 	for ch in chans.iter() {
 		let ch: Map = ch.dyn_into()?;
-		let nonce = js_value_to_array::<24>(ch.get(&"nonce".into()))?;
+		let nonce: Uint8Array = ch.get(&"nonce".into()).dyn_into()?;
 
 		let mut parties = vec![];
-		let parts: Array = map.get(&"parties".into()).dyn_into()?;
+		let parts: Array = ch.get(&"parties".into()).dyn_into()?;
 		for part in parts.iter() {
 			let part: Uint8Array = part.dyn_into()?;
 			parties.push(part.to_vec());
 		}
 
-		channels.push(Channel { nonce: nonce.into(), parties })
+		channels.push(Channel { nonce: nonce.to_vec(), parties })
 	}
+
+	let nonce = js_value_to_array::<24>(map.get(&"nonce".into()))?;
+	let broker = js_value_to_array::<32>(map.get(&"broker".into()))?;
+	let hash = js_value_to_array::<32>(map.get(&"hash".into()))?;
 
 	let meta = MessageMetadata { nonce, broker, hash, channels };
 	Ok(meta)
+}
+
+fn message_from_js(map: Map) -> Result<Message, JsValue> {
+	let mut entries = vec![];
+	let es: Array = map.get(&"entries".into()).dyn_into()?;
+	for e in es.iter() {
+		let e: Map = e.dyn_into()?;
+		let key: Uint8Array = e.get(&"key".into()).dyn_into()?;
+		let value: Uint8Array = e.get(&"value".into()).dyn_into()?;
+		entries.push(MessageEntry {
+			key: key.to_vec(),
+			value: value.to_vec(),
+			kind: MessageType::RawData,
+		});
+	}
+	Ok(Message { entries })
+}
+
+fn message_to_js(message: &Message) -> Result<Map, JsValue> {
+	let entries = Array::new();
+	for entry in &message.entries {
+		let e = Map::new();
+		e.set(&"key".into(), &Uint8Array::from(entry.key.as_ref()));
+		e.set(&"value".into(), &Uint8Array::from(entry.value.as_ref()));
+		entries.push(&e);
+	}
+
+	let map = Map::new();
+	map.set(&"entries".into(), &entries);
+	Ok(map)
 }
 
 #[wasm_bindgen]
@@ -103,25 +133,12 @@ pub fn new_encrypted_metadata(
 	let public_nonce = Nonce::<SalsaBox>::from_slice(public_nonce.as_slice());
 	let sender_pk = PublicKey::from(js_value_to_array::<32>(sender_pk.into())?);
 
-	let mut entries = vec![];
-	let es: Array = message.get(&"entries".into()).dyn_into()?;
-	for e in es.iter() {
-		let e: Map = e.dyn_into()?;
-		let key: Uint8Array = e.get(&"key".into()).dyn_into()?;
-		let value: Uint8Array = e.get(&"value".into()).dyn_into()?;
-		entries.push(MessageEntry {
-			key: key.to_vec(),
-			value: value.to_vec(),
-			kind: MessageType::RawData,
-		});
-	}
-
 	let (meta, secret_nonce) = MessageMetadata::new_encrypted(
 		&origin,
 		&public_nonce,
 		&sender_pk,
 		&reps.iter().collect::<Vec<_>>(),
-		&Message { entries },
+		&message_from_js(message)?,
 	)
 	.map_err(|e| JsError::new(&format!("{}", e)))?;
 
@@ -146,25 +163,23 @@ pub fn decrypt_metadata(metadata: Map, secret_key: Uint8Array) -> Result<Map, Js
 }
 
 #[wasm_bindgen]
-pub struct KeyPair {
-	secret: SecretKey,
-}
+pub struct KeyPair(SecretKey);
 
 #[wasm_bindgen]
 impl KeyPair {
 	#[wasm_bindgen(constructor)]
 	pub fn new() -> KeyPair {
-		KeyPair { secret: SecretKey::generate(&mut OsRng) }
+		KeyPair(SecretKey::generate(&mut OsRng))
 	}
 
 	#[wasm_bindgen(getter)]
 	pub fn public(&self) -> Uint8Array {
-		Uint8Array::from(self.secret.public_key().as_ref())
+		Uint8Array::from(self.0.public_key().as_ref())
 	}
 
 	#[wasm_bindgen(getter)]
 	pub fn secret(&mut self) -> Uint8Array {
-		Uint8Array::from(&self.secret.as_bytes()[..])
+		Uint8Array::from(&self.0.as_bytes()[..])
 	}
 }
 
@@ -174,12 +189,53 @@ pub fn generate_nonce() -> Uint8Array {
 	Uint8Array::from(nonce.as_ref())
 }
 
-#[wasm_bindgen]
-extern "C" {
-	fn alert(s: &str);
+enum Action {
+	Encrypt,
+	Decrypt,
+}
+
+fn on_message(
+	message: Map,
+	nonce: Uint8Array,
+	pk: Uint8Array,
+	sk: Uint8Array,
+	do_what: Action,
+) -> Result<Map, JsValue> {
+	utils::set_panic_hook();
+
+	let m = message_from_js(message)?;
+
+	let nonce = nonce.to_vec();
+	let nonce = Nonce::<SalsaBox>::from_slice(nonce.as_slice());
+	let pk = PublicKey::from(js_value_to_array::<32>(pk.into())?);
+	let sk = SecretKey::from(js_value_to_array::<32>(sk.into())?);
+
+	let m = match do_what {
+		Action::Encrypt =>
+			m.encrypt(nonce, &pk, &sk).map_err(|e| JsError::new(&format!("{}", e)))?,
+		Action::Decrypt =>
+			m.decrypt(nonce, &pk, &sk).map_err(|e| JsError::new(&format!("{}", e)))?,
+	};
+
+	message_to_js(&m)
 }
 
 #[wasm_bindgen]
-pub fn greet(name: &str) {
-	alert(&format!("Hello, {}!", name));
+pub fn encrypt_message(
+	message: Map,
+	secret_nonce: Uint8Array,
+	receiver_pk: Uint8Array,
+	sender_sk: Uint8Array,
+) -> Result<Map, JsValue> {
+	on_message(message, secret_nonce, receiver_pk, sender_sk, Action::Encrypt)
+}
+
+#[wasm_bindgen]
+pub fn decrypt_message(
+	message: Map,
+	secret_nonce: Uint8Array,
+	sender_pk: Uint8Array,
+	receiver_sk: Uint8Array,
+) -> Result<Map, JsValue> {
+	on_message(message, secret_nonce, sender_pk, receiver_sk, Action::Decrypt)
 }

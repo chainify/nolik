@@ -5,3 +5,5 @@ mod meta;
 
 pub use messages::{Message, MessageEntry, MessageType};
 pub use meta::{Channel, MessageMetadata};
+#[cfg(feature = "std")]
+pub use nolik_cypher::{BytesCypher, Cypher, CypherError, SalsaNonce};
