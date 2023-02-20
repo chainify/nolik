@@ -1,6 +1,6 @@
-use crate::{mock::*};
-use metadata::{Channel, MessageMetadata};
+use crate::mock::*;
 use frame_support::{assert_err, assert_ok, sp_io};
+use nolik_metadata::{Channel, MessageMetadata};
 use sp_runtime::{offchain::StorageKind, traits::BadOrigin};
 
 use rand::{thread_rng, Rng};

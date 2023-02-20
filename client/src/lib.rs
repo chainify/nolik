@@ -6,8 +6,8 @@
 pub mod polkadot {}
 
 use crypto_box::{PublicKey, SecretKey};
-use metadata::{Channel, Message, MessageMetadata};
 use nolik_cypher::{CypherError, SalsaNonce};
+use nolik_metadata::{Channel, Message, MessageMetadata};
 pub use polkadot::runtime_types::pallet_nolik::pallet::{
 	Channel as PolkadotChannel, MessageMetadata as PolkadotMessageMetadata,
 };

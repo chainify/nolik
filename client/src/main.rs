@@ -15,8 +15,8 @@ use subxt::{
 	OnlineClient, PolkadotConfig,
 };
 
-use metadata::{Message, MessageEntry, MessageType};
 use nolik_client::{polkadot, PolkadotMessageMetadata};
+use nolik_metadata::{Message, MessageEntry, MessageType};
 
 fn to_hex(bytes: impl AsRef<[u8]>) -> String {
 	format!("0x{}", hex::encode(bytes.as_ref()))

@@ -17,7 +17,9 @@ pub enum CypherError {
 	#[error("Could not decrypt data for {0:?}")]
 	DecryptionFailed(PublicKey),
 	#[error("Could not parse nonce {0:?}")]
-	InvalidNonce(SalsaNonce),
+	UnexpectedNonceType(SalsaNonce),
+	#[error("Could not parse pubkey {0:?}")]
+	InvalidPubkey(Vec<u8>),
 }
 
 pub trait Cypher

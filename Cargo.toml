@@ -1,4 +1,8 @@
 [workspace]
-members = ["node", "runtime", "pallets/nolik", "client", "client/metadata"]
+members = ["node", "runtime", "pallets/nolik", "client", "client/metadata", "client/wasm"]
 [profile.release]
 panic = "unwind"
+
+[profile.release.package.wasm]
+# Tell `rustc` to optimize for small code size.
+opt-level = "s"

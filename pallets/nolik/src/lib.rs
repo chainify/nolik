@@ -11,7 +11,7 @@ pub use pallet::*;
 pub mod pallet {
 	use frame_support::{pallet_prelude::*, sp_io::offchain_index};
 	use frame_system::pallet_prelude::*;
-	use metadata::{Channel, MessageMetadata};
+	use nolik_metadata::{Channel, MessageMetadata};
 	use scale_info::prelude::vec::Vec;
 
 	#[pallet::pallet]

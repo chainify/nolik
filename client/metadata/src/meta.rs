@@ -1,4 +1,6 @@
 #[cfg(feature = "std")]
+use crate::messages::{Message, MessageEntry};
+#[cfg(feature = "std")]
 use blake2::{digest::Update, Digest};
 #[cfg(feature = "std")]
 use crypto_box::{
@@ -8,7 +10,6 @@ use crypto_box::{
 #[cfg(feature = "std")]
 use nolik_cypher::{BytesCypher, CypherError, SalsaNonce};
 
-use crate::messages::{Message, MessageEntry};
 use codec::{Decode, Encode};
 use scale_info::{prelude::vec::Vec, TypeInfo};
 
@@ -68,7 +69,7 @@ impl MessageMetadata {
 		let public_nonce_arr = public_nonce
 			.as_slice()
 			.try_into()
-			.map_err(|_| CypherError::InvalidNonce(*public_nonce))?;
+			.map_err(|_| CypherError::UnexpectedNonceType(*public_nonce))?;
 		Ok((
 			MessageMetadata {
 				nonce: public_nonce_arr,
