@@ -9,7 +9,10 @@ use wasm_bindgen::prelude::*;
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-use crypto_box::{aead::Nonce, PublicKey, SalsaBox, SecretKey};
+use crypto_box::{
+	aead::{AeadCore, Nonce, OsRng},
+	PublicKey, SalsaBox, SecretKey,
+};
 use js_sys::{Array, Map, Uint8Array};
 use nolik_metadata::{Channel, Message, MessageEntry, MessageMetadata, MessageType};
 
@@ -20,13 +23,6 @@ fn js_value_to_array<const N: usize>(value: JsValue) -> Result<[u8; N], JsValue>
 		.try_into()
 		.map_err(|_| JsError::new(&format!("wrong size of a array {}", N)))?;
 	Ok(value)
-}
-
-fn pubkey_from_slice(slice: &[u8]) -> Result<PublicKey, JsValue> {
-	let data: [u8; 32] = slice
-		.try_into()
-		.map_err(|_| JsValue::from_str(&format!("Could't parse pubkey {:?}", slice)))?;
-	Ok(PublicKey::from(data))
 }
 
 fn metadata_to_js_map(meta: &MessageMetadata) -> Map {
@@ -55,6 +51,8 @@ fn metadata_to_js_map(meta: &MessageMetadata) -> Map {
 
 		channels.push(&channel);
 	}
+	map.set(&"channels".into(), &JsValue::from(channels));
+
 	map
 }
 
@@ -85,9 +83,9 @@ fn js_map_to_metadata(map: Map) -> Result<MessageMetadata, JsValue> {
 
 #[wasm_bindgen]
 pub fn new_encrypted_metadata(
-	origin: &[u8],
-	public_nonce: &[u8],
-	sender_pk: &[u8],
+	origin: Uint8Array,
+	public_nonce: Uint8Array,
+	sender_pk: Uint8Array,
 	recipients: Array, // array of pubkeys
 	message: Map,
 ) -> Result<Map, JsValue> {
@@ -96,13 +94,14 @@ pub fn new_encrypted_metadata(
 	let mut reps = vec![];
 	for recipient in recipients.iter() {
 		let pk = recipient.dyn_into::<Uint8Array>()?;
-		let pk = PublicKey::from(pubkey_from_slice(&pk.to_vec())?);
+		let pk = PublicKey::from(js_value_to_array::<32>(pk.into())?);
 		reps.push(pk);
 	}
 
-	let origin = PublicKey::from(pubkey_from_slice(origin.as_ref())?);
-	let public_nonce = Nonce::<SalsaBox>::from_slice(public_nonce);
-	let sender_pk = PublicKey::from(pubkey_from_slice(sender_pk.as_ref())?);
+	let origin = PublicKey::from(js_value_to_array::<32>(origin.into())?);
+	let public_nonce = public_nonce.to_vec();
+	let public_nonce = Nonce::<SalsaBox>::from_slice(public_nonce.as_slice());
+	let sender_pk = PublicKey::from(js_value_to_array::<32>(sender_pk.into())?);
 
 	let mut entries = vec![];
 	let es: Array = message.get(&"entries".into()).dyn_into()?;
@@ -144,4 +143,43 @@ pub fn decrypt_metadata(metadata: Map, secret_key: Uint8Array) -> Result<Map, Js
 		.decrypt(&SecretKey::from(secret_key))
 		.map_err(|e| JsError::new(&format!("{}", e)))?;
 	Ok(metadata_to_js_map(&meta))
+}
+
+#[wasm_bindgen]
+pub struct KeyPair {
+	secret: SecretKey,
+}
+
+#[wasm_bindgen]
+impl KeyPair {
+	#[wasm_bindgen(constructor)]
+	pub fn new() -> KeyPair {
+		KeyPair { secret: SecretKey::generate(&mut OsRng) }
+	}
+
+	#[wasm_bindgen(getter)]
+	pub fn public(&self) -> Uint8Array {
+		Uint8Array::from(self.secret.public_key().as_ref())
+	}
+
+	#[wasm_bindgen(getter)]
+	pub fn secret(&mut self) -> Uint8Array {
+		Uint8Array::from(&self.secret.as_bytes()[..])
+	}
+}
+
+#[wasm_bindgen]
+pub fn generate_nonce() -> Uint8Array {
+	let nonce = SalsaBox::generate_nonce(&mut OsRng);
+	Uint8Array::from(nonce.as_ref())
+}
+
+#[wasm_bindgen]
+extern "C" {
+	fn alert(s: &str);
+}
+
+#[wasm_bindgen]
+pub fn greet(name: &str) {
+	alert(&format!("Hello, {}!", name));
 }
