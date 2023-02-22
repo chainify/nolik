@@ -1,8 +1,8 @@
 [workspace]
-members = ["node", "runtime", "pallets/nolik", "client", "client/metadata", "client/wasm"]
+members = ["node", "runtime", "pallets/nolik", "client", "client/metadata", "client/js-wasm"]
 [profile.release]
 panic = "unwind"
 
-[profile.release.package.wasm]
+[profile.release.package.js-wasm]
 # Tell `rustc` to optimize for small code size.
 opt-level = "s"
