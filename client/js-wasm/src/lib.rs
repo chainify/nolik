@@ -14,7 +14,9 @@ use crypto_box::{
 	PublicKey, SalsaBox, SecretKey,
 };
 use js_sys::{Array, Map, Uint8Array};
-use nolik_metadata::{Channel, Cypher, Message, MessageEntry, MessageMetadata, MessageType};
+use nolik_metadata::{
+	Channel, Cypher, Message, MessageAction, MessageEntry, MessageMetadata, MessageType,
+};
 
 fn js_value_to_array<const N: usize>(value: JsValue) -> Result<[u8; N], JsValue> {
 	let value: Uint8Array = value.dyn_into()?;
@@ -189,17 +191,12 @@ pub fn generate_nonce() -> Uint8Array {
 	Uint8Array::from(nonce.as_ref())
 }
 
-enum Action {
-	Encrypt,
-	Decrypt,
-}
-
 fn on_message(
 	message: Map,
 	nonce: Uint8Array,
 	pk: Uint8Array,
 	sk: Uint8Array,
-	do_what: Action,
+	do_what: MessageAction,
 ) -> Result<Map, JsValue> {
 	utils::set_panic_hook();
 
@@ -211,9 +208,9 @@ fn on_message(
 	let sk = SecretKey::from(js_value_to_array::<32>(sk.into())?);
 
 	let m = match do_what {
-		Action::Encrypt =>
+		MessageAction::Encrypt =>
 			m.encrypt(nonce, &pk, &sk).map_err(|e| JsError::new(&format!("{}", e)))?,
-		Action::Decrypt =>
+		MessageAction::Decrypt =>
 			m.decrypt(nonce, &pk, &sk).map_err(|e| JsError::new(&format!("{}", e)))?,
 	};
 
@@ -227,7 +224,7 @@ pub fn encrypt_message(
 	receiver_pk: Uint8Array,
 	sender_sk: Uint8Array,
 ) -> Result<Map, JsValue> {
-	on_message(message, secret_nonce, receiver_pk, sender_sk, Action::Encrypt)
+	on_message(message, secret_nonce, receiver_pk, sender_sk, MessageAction::Encrypt)
 }
 
 #[wasm_bindgen]
@@ -237,5 +234,5 @@ pub fn decrypt_message(
 	sender_pk: Uint8Array,
 	receiver_sk: Uint8Array,
 ) -> Result<Map, JsValue> {
-	on_message(message, secret_nonce, sender_pk, receiver_sk, Action::Decrypt)
+	on_message(message, secret_nonce, sender_pk, receiver_sk, MessageAction::Decrypt)
 }

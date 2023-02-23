@@ -6,3 +6,7 @@ panic = "unwind"
 [profile.release.package.js-wasm]
 # Tell `rustc` to optimize for small code size.
 opt-level = "s"
+
+[profile.release.package.nolik-metadata]
+strip = "debuginfo"
+opt-level = "s"

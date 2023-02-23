@@ -5,12 +5,15 @@
 use crypto_box::{PublicKey, SecretKey};
 #[cfg(feature = "std")]
 use nolik_cypher::{BytesCypher, Cypher, CypherError, SalsaNonce};
+#[cfg(feature = "std")]
+use serde::{Deserialize, Serialize};
 
 use codec::{Decode, Encode};
 use scale_info::prelude::vec::Vec;
 
 #[allow(dead_code)]
 #[derive(Debug, Encode, Decode, Clone, PartialEq, Default)]
+#[cfg_attr(feature = "std", derive(Serialize, Deserialize))]
 pub enum MessageType {
 	#[default]
 	RawData,
@@ -28,14 +31,14 @@ impl Cypher for MessageType {
 	}
 }
 
-#[cfg_attr(feature = "std", derive(Cypher))]
-#[derive(Debug, Encode, Decode, Clone, PartialEq)]
+#[cfg_attr(feature = "std", derive(Cypher, Serialize, Deserialize))]
+#[derive(Debug, Encode, Decode, Clone, Default, PartialEq)]
 pub struct Message {
 	pub entries: Vec<MessageEntry>,
 }
 
-#[cfg_attr(feature = "std", derive(Cypher))]
-#[derive(Debug, Encode, Decode, Clone, PartialEq)]
+#[cfg_attr(feature = "std", derive(Cypher, Serialize, Deserialize))]
+#[derive(Debug, Encode, Decode, Clone, Default, PartialEq)]
 pub struct MessageEntry {
 	pub key: Vec<u8>,
 	pub value: Vec<u8>,
