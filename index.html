@@ -1,0 +1,59 @@
+<!-- python3 -m http.server -->
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>title</title>
+  <script>
+    const createInstance = async () => {
+      const path = 'target/wasm32-unknown-unknown/release/nolik_metadata.wasm';
+      const response = await fetch(path);
+      const bytes = await response.arrayBuffer();
+      const { instance } = await WebAssembly.instantiate(bytes, {
+        env: {
+          random_bytes(dest, len) {
+            const memory = instance.exports.memory;
+            const view = new Uint8Array(memory.buffer, dest, len);
+            self.crypto.getRandomValues(view);
+          }
+        },
+      });
+
+      console.log("sucessfully loaded")
+
+      return instance;
+    };
+
+    const write = (string, buffer, pointer) => {
+      const view = new Uint8Array(buffer, pointer);
+      const encoder = new TextEncoder();
+
+      view.set(encoder.encode(string));
+    }
+
+    const read = (buffer, pointer) => {
+      const view = new Uint8Array(buffer, pointer);
+      const length = view.findIndex(byte => byte === 0);
+      const decoder = new TextDecoder();
+
+      return decoder.decode(new Uint8Array(buffer, pointer, length));
+    };
+
+    (async () => {
+      const instance = await createInstance();
+      const memory = instance.exports.memory;
+      const pointer = instance.exports.allocate();
+      const nonce_ptr = instance.exports.generate_nonce();
+      console.log(JSON.parse(read(memory.buffer, nonce_ptr)));
+
+      instance.exports.deallocate(pointer);
+      instance.exports.deallocate(nonce_ptr);
+    })();
+  </script>
+</head>
+
+<body>
+</body>
+
+</html>

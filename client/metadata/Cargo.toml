@@ -12,10 +12,11 @@ scale-info = { version = "2.1.1", default-features = false, features = ["derive"
 crypto_box = { version = "0.8", optional = true }
 nolik-cypher = { path = "../cypher", optional = true }
 blake2 = { version = "0.10", optional = true, default-features = false }
-getrandom = { version = "0.2", default-features = false, features = ["js"] }
+getrandom = { version = "0.2", default-features = false, features = ["custom"] }
 serde = { version = "1.0", features = ["derive"], optional = true }
 serde_json = { version = "1.0", optional = true }
 
 [features]
 default = ["std"]
 std = ["codec/std", "scale-info/std", "nolik-cypher", "crypto_box/std", "blake2", "serde", "serde_json"]
+custom = ["std"]

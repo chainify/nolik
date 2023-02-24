@@ -124,7 +124,7 @@ mod inner_std {
 			&message,
 		) , MetadataEncryptReturn};
 
-		let secret_nonce = secret_nonce.to_vec().try_into().map_err(|_| "nonce size in not valid");
+		let secret_nonce = secret_nonce.to_vec().try_into().map_err(|_| "nonce size is not valid");
 		let secret_nonce: [u8; 24] = unwrap_or_return! {secret_nonce, MetadataEncryptReturn};
 		let encrypted = MetadataEncryptReturn { metadata, secret_nonce, ..Default::default() };
 		serialize_and_allocate! {&encrypted}
@@ -189,8 +189,29 @@ mod inner_std {
 	#[no_mangle]
 	pub extern "C" fn generate_nonce() -> *mut c_char {
 		let nonce = SalsaBox::generate_nonce(&mut OsRng);
-		let nonce = nonce.to_vec().try_into().map_err(|_| "nonce size in not valid");
+		let nonce = nonce.to_vec().try_into().map_err(|_| "nonce size is not valid");
 		let data: [u8; 24] = unwrap_or_return! {nonce, NonceWrap };
 		serialize_and_allocate! {&NonceWrap{data, ..Default::default()}}
+	}
+
+	#[cfg(feature = "custom")]
+	pub use custom::*;
+
+	// use "custom" getrandom feature to call host RNG
+	#[cfg(feature = "custom")]
+	mod custom {
+		use getrandom::{self, register_custom_getrandom};
+
+		extern "C" {
+			// call host OS random number generator
+			fn random_bytes(dest: *mut u8, len: usize);
+		}
+
+		pub fn getrandom_custom(dest: &mut [u8]) -> Result<(), getrandom::Error> {
+			unsafe { random_bytes(dest.as_mut_ptr(), dest.len()) };
+			Ok(())
+		}
+
+		register_custom_getrandom!(getrandom_custom);
 	}
 }
