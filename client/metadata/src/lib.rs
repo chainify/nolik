@@ -28,7 +28,7 @@ mod ffi {
 	// TODO: use scale codec instead of serde_json, also on a client
 	use serde::{Deserialize, Serialize};
 	use std::{
-		ffi::CString,
+		ffi::{CStr, CString},
 		mem,
 		os::raw::{c_char, c_void},
 	};
@@ -81,7 +81,7 @@ mod ffi {
 		let pointer = buffer.as_mut_ptr();
 		mem::forget(buffer);
 
-		pointer as *mut c_void
+		pointer
 	}
 
 	#[no_mangle]
@@ -115,10 +115,11 @@ mod ffi {
 	}
 
 	#[no_mangle]
-	pub extern "C" fn new_encrypted_message(input: *mut c_char, capacity: usize) -> *mut c_char {
-		let input = unsafe { Vec::from_raw_parts(input as *mut u8, 0, capacity) };
+	pub extern "C" fn new_encrypted_metadata(input: *mut u8) -> *mut c_char {
+		let input = unsafe { CStr::from_ptr(input as *const i8).to_str() };
+		let input = unwrap_or_return! {input, MetadataEncryptReturn};
 		let MetadataEncryptParams { origin, public_nonce, sender_pk, recipients, message } =
-			unwrap_or_return! {serde_json::from_slice(&input), MetadataEncryptReturn};
+			unwrap_or_return! {serde_json::from_str(&input), MetadataEncryptReturn};
 		let recipients: Vec<_> = recipients.iter().map(|pk| PublicKey::from(*pk)).collect();
 
 		let (metadata, secret_nonce) = unwrap_or_return! {MessageMetadata::new_encrypted(
@@ -137,10 +138,11 @@ mod ffi {
 	}
 
 	#[no_mangle]
-	pub extern "C" fn decrypt_metadata(input: *mut c_char, capacity: usize) -> *mut c_char {
-		let input = unsafe { Vec::from_raw_parts(input as *mut u8, 0, capacity) };
+	pub extern "C" fn decrypt_metadata(input: *mut u8) -> *mut c_char {
+		let input = unsafe { CStr::from_ptr(input as *const i8).to_str() };
+		let input = unwrap_or_return! {input, MetadataEncryptReturn};
 		let MetadataDecryptParams { metadata, receiver_sk } =
-			unwrap_or_return! {serde_json::from_slice(&input), MetadataDecryptReturn};
+			unwrap_or_return! {serde_json::from_str(&input), MetadataDecryptReturn};
 		let receiver_sk = SecretKey::from(receiver_sk);
 		let metadata = unwrap_or_return! {metadata.decrypt(&receiver_sk), MetadataDecryptReturn};
 
@@ -148,10 +150,11 @@ mod ffi {
 		serialize_and_allocate! {&decrypted}
 	}
 
-	fn on_message(input: *mut c_char, capacity: usize, action: MessageAction) -> *mut c_char {
-		let input = unsafe { Vec::from_raw_parts(input as *mut u8, 0, capacity) };
+	fn on_message(input: *mut u8, action: MessageAction) -> *mut c_char {
+		let input = unsafe { CStr::from_ptr(input as *const i8).to_str() };
+		let input = unwrap_or_return! {input, MetadataEncryptReturn};
 		let MessageInput { message, nonce, pk, sk } =
-			unwrap_or_return! {serde_json::from_slice(&input), MessageReturn};
+			unwrap_or_return! {serde_json::from_str(&input), MessageReturn};
 		let nonce = SalsaNonce::from_slice(&nonce);
 		let pk = PublicKey::from(pk);
 		let sk = SecretKey::from(sk);
@@ -164,13 +167,13 @@ mod ffi {
 	}
 
 	#[no_mangle]
-	pub extern "C" fn encrypt_message(input: *mut c_char, capacity: usize) -> *mut c_char {
-		on_message(input, capacity, MessageAction::Encrypt)
+	pub extern "C" fn encrypt_message(input: *mut u8) -> *mut c_char {
+		on_message(input, MessageAction::Encrypt)
 	}
 
 	#[no_mangle]
-	pub extern "C" fn decrypt_message(input: *mut c_char, capacity: usize) -> *mut c_char {
-		on_message(input, capacity, MessageAction::Decrypt)
+	pub extern "C" fn decrypt_message(input: *mut u8) -> *mut c_char {
+		on_message(input, MessageAction::Decrypt)
 	}
 
 	#[derive(Serialize, Deserialize, Debug, Default)]
