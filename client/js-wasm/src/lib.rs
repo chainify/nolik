@@ -15,7 +15,8 @@ use crypto_box::{
 };
 use js_sys::{Array, Map, Uint8Array};
 use nolik_metadata::{
-	Channel, Cypher, Message, MessageAction, MessageEntry, MessageMetadata, MessageType,
+	Channel, Cypher, Message, MessageAction, MessageEntry, MessageMetadata, MessageType, KEY_SIZE,
+	NONCE_SIZE,
 };
 
 fn js_value_to_array<const N: usize>(value: JsValue) -> Result<[u8; N], JsValue> {
@@ -75,9 +76,9 @@ fn js_map_to_metadata(map: Map) -> Result<MessageMetadata, JsValue> {
 		channels.push(Channel { nonce: nonce.to_vec(), parties })
 	}
 
-	let nonce = js_value_to_array::<24>(map.get(&"nonce".into()))?;
-	let broker = js_value_to_array::<32>(map.get(&"broker".into()))?;
-	let hash = js_value_to_array::<32>(map.get(&"hash".into()))?;
+	let nonce = js_value_to_array::<NONCE_SIZE>(map.get(&"nonce".into()))?;
+	let broker = js_value_to_array::<KEY_SIZE>(map.get(&"broker".into()))?;
+	let hash = js_value_to_array::<KEY_SIZE>(map.get(&"hash".into()))?;
 
 	let meta = MessageMetadata { nonce, broker, hash, channels };
 	Ok(meta)
@@ -126,14 +127,14 @@ pub fn new_encrypted_metadata(
 	let mut reps = vec![];
 	for recipient in recipients.iter() {
 		let pk = recipient.dyn_into::<Uint8Array>()?;
-		let pk = PublicKey::from(js_value_to_array::<32>(pk.into())?);
+		let pk = PublicKey::from(js_value_to_array::<KEY_SIZE>(pk.into())?);
 		reps.push(pk);
 	}
 
-	let origin = PublicKey::from(js_value_to_array::<32>(origin.into())?);
+	let origin = PublicKey::from(js_value_to_array::<KEY_SIZE>(origin.into())?);
 	let public_nonce = public_nonce.to_vec();
 	let public_nonce = Nonce::<SalsaBox>::from_slice(public_nonce.as_slice());
-	let sender_pk = PublicKey::from(js_value_to_array::<32>(sender_pk.into())?);
+	let sender_pk = PublicKey::from(js_value_to_array::<KEY_SIZE>(sender_pk.into())?);
 
 	let (meta, secret_nonce) = MessageMetadata::new_encrypted(
 		&origin,
@@ -157,7 +158,7 @@ pub fn decrypt_metadata(metadata: Map, secret_key: Uint8Array) -> Result<Map, Js
 	utils::set_panic_hook();
 
 	let meta = js_map_to_metadata(metadata)?;
-	let secret_key = js_value_to_array::<32>(secret_key.into())?;
+	let secret_key = js_value_to_array::<KEY_SIZE>(secret_key.into())?;
 	let meta = meta
 		.decrypt(&SecretKey::from(secret_key))
 		.map_err(|e| JsError::new(&format!("{}", e)))?;
@@ -204,8 +205,8 @@ fn on_message(
 
 	let nonce = nonce.to_vec();
 	let nonce = Nonce::<SalsaBox>::from_slice(nonce.as_slice());
-	let pk = PublicKey::from(js_value_to_array::<32>(pk.into())?);
-	let sk = SecretKey::from(js_value_to_array::<32>(sk.into())?);
+	let pk = PublicKey::from(js_value_to_array::<KEY_SIZE>(pk.into())?);
+	let sk = SecretKey::from(js_value_to_array::<KEY_SIZE>(sk.into())?);
 
 	let m = match do_what {
 		MessageAction::Encrypt =>

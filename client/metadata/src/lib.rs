@@ -3,19 +3,29 @@
 mod messages;
 mod meta;
 
-#[cfg(feature = "std")]
-pub use inner_std::*;
 pub use messages::{Message, MessageEntry, MessageType};
 pub use meta::{Channel, MessageMetadata};
+#[cfg(feature = "std")]
+pub use nolik_cypher::{BytesCypher, Cypher, CypherError, SalsaNonce};
+
+pub const KEY_SIZE: usize = 32;
+pub const NONCE_SIZE: usize = 24;
 
 #[cfg(feature = "std")]
-mod inner_std {
+pub enum MessageAction {
+	Encrypt,
+	Decrypt,
+}
+
+#[cfg(feature = "ffi")]
+mod ffi {
+	use super::*;
 	use crate::{Message, MessageMetadata};
 	use crypto_box::{
 		aead::{AeadCore, OsRng},
 		PublicKey, SalsaBox, SecretKey,
 	};
-	pub use nolik_cypher::{BytesCypher, Cypher, CypherError, SalsaNonce};
+	// TODO: use scale codec instead of serde_json, also on a client
 	use serde::{Deserialize, Serialize};
 	use std::{
 		ffi::CString,
@@ -23,31 +33,26 @@ mod inner_std {
 		os::raw::{c_char, c_void},
 	};
 
-	pub enum MessageAction {
-		Encrypt,
-		Decrypt,
-	}
-
 	#[derive(Serialize, Deserialize, Debug)]
 	struct MetadataEncryptParams {
-		pub origin: [u8; 32],
-		pub public_nonce: [u8; 24],
-		pub sender_pk: [u8; 32],
-		pub recipients: Vec<[u8; 32]>,
+		pub origin: [u8; KEY_SIZE],
+		pub public_nonce: [u8; NONCE_SIZE],
+		pub sender_pk: [u8; KEY_SIZE],
+		pub recipients: Vec<[u8; KEY_SIZE]>,
 		pub message: Message,
 	}
 
 	#[derive(Serialize, Deserialize, Debug, Default)]
 	struct MetadataEncryptReturn {
 		pub metadata: MessageMetadata,
-		pub secret_nonce: [u8; 24],
+		pub secret_nonce: [u8; NONCE_SIZE],
 		pub error: String,
 	}
 
 	#[derive(Serialize, Deserialize, Debug)]
 	struct MetadataDecryptParams {
 		pub metadata: MessageMetadata,
-		pub receiver_sk: [u8; 32],
+		pub receiver_sk: [u8; KEY_SIZE],
 	}
 
 	#[derive(Serialize, Deserialize, Debug, Default)]
@@ -59,9 +64,9 @@ mod inner_std {
 	#[derive(Serialize, Deserialize, Debug, Default)]
 	struct MessageInput {
 		pub message: Message,
-		pub nonce: [u8; 24],
-		pub pk: [u8; 32],
-		pub sk: [u8; 32],
+		pub nonce: [u8; NONCE_SIZE],
+		pub pk: [u8; KEY_SIZE],
+		pub sk: [u8; KEY_SIZE],
 	}
 
 	#[derive(Serialize, Deserialize, Debug, Default)]
@@ -125,7 +130,8 @@ mod inner_std {
 		) , MetadataEncryptReturn};
 
 		let secret_nonce = secret_nonce.to_vec().try_into().map_err(|_| "nonce size is not valid");
-		let secret_nonce: [u8; 24] = unwrap_or_return! {secret_nonce, MetadataEncryptReturn};
+		let secret_nonce: [u8; NONCE_SIZE] =
+			unwrap_or_return! {secret_nonce, MetadataEncryptReturn};
 		let encrypted = MetadataEncryptReturn { metadata, secret_nonce, ..Default::default() };
 		serialize_and_allocate! {&encrypted}
 	}
@@ -169,8 +175,8 @@ mod inner_std {
 
 	#[derive(Serialize, Deserialize, Debug, Default)]
 	struct KeyPair {
-		pub public: [u8; 32],
-		pub secret: [u8; 32],
+		pub public: [u8; KEY_SIZE],
+		pub secret: [u8; KEY_SIZE],
 	}
 
 	#[no_mangle]
@@ -182,7 +188,7 @@ mod inner_std {
 
 	#[derive(Serialize, Deserialize, Debug, Default)]
 	struct NonceWrap {
-		data: [u8; 24],
+		data: [u8; NONCE_SIZE],
 		error: String,
 	}
 
@@ -190,7 +196,7 @@ mod inner_std {
 	pub extern "C" fn generate_nonce() -> *mut c_char {
 		let nonce = SalsaBox::generate_nonce(&mut OsRng);
 		let nonce = nonce.to_vec().try_into().map_err(|_| "nonce size is not valid");
-		let data: [u8; 24] = unwrap_or_return! {nonce, NonceWrap };
+		let data: [u8; NONCE_SIZE] = unwrap_or_return! {nonce, NonceWrap };
 		serialize_and_allocate! {&NonceWrap{data, ..Default::default()}}
 	}
 
