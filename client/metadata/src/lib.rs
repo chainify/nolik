@@ -29,8 +29,7 @@ mod ffi {
 	use serde::{Deserialize, Serialize};
 	use std::{
 		ffi::{CStr, CString},
-		mem,
-		os::raw::{c_char, c_void},
+		os::raw::c_char,
 	};
 
 	#[derive(Serialize, Deserialize, Debug)]
@@ -76,29 +75,25 @@ mod ffi {
 	}
 
 	#[no_mangle]
-	pub extern "C" fn allocate(size: usize) -> *mut c_void {
-		let mut buffer = Vec::with_capacity(size);
-		let pointer = buffer.as_mut_ptr();
-		mem::forget(buffer);
+	pub extern "C" fn allocate(size: usize) -> *mut c_char {
+		unsafe { CString::from_vec_unchecked(vec![0; size]) }.into_raw()
+	}
 
-		pointer
+	fn allocate_string(s: String) -> *mut c_char {
+		unsafe { CString::from_vec_unchecked(s.into_bytes()) }.into_raw()
 	}
 
 	#[no_mangle]
-	pub extern "C" fn deallocate(pointer: *mut c_void, capacity: usize) {
+	pub extern "C" fn deallocate(pointer: *mut c_char) {
 		unsafe {
-			let _ = Vec::from_raw_parts(pointer, 0, capacity);
+			let _ = CString::from_raw(pointer);
 		}
-	}
-
-	fn allocate_string(s: &str) -> *mut c_char {
-		unsafe { CString::from_vec_unchecked(s.as_bytes().to_vec()) }.into_raw()
 	}
 
 	macro_rules! serialize_and_allocate {
 		( $val:expr ) => {{
 			let serialized = serde_json::to_string($val).unwrap_or_else(|e| e.to_string());
-			allocate_string(&serialized)
+			allocate_string(serialized)
 		}};
 	}
 
@@ -114,12 +109,15 @@ mod ffi {
 		};
 	}
 
+	fn ptr_to_bytes<'a>(input: *mut c_char) -> &'a [u8] {
+		unsafe { CStr::from_ptr(input).to_bytes() }
+	}
+
 	#[no_mangle]
-	pub extern "C" fn new_encrypted_metadata(input: *mut u8) -> *mut c_char {
-		let input = unsafe { CStr::from_ptr(input as *const i8).to_str() };
-		let input = unwrap_or_return! {input, MetadataEncryptReturn};
+	pub extern "C" fn new_encrypted_metadata(input: *mut c_char) -> *mut c_char {
+		let input = ptr_to_bytes(input);
 		let MetadataEncryptParams { origin, public_nonce, sender_pk, recipients, message } =
-			unwrap_or_return! {serde_json::from_str(&input), MetadataEncryptReturn};
+			unwrap_or_return! {serde_json::from_slice(input), MetadataEncryptReturn};
 		let recipients: Vec<_> = recipients.iter().map(|pk| PublicKey::from(*pk)).collect();
 
 		let (metadata, secret_nonce) = unwrap_or_return! {MessageMetadata::new_encrypted(
@@ -138,11 +136,10 @@ mod ffi {
 	}
 
 	#[no_mangle]
-	pub extern "C" fn decrypt_metadata(input: *mut u8) -> *mut c_char {
-		let input = unsafe { CStr::from_ptr(input as *const i8).to_str() };
-		let input = unwrap_or_return! {input, MetadataEncryptReturn};
+	pub extern "C" fn decrypt_metadata(input: *mut c_char) -> *mut c_char {
+		let input = ptr_to_bytes(input);
 		let MetadataDecryptParams { metadata, receiver_sk } =
-			unwrap_or_return! {serde_json::from_str(&input), MetadataDecryptReturn};
+			unwrap_or_return! {serde_json::from_slice(&input), MetadataDecryptReturn};
 		let receiver_sk = SecretKey::from(receiver_sk);
 		let metadata = unwrap_or_return! {metadata.decrypt(&receiver_sk), MetadataDecryptReturn};
 
@@ -150,11 +147,10 @@ mod ffi {
 		serialize_and_allocate! {&decrypted}
 	}
 
-	fn on_message(input: *mut u8, action: MessageAction) -> *mut c_char {
-		let input = unsafe { CStr::from_ptr(input as *const i8).to_str() };
-		let input = unwrap_or_return! {input, MetadataEncryptReturn};
+	fn on_message(input: *mut c_char, action: MessageAction) -> *mut c_char {
+		let input = ptr_to_bytes(input);
 		let MessageInput { message, nonce, pk, sk } =
-			unwrap_or_return! {serde_json::from_str(&input), MessageReturn};
+			unwrap_or_return! {serde_json::from_slice(&input), MessageReturn};
 		let nonce = SalsaNonce::from_slice(&nonce);
 		let pk = PublicKey::from(pk);
 		let sk = SecretKey::from(sk);
@@ -167,12 +163,12 @@ mod ffi {
 	}
 
 	#[no_mangle]
-	pub extern "C" fn encrypt_message(input: *mut u8) -> *mut c_char {
+	pub extern "C" fn encrypt_message(input: *mut c_char) -> *mut c_char {
 		on_message(input, MessageAction::Encrypt)
 	}
 
 	#[no_mangle]
-	pub extern "C" fn decrypt_message(input: *mut u8) -> *mut c_char {
+	pub extern "C" fn decrypt_message(input: *mut c_char) -> *mut c_char {
 		on_message(input, MessageAction::Decrypt)
 	}
 

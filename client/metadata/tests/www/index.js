@@ -2,6 +2,35 @@ import { Base64 } from 'js-base64';
 import { fileFromSync } from "node-fetch";
 import getRandomValues from "get-random-values";
 
+class Box {
+  constructor(instance, pointer) {
+    this.instance = instance;
+    this.memory = instance.exports.memory;
+    this.pointer = pointer;
+    this.obj = undefined;
+    this.encoder = new TextEncoder();
+    this.decoder = new TextDecoder();
+  }
+
+  write(string) {
+    const view = new Uint8Array(this.memory.buffer, this.pointer);
+    view.set(this.encoder.encode(string));
+  }
+
+  read() {
+    const view = new Uint8Array(this.memory.buffer, this.pointer);
+    const length = view.findIndex(byte => byte === 0);
+
+    const str = this.decoder.decode(new Uint8Array(this.memory.buffer, this.pointer, length));
+    this.obj = JSON.parse(str);
+    return this.obj;
+  }
+
+  deallocate() {
+    this.instance.exports.deallocate(this.pointer);
+  }
+}
+
 const createInstance = async () => {
   const path = '../../../../target/wasm32-unknown-unknown/release/nolik_metadata.wasm';
   const mimetype = 'text/plain'
@@ -9,6 +38,7 @@ const createInstance = async () => {
   const bytes = await blob.arrayBuffer();
   const { instance } = await WebAssembly.instantiate(bytes, {
     env: {
+      // this function is called from wasm as RNG
       random_bytes(dest, len) {
         const memory = instance.exports.memory;
         const view = new Uint8Array(memory.buffer, dest, len);
@@ -20,60 +50,40 @@ const createInstance = async () => {
   return instance;
 };
 
-const write = (string, buffer, pointer) => {
-  const view = new Uint8Array(buffer, pointer);
-  const encoder = new TextEncoder();
+const instance = await createInstance();
+// console.log(instance.exports);
 
-  view.set(encoder.encode(string));
-}
+let nonce = new Box(instance, instance.exports.generate_nonce());
+let sender = new Box(instance, instance.exports.generate_keypair());
+let receiver = new Box(instance, instance.exports.generate_keypair());
+let signer = new Box(instance, instance.exports.generate_keypair());
 
-const read = (buffer, pointer) => {
-  const view = new Uint8Array(buffer, pointer);
-  const length = view.findIndex(byte => byte === 0);
-  const decoder = new TextDecoder();
-
-  return JSON.parse(decoder.decode(new Uint8Array(buffer, pointer, length)));
+const encoder = new TextEncoder();
+let message = {
+  'entries': [{
+    'key': Base64.encode('data info'),
+    'value': Base64.encode('my data'),
+    'kind': 'RawData'
+  }]
+};
+let params = {
+  'origin': signer.read().public,
+  'public_nonce': nonce.read().data,
+  'sender_pk': sender.read().public,
+  'recipients': [receiver.read().public],
+  'message': message
 };
 
-(async () => {
-  const instance = await createInstance();
-  console.log(instance.exports);
-  const memory = instance.exports.memory;
+params = JSON.stringify(params);
+let wparams = new Box(instance, instance.exports.allocate(params.length));
+wparams.write(params);
+let meta = new Box(instance, instance.exports.new_encrypted_metadata(wparams.pointer));
+let encrypted_meta = meta.read();
+console.log(encrypted_meta);
 
-  const nonce_ptr = instance.exports.generate_nonce();
-  const nonce = read(memory.buffer, nonce_ptr);
-
-  const sender_ptr = instance.exports.generate_keypair();
-  const sender = read(memory.buffer, sender_ptr);
-  const receiver_ptr = instance.exports.generate_keypair();
-  const receiver = read(memory.buffer, receiver_ptr);
-  const signer_ptr = instance.exports.generate_keypair();
-  const signer = read(memory.buffer, signer_ptr);
-
-  const encoder = new TextEncoder();
-  let message = {
-    'entries': [{
-      'key': Base64.encode('data info'),
-      'value': Base64.encode('my data'),
-      'kind': 'RawData'
-    }]
-  };
-  let params = {
-    'origin': signer.public, 'public_nonce': nonce.data,
-    'sender_pk': sender.public, 'recipients': [receiver.public], 'message': message
-
-  };
-  params = JSON.stringify(params);
-  console.log(params);
-  const pointer = instance.exports.allocate(params.length + 1);
-  write(params, memory.buffer, pointer);
-  let meta_ptr = instance.exports.new_encrypted_metadata(pointer);
-  let encrypted_meta = read(memory.buffer, meta_ptr);
-  console.log(encrypted_meta);
-
-  instance.exports.deallocate(pointer, params.length + 1);
-  instance.exports.deallocate(nonce_ptr, nonce.length);
-  instance.exports.deallocate(sender_ptr, sender.length);
-  instance.exports.deallocate(receiver_ptr, receiver.length);
-  instance.exports.deallocate(signer_ptr, signer.length);
-})();
+wparams.deallocate();
+meta.deallocate();
+nonce.deallocate();
+sender.deallocate();
+receiver.deallocate();
+signer.deallocate();
