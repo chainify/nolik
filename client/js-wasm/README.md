@@ -12,6 +12,8 @@ wasm-pack build
 wasm-pack test --headless --firefox
 ```
 
+A JS wasm32 binding using `wasm-bindgen`.
+
 ### 🎁 Publish to NPM with `wasm-pack publish`
 
 ```
