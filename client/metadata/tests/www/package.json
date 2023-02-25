@@ -5,7 +5,7 @@
   "name": "metadata",
   "description": "```bash cargo rustc --crate-type cdylib --target wasm32-unknown-unknown --release --features ffi,custom ```",
   "version": "1.0.0",
-  "main": "test.js",
+  "main": "index.js",
   "keywords": [],
   "author": "",
   "license": "MIT",

@@ -4,10 +4,10 @@
 cargo rustc --crate-type cdylib --target wasm32-unknown-unknown --release --features ffi,custom
 ```
 
-### Tets
+### Test
 
 ```
 cd tests/www
 npm install
-node test.js
+node index.js
 ```
