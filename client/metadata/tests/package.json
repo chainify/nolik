@@ -1,0 +1,18 @@
+{
+  "type": "module",
+  "scripts": {},
+  "devDependencies": {},
+  "name": "metadata",
+  "description": "```bash cargo rustc --crate-type cdylib --target wasm32-unknown-unknown --release --features ffi,custom ```",
+  "version": "1.0.0",
+  "main": "test.js",
+  "keywords": [],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "html-webpack-plugin": "^5.3.2",
+    "text-encoding": "^0.7.0",
+    "get-random-values": "^2.0.0",
+    "node-fetch": "^3.3.0"
+  }
+}

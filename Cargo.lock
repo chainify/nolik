@@ -3929,6 +3929,7 @@ dependencies = [
 name = "nolik-metadata"
 version = "0.1.0"
 dependencies = [
+ "base64 0.21.0",
  "blake2",
  "crypto_box",
  "getrandom 0.2.8",
