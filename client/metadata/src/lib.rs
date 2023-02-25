@@ -211,6 +211,9 @@ mod ffi {
 	mod custom {
 		use getrandom::{self, register_custom_getrandom};
 
+		#[global_allocator]
+		static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
+
 		extern "C" {
 			// call host OS random number generator
 			fn random_bytes(dest: *mut u8, len: usize);

@@ -17,8 +17,10 @@ serde = { version = "1.0", features = ["derive"], optional = true }
 serde_json = { version = "1.0", optional = true }
 base64 = { version = "0.21", optional = true }
 
+wee_alloc = { version = "0.4.5", optional = true }
+
 [features]
 default = ["std"]
 std = ["codec/std", "scale-info/std", "nolik-cypher", "crypto_box/std", "blake2", "serde", "serde_json", "base64"]
 ffi = []
-custom = ["ffi"]
+custom = ["ffi", "wee_alloc"]

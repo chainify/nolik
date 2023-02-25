@@ -30,3 +30,5 @@ var dec = new TextDecoder("utf-8");
 
 console.assert(dec.decode(entry.get('key')), dec.decode(reciever_entry.get('key')));
 console.assert(dec.decode(entry.get('value')), dec.decode(reciever_entry.get('value')));
+
+console.log("tests passed");
