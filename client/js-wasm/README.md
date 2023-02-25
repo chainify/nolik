@@ -18,3 +18,10 @@ wasm-pack test --headless --firefox
 wasm-pack publish
 ```
 
+### Test
+
+```
+cd tests/www
+npm install
+npm run start
+```

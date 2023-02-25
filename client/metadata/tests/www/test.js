@@ -3,7 +3,7 @@ import { fileFromSync } from "node-fetch";
 import getRandomValues from "get-random-values";
 
 const createInstance = async () => {
-  const path = '../../../target/wasm32-unknown-unknown/release/nolik_metadata.wasm';
+  const path = '../../../../target/wasm32-unknown-unknown/release/nolik_metadata.wasm';
   const mimetype = 'text/plain'
   const blob = fileFromSync(path, mimetype)
   const bytes = await blob.arrayBuffer();
