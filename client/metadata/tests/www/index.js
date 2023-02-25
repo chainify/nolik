@@ -70,7 +70,6 @@ const read = (buffer, pointer) => {
   let meta_ptr = instance.exports.new_encrypted_metadata(pointer);
   let encrypted_meta = read(memory.buffer, meta_ptr);
   console.log(encrypted_meta);
-  console.log(encrypted_meta.metadata.channels);
 
   instance.exports.deallocate(pointer, params.length + 1);
   instance.exports.deallocate(nonce_ptr, nonce.length);
