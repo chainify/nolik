@@ -15,7 +15,7 @@ use subxt::{
 	OnlineClient, PolkadotConfig,
 };
 
-use nolik_client::{polkadot, PolkadotMessageMetadata};
+use nolik_cli::{polkadot, PolkadotMessageMetadata};
 use nolik_metadata::{Message, MessageEntry, MessageType};
 
 fn to_hex(bytes: impl AsRef<[u8]>) -> String {
@@ -71,12 +71,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 		.nolik()
 		.send_message(encrypted_metadata.clone(), encrypted_message.encode());
 
-	let events = api
-		.tx()
-		.sign_and_submit_then_watch_default(&tx, &signer)
-		.await?
-		.wait_for_finalized_success()
-		.await?;
+	let sub_ext = api.tx().create_signed(&tx, &signer, Default::default()).await?;
+	let events = sub_ext.submit_and_watch().await?.wait_for_finalized_success().await?;
 
 	let transfer_event = events.find_first::<polkadot::nolik::events::MessageSent>()?;
 
