@@ -1,12 +1,14 @@
+use clap::Parser;
 use crypto_box::{
 	aead::{AeadCore, OsRng},
 	PublicKey, SalsaBox, SecretKey,
 };
 use nolik_cypher::{Cypher, SalsaNonce};
 use parity_scale_codec::{Decode, Encode};
-use sp_core::offchain::StorageKind;
+use sp_core::{crypto::Pair, offchain::StorageKind};
+
 use sp_keyring::AccountKeyring;
-use std::sync::Arc;
+use std::{path::PathBuf, sync::Arc};
 use subxt::{
 	client::default_rpc_client,
 	error::Error as subxtError,
@@ -33,14 +35,42 @@ pub async fn get_offchain_storage(
 	Ok(data)
 }
 
+#[derive(Parser, Debug)]
+#[command(author, version, about, long_about = None)]
+struct Args {
+	/// Node address
+	#[arg(long, default_value = "127.0.0.1")]
+	host: String,
+
+	/// Port
+	#[arg(long, default_value_t = 9944)]
+	port: u16,
+
+	/// Message entries, message key is set to "key"
+	#[arg(long)]
+	entries: Option<Vec<String>>,
+
+	/// Specify secretkey path to sign a message.
+	#[arg(long, value_name = "PATH")]
+	pub secretkey_path: PathBuf,
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
 	tracing_subscriber::fmt::init();
+	let args = Args::parse();
 
-	let url = "ws://127.0.0.1:9944";
+	let secret = std::fs::read_to_string(args.secretkey_path)?;
+	let secret = sp_core::sr25519::Pair::from_seed_slice(
+		&hex::decode(secret.trim())
+			.map_err(|e| format!("Could't decode secret from hex: {}", e))?,
+	)
+	.expect("Secreet seed is not valid");
+
+	let url = format!("ws://{}:{}", args.host, args.port);
 	let client = Arc::new(default_rpc_client(url).await?);
 	let api = OnlineClient::<PolkadotConfig>::from_rpc_client(client.clone()).await?;
-	let signer = PairSigner::new(AccountKeyring::Alice.pair());
+	let signer = PairSigner::new(secret);
 
 	let nonce = SalsaBox::generate_nonce(&mut OsRng);
 
