@@ -4,6 +4,15 @@
 
 A FRAME-based [Substrate](https://www.substrate.io/) node with a [Nolik Pallet](https://github.com/chainify/substrate-nolik-dev/tree/main/pallets/nolik).
 
+
+## Testing
+
+For running tests:
+
+```
+cargo test
+```
+
 ## Getting Started
 
 Follow the steps below to get started with the Node Nolik, or get it up and running right from
@@ -208,26 +217,3 @@ A FRAME pallet is compromised of a number of blockchain primitives:
 - Config: The `Config` configuration interface is used to define the types and parameters upon
   which a FRAME pallet depends.
 
-### Run in Docker
-
-First, install [Docker](https://docs.docker.com/get-docker/) and
-[Docker Compose](https://docs.docker.com/compose/install/).
-
-Then run the following command to start a single node development chain.
-
-```
-docker compose up -d
-```
-
-This command will download the [substrate-nolik-dev](https://hub.docker.com/r/chainify/substrate-nolik-dev) docker image, and then start a local development network. You can
-also replace the default command
-(`./target/release/node-nolik --dev --ws-external`)
-by appending your own. A few useful ones are as follow.
-
-```
-# Compile the code
-docker compose build
-
-# Display and follow the logs
-docker logs -f node-nolik -n 200
-```

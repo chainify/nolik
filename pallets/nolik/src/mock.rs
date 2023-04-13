@@ -55,12 +55,10 @@ impl system::Config for Test {
 }
 
 parameter_types! {
-	// pub const MaxWhiteListAddress: u32 = 4;
 }
 
 impl pallet_nolik::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
-	// type MaxWhiteListAddress = MaxWhiteListAddress;
 }
 
 pub fn new_test_ext() -> sp_io::TestExternalities {
