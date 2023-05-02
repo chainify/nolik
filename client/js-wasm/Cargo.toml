@@ -28,6 +28,7 @@ nolik-metadata = { path = "../metadata" }
 getrandom = { version = "0.2", default-features = false, features = ["js"] }
 crypto_box = { version = "0.8" }
 js-sys = "0.3.61"
+# SBP-M1 review: Please remove this commented dependency
 # anyhow = "1.0"
 
 

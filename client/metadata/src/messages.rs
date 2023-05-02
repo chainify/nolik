@@ -69,6 +69,7 @@ where
 	D: Deserializer<'a>,
 {
 	use serde::de::Error;
+	// SBP-M1 review: no need to borrow, direct string can be passed in decode function
 	String::deserialize(deserializer).and_then(|string| {
 		general_purpose::STANDARD
 			.decode(&string)

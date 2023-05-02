@@ -136,6 +136,7 @@ pub fn new_encrypted_metadata(
 	let public_nonce = Nonce::<SalsaBox>::from_slice(public_nonce.as_slice());
 	let sender_pk = PublicKey::from(js_value_to_array::<KEY_SIZE>(sender_pk.into())?);
 
+	// SBP-M1 review: public nonce can be passed directly as the value is being dereferenced by the compiler immediately
 	let (meta, secret_nonce) = MessageMetadata::new_encrypted(
 		&origin,
 		&public_nonce,
