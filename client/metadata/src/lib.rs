@@ -25,6 +25,8 @@ mod ffi {
 		aead::{AeadCore, OsRng},
 		PublicKey, SalsaBox, SecretKey,
 	};
+
+	// SBP-M1 review: Please complete ToDos
 	// TODO: use scale codec instead of serde_json, also on a client
 	use serde::{Deserialize, Serialize};
 	use std::{

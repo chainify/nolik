@@ -1,6 +1,7 @@
 # Pallet Nolik
 A [Substrate](https://substrate.io) FRAME pallet for sending encrypted messages between blockchain accounts
 
+SBP-M1 review: Typo should be fixed (eg: echange)
 ## Overview
 Nolik is a protocol for secure and verifiable data echange between parties that do not trust each other.
 It is designed to connect people without any form of censorship or third-party control.

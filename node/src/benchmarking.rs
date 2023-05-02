@@ -95,6 +95,7 @@ impl frame_benchmarking_cli::ExtrinsicBuilder for TransferKeepAliveBuilder {
 		"transfer_keep_alive"
 	}
 
+	// SBP-M1 review: No need to use into() for conversion in self.value, as value is u128 already
 	fn build(&self, nonce: u32) -> std::result::Result<OpaqueExtrinsic, &'static str> {
 		let acc = Sr25519Keyring::Bob.pair();
 		let extrinsic: OpaqueExtrinsic = create_benchmark_extrinsic(
@@ -160,6 +161,7 @@ pub fn create_benchmark_extrinsic(
 	);
 	let signature = raw_payload.using_encoded(|e| sender.sign(e));
 
+	// SBP-M1 review: redundant clone, can be removed
 	runtime::UncheckedExtrinsic::new_signed(
 		call.clone(),
 		sp_runtime::AccountId32::from(sender.public()).into(),

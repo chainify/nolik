@@ -147,6 +147,7 @@ pub fn new_partial(
 	})
 }
 
+// SBP-M1 review: Try to deal with static memory (if possible), &str can be incorporated instead of &String
 fn remote_keystore(_url: &String) -> Result<Arc<LocalKeystore>, &'static str> {
 	// FIXME: here would the concrete keystore be built,
 	//        must return a concrete type (NOT `LocalKeystore`) that

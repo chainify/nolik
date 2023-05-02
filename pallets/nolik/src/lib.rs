@@ -69,16 +69,20 @@ pub mod pallet {
 		///   bytes so no encoding and no heap allocation is needed prior to putting the message to
 		///   off-chain storage.
 		#[pallet::call_index(0)]
+		// SBP-M1 review: Implement benchmarking and use benchmarked weight
 		#[pallet::weight(10_000)]
 		pub fn send_message(
 			origin: OriginFor<T>,
 			metadata: MessageMetadata,
+			// SBP-M1 review: BoundedVec should be used to improve security
 			message: Vec<u8>,
 		) -> DispatchResult {
 			let account = ensure_signed(origin)?;
 			Self::check_message(&message, &metadata)?;
 
 			let counter = MessageCounter::<T>::get();
+
+			// SBP-M1: Can be simplified like this `counter.checked_add(1).ok_or(<Error<T>>::MessageCounterOverflow)?`
 			let (counter, overflowed) = counter.overflowing_add(1);
 			// u128 should not overflow, practically impossible
 			if overflowed {
@@ -86,6 +90,7 @@ pub mod pallet {
 			}
 
 			let key = Self::derived_key(&account, counter - 1);
+			// SBP-M1 review: please remove commented code
 			// frame_support::log::info!("The offchain key !!! {:02x?}", key);
 
 			// save message to offchain storage
